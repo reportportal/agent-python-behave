@@ -61,14 +61,16 @@ def read_config(context):
         return cfg
 
     rp_cfg = cp[RP_CFG_SECTION]
-    return Config(
-        endpoint=cfg.endpoint or rp_cfg.get("endpoint"),
-        project=cfg.project or rp_cfg.get("project"),
-        token=cfg.token or rp_cfg.get("token"),
-        launch_name=cfg.launch_name or rp_cfg.get("launch_name"),
-        launch_description=cfg.launch_description
-        or rp_cfg.get("launch_description"),
-        launch_attributes=cfg.launch_attributes
-        or rp_cfg.get("launch_attributes"),
-        step_based=cfg.step_based or rp_cfg.getboolean("step_based"),
+    cfg.endpoint = (cfg.endpoint or rp_cfg.get("endpoint"),)
+    cfg.project = (cfg.project or rp_cfg.get("project"),)
+    cfg.token = (cfg.token or rp_cfg.get("token"),)
+    cfg.launch_name = (cfg.launch_name or rp_cfg.get("launch_name"),)
+    cfg.launch_description = (
+        cfg.launch_description or rp_cfg.get("launch_description"),
     )
+    cfg.launch_attributes = (
+        cfg.launch_attributes or rp_cfg.get("launch_attributes"),
+    )
+    cfg.step_based = cfg.step_based or rp_cfg.getboolean("step_based")
+
+    return cfg
