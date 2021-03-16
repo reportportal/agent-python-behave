@@ -3,10 +3,13 @@ from functools import wraps
 
 from prettytable import PrettyTable
 from reportportal_client import ReportPortalService
-from reportportal_client.helpers import get_launch_sys_attrs
+from reportportal_client.helpers import (
+    get_launch_sys_attrs,
+    get_package_version,
+)
 from reportportal_client.service import _dict_to_payload
 
-from behave_reportportal.utils import get_package_version, timestamp
+from behave_reportportal.utils import timestamp
 
 
 def check_rp_enabled(func):

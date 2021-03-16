@@ -9,11 +9,10 @@ __version__ = '0.2'
 
 
 def read_file(fname):
-    """
-    Read file.
+    """Read the given file.
 
-    :param fname: string of filename
-    :return: File descriptor
+    :param fname: Filename to be read
+    :return: File content
     """
     with open(os.path.join(os.path.dirname(__file__), fname)) as f:
         return f.read()
@@ -39,9 +38,4 @@ setup(
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8'
         ],
-    setup_requires=['pytest-runner'],
-    tests_require=[
-        'pytest',
-        'delayed-assert'
-    ]
 )
