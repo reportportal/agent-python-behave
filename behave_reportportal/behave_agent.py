@@ -5,7 +5,7 @@ from prettytable import PrettyTable
 from reportportal_client import ReportPortalService
 from reportportal_client.helpers import (
     get_launch_sys_attrs,
-    get_package_version,
+    get_package_version, gen_attributes,
 )
 from reportportal_client.service import _dict_to_payload
 
@@ -235,7 +235,7 @@ class BehaveAgent(object):
     @staticmethod
     def _tags(item):
         if item.tags:
-            return {"tags": ", ".join(item.tags)}
+            return gen_attributes(item.tags)
 
     @staticmethod
     def convert_to_rp_status(behave_status):
