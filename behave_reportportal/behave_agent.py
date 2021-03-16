@@ -1,4 +1,5 @@
 """Functionality for integration of Behave tests with Report Portal."""
+from functools import wraps
 
 from prettytable import PrettyTable
 from reportportal_client import ReportPortalService
@@ -11,6 +12,7 @@ from behave_reportportal.utils import get_package_version, timestamp
 def check_rp_enabled(func):
     """Verify is RP is enabled in config."""
 
+    @wraps(func)
     def wrap(*args, **kwargs):
         if args and isinstance(args[0], BehaveAgent):
             if not args[0]._rp:
