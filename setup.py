@@ -21,7 +21,7 @@ def read_file(fname):
 setup(
     name='behave-reportportal',
     version=__version__,
-    description='Agent for Reporting results of tests to the Report Portal',
+    description='Agent for reporting Behave results to the Report Portal',
     long_description=read_file('README.rst'),
     long_description_content_type='text/markdown',
     author_email='SupportEPMC-TSTReportPortal@epam.com',
