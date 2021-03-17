@@ -28,11 +28,10 @@ def check_rp_enabled(func):
 
 def create_rp_service(cfg):
     """Create instance of ReportPortalService."""
-    if not cfg.enabled:
-        return
-    return ReportPortalService(
-        endpoint=cfg.endpoint, project=cfg.project, token=cfg.token
-    )
+    if cfg.enabled:
+        return ReportPortalService(
+            endpoint=cfg.endpoint, project=cfg.project, token=cfg.token
+        )
 
 
 class BehaveAgent(object):
