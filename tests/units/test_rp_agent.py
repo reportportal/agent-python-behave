@@ -1,7 +1,9 @@
+import os
+
+import mock
 import pytest
 from delayed_assert import assert_expectations, expect
 from reportportal_client import ReportPortalService
-from six.moves import mock
 
 from behave_reportportal.behave_agent import BehaveAgent, create_rp_service
 from behave_reportportal.config import Config
@@ -406,3 +408,22 @@ def test_log_exception_without_message():
     ba = BehaveAgent(config, mock_rps)
     ba._log_step_exception(mock_step, "step_id")
     mock_rps.log.assert_not_called()
+
+
+@mock.patch.dict(os.environ, {"ALLURE_NO_ANALYTICS": "1"})
+@mock.patch("behave_reportportal.behave_agent.send_event")
+def test_skip_analytics(mock_send_event, config):
+    mock_rps = mock.create_autospec(ReportPortalService)
+    mock_context = mock.Mock()
+    ba = BehaveAgent(config, mock_rps)
+    ba.start_launch(mock_context)
+    mock_send_event.assert_not_called()
+
+
+@mock.patch("behave_reportportal.behave_agent.send_event")
+def test_analytics(mock_send_event, config):
+    mock_rps = mock.create_autospec(ReportPortalService)
+    mock_context = mock.Mock()
+    ba = BehaveAgent(config, mock_rps)
+    ba.start_launch(mock_context)
+    mock_send_event.assert_called_once_with(ba.agent_name, ba.agent_version)

@@ -1,8 +1,10 @@
 """Functionality for integration of Behave tests with Report Portal."""
 from functools import wraps
+from os import getenv
 
 from prettytable import PrettyTable
 from reportportal_client import ReportPortalService
+from reportportal_client.external.google_analytics import send_event
 from reportportal_client.helpers import (
     gen_attributes,
     get_launch_sys_attrs,
@@ -46,6 +48,7 @@ class BehaveAgent(object):
         self._feature_id = None
         self._scenario_id = None
         self._step_id = None
+        self._skip_analytics = getenv("ALLURE_NO_ANALYTICS")
         self.agent_name = "behave-reportportal"
         self.agent_version = get_package_version(self.agent_name)
 
@@ -59,6 +62,8 @@ class BehaveAgent(object):
             description=self._cfg.launch_description,
             **kwargs
         )
+        if not self._skip_analytics:
+            send_event(self.agent_name, self.agent_version)
 
     @check_rp_enabled
     def finish_launch(self, context, **kwargs):

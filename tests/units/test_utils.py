@@ -1,4 +1,4 @@
-from six.moves import mock
+import mock
 
 from behave_reportportal.utils import timestamp
 
