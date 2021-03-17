@@ -4,8 +4,9 @@ from functools import wraps
 from prettytable import PrettyTable
 from reportportal_client import ReportPortalService
 from reportportal_client.helpers import (
+    gen_attributes,
     get_launch_sys_attrs,
-    get_package_version, gen_attributes,
+    get_package_version,
 )
 from reportportal_client.service import _dict_to_payload
 

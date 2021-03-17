@@ -40,9 +40,9 @@ def test_tags():
     expect(BehaveAgent._tags(mock_item) is None, "Tags is not None")
     mock_item.tags = ["a", "b"]
     expect(
-        BehaveAgent._tags(mock_item) == {"tags": "a, b"},
+        BehaveAgent._tags(mock_item) == [{'value': 'a'}, {'value': 'b'}],
         "Tags are incorrect:\nActual: {}\nExpected: {}".format(
-            BehaveAgent._tags(mock_item), {"tags": "a, b"}
+            BehaveAgent._tags(mock_item),  [{'value': 'a'}, {'value': 'b'}]
         ),
     )
     assert_expectations()
