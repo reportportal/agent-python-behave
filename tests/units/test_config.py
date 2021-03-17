@@ -1,5 +1,6 @@
 from behave.userdata import UserData
 from delayed_assert import assert_expectations, expect
+from six.moves import mock
 
 from behave_reportportal.config import (
     DEFAULT_CFG_FILE,
@@ -8,16 +9,10 @@ from behave_reportportal.config import (
 )
 
 
-try:
-    from unittest.mock import Mock, patch
-except ImportError:
-    from mock import Mock, patch
-
-
-@patch("behave_reportportal.config.ConfigParser", autospec=True)
+@mock.patch("behave_reportportal.config.ConfigParser", autospec=True)
 def test_read_config_with_specified_path(mock_cp):
     mock_cp().sections().__contains__.return_value = False
-    mock_context = Mock()
+    mock_context = mock.Mock()
     mock_context._config.userdata = UserData.make(
         {
             "config_file": "some_path",
@@ -39,10 +34,10 @@ def test_read_config_with_specified_path(mock_cp):
     assert_expectations()
 
 
-@patch("behave_reportportal.config.ConfigParser", autospec=True)
+@mock.patch("behave_reportportal.config.ConfigParser", autospec=True)
 def test_read_invalid_config_file(mock_cp):
     mock_cp().sections().__contains__.return_value = False
-    mock_context = Mock()
+    mock_context = mock.Mock()
     mock_context._config.userdata = UserData.make({})
     cfg = read_config(mock_context)
     expect(mock_cp().read.call_count == 1)

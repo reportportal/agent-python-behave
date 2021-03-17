@@ -1,15 +1,10 @@
 import pytest
 from delayed_assert import assert_expectations, expect
 from reportportal_client import ReportPortalService
+from six.moves import mock
 
 from behave_reportportal.behave_agent import BehaveAgent, create_rp_service
 from behave_reportportal.config import Config
-
-
-try:
-    from unittest import mock
-except ImportError:
-    import mock
 
 
 @pytest.fixture()
@@ -40,9 +35,9 @@ def test_tags():
     expect(BehaveAgent._tags(mock_item) is None, "Tags is not None")
     mock_item.tags = ["a", "b"]
     expect(
-        BehaveAgent._tags(mock_item) == [{'value': 'a'}, {'value': 'b'}],
+        BehaveAgent._tags(mock_item) == [{"value": "a"}, {"value": "b"}],
         "Tags are incorrect:\nActual: {}\nExpected: {}".format(
-            BehaveAgent._tags(mock_item),  [{'value': 'a'}, {'value': 'b'}]
+            BehaveAgent._tags(mock_item), [{"value": "a"}, {"value": "b"}]
         ),
     )
     assert_expectations()

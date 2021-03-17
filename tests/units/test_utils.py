@@ -1,13 +1,9 @@
+from six.moves import mock
+
 from behave_reportportal.utils import timestamp
 
 
-try:
-    from unittest.mock import patch
-except ImportError:
-    from mock import patch
-
-
-@patch("behave_reportportal.utils.time")
+@mock.patch("behave_reportportal.utils.time")
 def test_timestamp(mock_time):
     mock_time.return_value = 123
     actual = timestamp()

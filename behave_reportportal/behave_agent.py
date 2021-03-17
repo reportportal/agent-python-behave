@@ -125,20 +125,20 @@ class BehaveAgent(object):
     @check_rp_enabled
     def start_step(self, context, step, **kwargs):
         """Start test in Report Portal."""
-        if not self._cfg.step_based:
-            return
-        description = step.text or ""
-        self._step_id = self._rp.start_test_item(
-            name="[{keyword}]: {name}".format(
-                keyword=step.keyword, name=step.name
-            ),
-            start_time=timestamp(),
-            item_type="STEP",
-            parent_item_id=self._scenario_id,
-            code_ref=self._code_ref(step),
-            description=description + self._build_table_content(step.table),
-            **kwargs
-        )
+        if self._cfg.step_based:
+            description = step.text or ""
+            self._step_id = self._rp.start_test_item(
+                name="[{keyword}]: {name}".format(
+                    keyword=step.keyword, name=step.name
+                ),
+                start_time=timestamp(),
+                item_type="STEP",
+                parent_item_id=self._scenario_id,
+                code_ref=self._code_ref(step),
+                description=description
+                + self._build_table_content(step.table),
+                **kwargs
+            )
 
     @check_rp_enabled
     def finish_step(self, context, step, **kwargs):
@@ -193,25 +193,23 @@ class BehaveAgent(object):
             self._log_step_exception(step, self._scenario_id)
 
     def _log_step_exception(self, step, item_id):
-        if not step.exception:
-            return
-        self._rp.log(
-            item_id=item_id,
-            time=timestamp(),
-            level="ERROR",
-            message="Step [{keyword}]: {name} was finished with "
-            "exception:\n{exception}".format(
-                keyword=step.keyword,
-                name=step.name,
-                exception=", ".join(step.exception.args),
-            ),
-        )
+        if step.exception:
+            self._rp.log(
+                item_id=item_id,
+                time=timestamp(),
+                level="ERROR",
+                message="Step [{keyword}]: {name} was finished with "
+                "exception:\n{exception}".format(
+                    keyword=step.keyword,
+                    name=step.name,
+                    exception=", ".join(step.exception.args),
+                ),
+            )
 
     @staticmethod
     def _item_description(item):
-        if not item.description:
-            return
-        return "Description:\n{}".format("\n".join(item.description))
+        if item.description:
+            return "Description:\n{}".format("\n".join(item.description))
 
     @staticmethod
     def _get_parameters(scenario):
