@@ -1,2 +1,4 @@
 behave==1.2.6
-pytest-reportportal
+prettytable
+six
+reportportal-client>=5.0.9

@@ -1,0 +1,9 @@
+black>=19.10b0
+delayed_assert
+flake8>=3.8.3
+isort>=5.4.2
+mock
+pytest>=3.0.7
+pycodestyle
+pydocstyle
+pytest-cov==2.10.1
