@@ -48,7 +48,7 @@ class BehaveAgent(object):
         self._feature_id = None
         self._scenario_id = None
         self._step_id = None
-        self._skip_analytics = getenv("ALLURE_NO_ANALYTICS")
+        self._skip_analytics = getenv("AGENT_NO_ANALYTICS")
         self.agent_name = "behave-reportportal"
         self.agent_version = get_package_version(self.agent_name)
 

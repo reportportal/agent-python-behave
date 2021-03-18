@@ -410,7 +410,7 @@ def test_log_exception_without_message():
     mock_rps.log.assert_not_called()
 
 
-@mock.patch.dict(os.environ, {"ALLURE_NO_ANALYTICS": "1"})
+@mock.patch.dict(os.environ, {"AGENT_NO_ANALYTICS": "1"})
 @mock.patch("behave_reportportal.behave_agent.send_event")
 def test_skip_analytics(mock_send_event, config):
     mock_rps = mock.create_autospec(ReportPortalService)
