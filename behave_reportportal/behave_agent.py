@@ -33,7 +33,10 @@ def create_rp_service(cfg):
     """Create instance of ReportPortalService."""
     if cfg.enabled:
         return ReportPortalService(
-            endpoint=cfg.endpoint, project=cfg.project, token=cfg.token
+            endpoint=cfg.endpoint,
+            project=cfg.project,
+            token=cfg.token,
+            is_skipped_an_issue=cfg.is_skipped_an_issue,
         )
 
 

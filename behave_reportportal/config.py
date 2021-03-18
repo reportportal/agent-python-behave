@@ -20,6 +20,7 @@ class Config(object):
         launch_description=None,
         launch_attributes=None,
         step_based=None,
+        is_skipped_an_issue=None,
     ):
         """Initialize instance attributes."""
         self.endpoint = endpoint
@@ -32,6 +33,7 @@ class Config(object):
             " "
         )
         self.step_based = step_based or False
+        self.is_skipped_an_issue = is_skipped_an_issue or False
 
 
 def read_config(context):
@@ -46,7 +48,8 @@ def read_config(context):
     launch_name = cmd_data.get("launch_name")
     launch_description = cmd_data.get("launch_description")
     launch_attributes = cmd_data.get("launch_attributes")
-    step_based = cmd_data.getbool("step_based")
+    step_based = cmd_data.getbool("step_based", None)
+    is_skipped_an_issue = cmd_data.getbool("is_skipped_an_issue", None)
 
     if not cp.has_section(RP_CFG_SECTION):
         return Config(
@@ -57,6 +60,7 @@ def read_config(context):
             launch_description=launch_description,
             launch_attributes=launch_attributes,
             step_based=step_based,
+            is_skipped_an_issue=is_skipped_an_issue,
         )
 
     rp_cfg = cp[RP_CFG_SECTION]
@@ -68,5 +72,10 @@ def read_config(context):
         launch_description=launch_description
         or rp_cfg.get("launch_description"),
         launch_attributes=launch_attributes or rp_cfg.get("launch_attributes"),
-        step_based=step_based or rp_cfg.getboolean("step_based"),
+        step_based=step_based
+        if step_based is not None
+        else rp_cfg.getboolean("step_based"),
+        is_skipped_an_issue=is_skipped_an_issue
+        if is_skipped_an_issue is not None
+        else rp_cfg.getboolean("is_skipped_an_issue"),
     )

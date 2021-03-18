@@ -41,6 +41,7 @@ def test_read_from_file(mock_cp):
     expect(cfg.project == "some data")
     expect(cfg.launch_name == "some data")
     expect(cfg.step_based)
+    expect(cfg.is_skipped_an_issue)
     expect(cfg.launch_attributes == ["some", "data"])
     expect(cfg.launch_description == "some data")
     expect(cfg.enabled)
@@ -61,6 +62,7 @@ def test_read_config_override_from_cmd(mock_cp):
             "launch_attributes": "A B C",
             "launch_description": "launch_description",
             "step_based": "True",
+            "is_skipped_an_issue": "False",
         }
     )
     mock_cp().has_section.return_value = True
@@ -76,5 +78,6 @@ def test_read_config_override_from_cmd(mock_cp):
     expect(cfg.step_based)
     expect(cfg.launch_attributes == ["A", "B", "C"])
     expect(cfg.launch_description == "launch_description")
+    expect(not cfg.is_skipped_an_issue)
     expect(cfg.enabled)
     assert_expectations()

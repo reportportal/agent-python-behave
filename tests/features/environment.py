@@ -1,6 +1,7 @@
 from behave_reportportal.behave_agent import BehaveAgent, create_rp_service
 from behave_reportportal.config import read_config
 
+
 cfg = None
 rp_agent = None
 
