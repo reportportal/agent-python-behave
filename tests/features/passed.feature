@@ -4,6 +4,9 @@ Feature: Calculator functionality
   Calculator should implement all basic arithmetic operations
   such as addition, subtraction, multiplication, division
 
+  Background: Some requirement of this tests
+    Given Some setup condition
+
   @first_scenario_tag
   @second_scenario_tag
   Scenario: Scenario with tags, scenario and step descriptions

@@ -19,6 +19,11 @@ def calculate_two_numbers_from_table(context):
     ]
 
 
+@given("Some setup condition")
+def some_setup_condition(context):
+    pass
+
+
 @when("Use addition operation")
 def use_addition_operation(context):
     context.result = context.number_a + context.number_b
