@@ -11,6 +11,7 @@ Behave extension for reporting test results of Behave to the Reportal Portal.
 * Installation
 * Configuration
 * Launching
+* Integration with GA
 * Copyright Notice
 
 Usage
@@ -21,7 +22,7 @@ Installation
 
 To install agent-python-behave it's necessary to run :code:`pip install git+https://github.com/reportportal/agent-python-behave.git`.
 
-You can find example of integration with behave agent `here <https://github.com/reportportal/agent-python-behaveblob/main/tests/features/environment.py>`_
+You can find example of integration with behave agent `here <https://github.com/reportportal/agent-python-behave/blob/master/tests/features/environment.py>`_
 You can just copy this file to your features folder.
 
 
@@ -73,6 +74,18 @@ To execute tests with Report Portal you should run `behave` command and specify 
 .. code-block:: bash
 
     behave ./tests/features
+
+
+Integration with GA
+-------------------
+ReportPortal is now supporting integrations with more than 15 test frameworks simultaneously. In order to define the most popular agents and plan the team workload accordingly, we are using Google analytics.
+
+ReportPortal collects information about agent name and its version only. This information is sent to Google analytics on the launch start. Please help us to make our work effective.
+If you still want to switch Off Google analytics, please change env variable the way below.
+
+.. code-block:: bash
+
+    export ALLURE_NO_ANALYTICS=1
 
 
 Copyright Notice

@@ -1,13 +1,6 @@
 """Config is structure for configuration of behave Report Portal agent."""
 
-import six
-from six.moves import configparser
-
-
-if six.PY2:
-    ConfigParser = configparser.SafeConfigParser
-else:
-    ConfigParser = configparser.ConfigParser
+from configparser import ConfigParser
 
 
 RP_CFG_SECTION = "report_portal"
@@ -47,30 +40,33 @@ def read_config(context):
     cmd_data = context._config.userdata
     path = cmd_data.get("config_file")
     cp.read(path or DEFAULT_CFG_FILE)
-    cfg = Config(
-        endpoint=cmd_data.get("endpoint"),
-        project=cmd_data.get("project"),
-        token=cmd_data.get("token"),
-        launch_name=cmd_data.get("launch_name"),
-        launch_description=cmd_data.get("launch_description"),
-        launch_attributes=cmd_data.get("launch_attributes"),
-        step_based=cmd_data.getbool("step_based"),
-    )
+    endpoint = cmd_data.get("endpoint")
+    project = cmd_data.get("project")
+    token = cmd_data.get("token")
+    launch_name = cmd_data.get("launch_name")
+    launch_description = cmd_data.get("launch_description")
+    launch_attributes = cmd_data.get("launch_attributes")
+    step_based = cmd_data.getbool("step_based")
 
-    if RP_CFG_SECTION not in cp.sections():
-        return cfg
+    if not cp.has_section(RP_CFG_SECTION):
+        return Config(
+            endpoint=endpoint,
+            project=project,
+            token=token,
+            launch_name=launch_name,
+            launch_description=launch_description,
+            launch_attributes=launch_attributes,
+            step_based=step_based,
+        )
 
     rp_cfg = cp[RP_CFG_SECTION]
-    cfg.endpoint = cfg.endpoint or rp_cfg.get("endpoint")
-    cfg.project = cfg.project or rp_cfg.get("project")
-    cfg.token = cfg.token or rp_cfg.get("token")
-    cfg.launch_name = cfg.launch_name or rp_cfg.get("launch_name")
-    cfg.launch_description = cfg.launch_description or rp_cfg.get(
-        "launch_description"
+    return Config(
+        endpoint=endpoint or rp_cfg.get("endpoint"),
+        project=project or rp_cfg.get("project"),
+        token=token or rp_cfg.get("token"),
+        launch_name=launch_name or rp_cfg.get("launch_name"),
+        launch_description=launch_description
+        or rp_cfg.get("launch_description"),
+        launch_attributes=launch_attributes or rp_cfg.get("launch_attributes"),
+        step_based=step_based or rp_cfg.getboolean("step_based"),
     )
-    cfg.launch_attributes = cfg.launch_attributes or rp_cfg.get(
-        "launch_attributes"
-    )
-    cfg.step_based = cfg.step_based or rp_cfg.getboolean("step_based")
-
-    return cfg
