@@ -22,12 +22,19 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install setuptools wheel
-        pip install -r requirements.txt
         make tools
+        pip install -r requirements.txt
     - name: Install agent
       run: |
         python setup.py sdist bdist_wheel
     - name: Run checks from the Makefile
       run: |
         make check
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v1
+      with:
+        files: coverage.xml
+        flags: unittests
+        name: codecov-agent-behave
+        path_to_write_report: codecov_report.txt
+        verbose: true

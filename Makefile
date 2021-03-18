@@ -23,4 +23,4 @@ fmt:
 	black $(SOURCES) -l 79
 
 tests:
-	pytest ./tests/units
+	pytest --cov=behave_reportportal --cov-report=xml tests/units/
