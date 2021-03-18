@@ -2,6 +2,9 @@
 agent-python-behave
 ===================
 
+.. image:: https://codecov.io/gh/reportportal/agent-python-behave/branch/master/graph/badge.svg
+    :target: https://codecov.io/gh/reportportal/agent-python-behave
+
 Behave extension for reporting test results of Behave to the Reportal Portal.
 
 * Usage
