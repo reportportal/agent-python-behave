@@ -63,6 +63,7 @@ def test_read_config_override_from_cmd(mock_cp):
             "launch_description": "launch_description",
             "step_based": "True",
             "is_skipped_an_issue": "False",
+            "tests_attributes": "A B",
         }
     )
     mock_cp().has_section.return_value = True
@@ -79,5 +80,6 @@ def test_read_config_override_from_cmd(mock_cp):
     expect(cfg.launch_attributes == ["A", "B", "C"])
     expect(cfg.launch_description == "launch_description")
     expect(not cfg.is_skipped_an_issue)
+    expect(cfg.tests_attributes == ["A", "B"])
     expect(cfg.enabled)
     assert_expectations()

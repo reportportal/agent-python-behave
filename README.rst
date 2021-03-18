@@ -59,9 +59,12 @@ The following parameters are optional:
 
 - :code:`launch_name = AnyLaunchName` - launch name (default value is 'Python Behave Launch')
 - :code:`launch_id = xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx` - id of the existing launch (the session will not handle the lifecycle of the given launch)
-- :code:`launch_attributes = 'Smoke Env:Python3'` - list of attributes for launch
-- :code:`launch_description = 'Smoke test'` - launch description
+- :code:`launch_attributes = Smoke Env:Python3` - list of attributes for launch
+- :code:`launch_description = Smoke test` - launch description
 - :code:`step_based = True` - responsible for Scenario or Step based logging (Scenario based approach is used by default)
+- :code:`is_skipped_an_issue = False` - if it True, skipped tests are not marked as issue
+- :code:`tests_attributes = Regression Smoke` - list of attributes that will be added for each item in the launch
+
 
 If you like to override the above parameters from command line, or from CI environment based on your build, then pass
 - :code:`-D parameter=value` during invocation.

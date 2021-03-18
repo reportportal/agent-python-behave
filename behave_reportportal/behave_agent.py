@@ -85,7 +85,7 @@ class BehaveAgent(object):
             item_type="SUITE",
             description=self._item_description(feature),
             code_ref=self._code_ref(feature),
-            attributes=self._tags(feature),
+            attributes=self._attributes(feature),
             **kwargs
         )
 
@@ -112,7 +112,7 @@ class BehaveAgent(object):
             item_type="STEP",
             parent_item_id=self._feature_id,
             code_ref=self._code_ref(scenario),
-            attributes=self._tags(scenario),
+            attributes=self._attributes(scenario),
             parameters=self._get_parameters(scenario),
             description=self._item_description(scenario),
             **kwargs
@@ -238,10 +238,11 @@ class BehaveAgent(object):
                 line=item.location.line,
             )
 
-    @staticmethod
-    def _tags(item):
+    def _attributes(self, item):
+        attrs = self._cfg.tests_attributes or []
         if item.tags:
-            return gen_attributes(item.tags)
+            attrs.extend(item.tags)
+        return gen_attributes(attrs)
 
     @staticmethod
     def convert_to_rp_status(behave_status):

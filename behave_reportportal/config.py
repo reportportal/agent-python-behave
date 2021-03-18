@@ -21,6 +21,7 @@ class Config(object):
         launch_attributes=None,
         step_based=None,
         is_skipped_an_issue=None,
+        tests_attributes=None,
     ):
         """Initialize instance attributes."""
         self.endpoint = endpoint
@@ -34,6 +35,9 @@ class Config(object):
         )
         self.step_based = step_based or False
         self.is_skipped_an_issue = is_skipped_an_issue or False
+        self.tests_attributes = tests_attributes and tests_attributes.split(
+            " "
+        )
 
 
 def read_config(context):
@@ -50,6 +54,7 @@ def read_config(context):
     launch_attributes = cmd_data.get("launch_attributes")
     step_based = cmd_data.getbool("step_based", None)
     is_skipped_an_issue = cmd_data.getbool("is_skipped_an_issue", None)
+    tests_attributes = cmd_data.get("tests_attributes")
 
     if not cp.has_section(RP_CFG_SECTION):
         return Config(
@@ -61,6 +66,7 @@ def read_config(context):
             launch_attributes=launch_attributes,
             step_based=step_based,
             is_skipped_an_issue=is_skipped_an_issue,
+            tests_attributes=tests_attributes,
         )
 
     rp_cfg = cp[RP_CFG_SECTION]
@@ -78,4 +84,5 @@ def read_config(context):
         is_skipped_an_issue=is_skipped_an_issue
         if is_skipped_an_issue is not None
         else rp_cfg.getboolean("is_skipped_an_issue"),
+        tests_attributes=tests_attributes or rp_cfg.get("tests_attributes"),
     )

@@ -31,16 +31,20 @@ def test_convert_to_rp_status(status, expected):
     ), "Incorrect status:\nActual: {}\nExpected:{}".format(actual, expected)
 
 
-def test_tags():
+def test_attributes():
     mock_item = mock.Mock()
     mock_item.tags = None
-    expect(BehaveAgent._tags(mock_item) is None, "Tags is not None")
+    mock_rps = mock.create_autospec(ReportPortalService)
+    cfg = Config(endpoint="E", token="T", project="P")
+    ba = BehaveAgent(cfg, mock_rps)
+    expect(ba._attributes(mock_item) == [], "Attributes is not empty")
+    cfg.tests_attributes = ["C", "D"]
     mock_item.tags = ["a", "b"]
+    exp = [{"value": "C"}, {"value": "D"}, {"value": "a"}, {"value": "b"}]
+    act = ba._attributes(mock_item)
     expect(
-        BehaveAgent._tags(mock_item) == [{"value": "a"}, {"value": "b"}],
-        "Tags are incorrect:\nActual: {}\nExpected: {}".format(
-            BehaveAgent._tags(mock_item), [{"value": "a"}, {"value": "b"}]
-        ),
+        act == exp,
+        "Attributes are incorrect:\nActual: {}\nExpected: {}".format(act, exp),
     )
     assert_expectations()
 
@@ -188,7 +192,7 @@ def verify_start_feature(mock_feature, config):
         item_type="SUITE",
         description=BehaveAgent._item_description(mock_feature),
         code_ref=BehaveAgent._code_ref(mock_feature),
-        attributes=BehaveAgent._tags(mock_feature),
+        attributes=ba._attributes(mock_feature),
         some_key="some_value",
     )
     assert (
@@ -255,7 +259,7 @@ def verify_start_scenario(mock_scenario, config):
         description=BehaveAgent._item_description(mock_scenario),
         code_ref=BehaveAgent._code_ref(mock_scenario),
         parameters=BehaveAgent._get_parameters(mock_scenario),
-        attributes=BehaveAgent._tags(mock_scenario),
+        attributes=ba._attributes(mock_scenario),
         some_key="some_value",
     )
     assert (
