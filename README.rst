@@ -19,7 +19,7 @@ Installation
 
 To install agent-python-behave it's necessary to run :code:`pip install git+https://github.com/reportportal/agent-python-behave.git`.
 
-You can find example of integration with behave agent `here <https://github.com/reportportal/agent-python-behaveblob/main/tests/features/environment.py>`_
+You can find example of integration with behave agent `here <https://github.com/reportportal/agent-python-behave/blob/master/tests/features/environment.py>`_
 You can just copy this file to your features folder.
 
 
