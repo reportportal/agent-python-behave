@@ -22,6 +22,7 @@ class Config(object):
         step_based=None,
         is_skipped_an_issue=None,
         tests_attributes=None,
+        retries=None,
     ):
         """Initialize instance attributes."""
         self.endpoint = endpoint
@@ -38,6 +39,7 @@ class Config(object):
         self.tests_attributes = tests_attributes and tests_attributes.split(
             " "
         )
+        self.retries = retries
 
 
 def read_config(context):
@@ -55,6 +57,7 @@ def read_config(context):
     step_based = cmd_data.getbool("step_based", None)
     is_skipped_an_issue = cmd_data.getbool("is_skipped_an_issue", None)
     tests_attributes = cmd_data.get("tests_attributes")
+    retries = cmd_data.getint("retries", None)
 
     if not cp.has_section(RP_CFG_SECTION):
         return Config(
@@ -67,6 +70,7 @@ def read_config(context):
             step_based=step_based,
             is_skipped_an_issue=is_skipped_an_issue,
             tests_attributes=tests_attributes,
+            retries=retries,
         )
 
     rp_cfg = cp[RP_CFG_SECTION]
@@ -85,4 +89,5 @@ def read_config(context):
         if is_skipped_an_issue is not None
         else rp_cfg.getboolean("is_skipped_an_issue"),
         tests_attributes=tests_attributes or rp_cfg.get("tests_attributes"),
+        retries=retries or rp_cfg.getint("retries"),
     )

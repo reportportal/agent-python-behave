@@ -34,6 +34,7 @@ def test_read_from_file(mock_cp):
     mock_content = mock.Mock()
     mock_content.get.return_value = "some data"
     mock_content.getboolean.return_value = True
+    mock_content.getint.return_value = 2
     mock_cp().__getitem__.return_value = mock_content
     cfg = read_config(mock_context)
     expect(cfg.endpoint == "some data")
@@ -44,6 +45,7 @@ def test_read_from_file(mock_cp):
     expect(cfg.is_skipped_an_issue)
     expect(cfg.launch_attributes == ["some", "data"])
     expect(cfg.launch_description == "some data")
+    expect(cfg.retries == 2)
     expect(cfg.enabled)
     assert_expectations()
 
@@ -64,12 +66,14 @@ def test_read_config_override_from_cmd(mock_cp):
             "step_based": "True",
             "is_skipped_an_issue": "False",
             "tests_attributes": "A B",
+            "retries": 3,
         }
     )
     mock_cp().has_section.return_value = True
     mock_content = mock.Mock()
     mock_content.get.return_value = "some data"
     mock_content.getboolean.return_value = True
+    mock_content.getint.return_value = 2
     mock_cp().__getitem__.return_value = mock_content
     cfg = read_config(mock_context)
     expect(cfg.endpoint == "endpoint")
@@ -81,5 +85,6 @@ def test_read_config_override_from_cmd(mock_cp):
     expect(cfg.launch_description == "launch_description")
     expect(not cfg.is_skipped_an_issue)
     expect(cfg.tests_attributes == ["A", "B"])
+    expect(cfg.retries == 3)
     expect(cfg.enabled)
     assert_expectations()

@@ -3,6 +3,7 @@ import os
 import mock
 import pytest
 from delayed_assert import assert_expectations, expect
+from prettytable import PrettyTable
 from reportportal_client import ReportPortalService
 
 from behave_reportportal.behave_agent import BehaveAgent, create_rp_service
@@ -22,7 +23,12 @@ def config():
 
 @pytest.mark.parametrize(
     "status,expected",
-    [("passed", "PASSED"), ("skipped", "SKIPPED"), ("failed", "FAILED")],
+    [
+        ("passed", "PASSED"),
+        ("skipped", "SKIPPED"),
+        ("failed", "FAILED"),
+        ("xyz", "PASSED"),
+    ],
 )
 def test_convert_to_rp_status(status, expected):
     actual = BehaveAgent.convert_to_rp_status(status)
@@ -97,6 +103,23 @@ def test_create_rp_service_enabled_rp():
     assert isinstance(
         rp, ReportPortalService
     ), "Invalid initialization of RP ReportPortalService"
+
+
+@mock.patch("behave_reportportal.behave_agent.ReportPortalService")
+def test_create_rp_service_init(mock_rps):
+    create_rp_service(Config(endpoint="A", token="B", project="C"))
+    mock_rps.assert_has_calls(
+        [
+            mock.call(
+                endpoint="A",
+                token="B",
+                project="C",
+                is_skipped_an_issue=False,
+                retries=None,
+            )
+        ],
+        any_order=True,
+    )
 
 
 def test_init_invalid_config():
@@ -431,3 +454,71 @@ def test_analytics(mock_send_event, config):
     ba = BehaveAgent(config, mock_rps)
     ba.start_launch(mock_context)
     mock_send_event.assert_called_once_with(ba.agent_name, ba.agent_version)
+
+
+def test_rp_is_none():
+    ba = BehaveAgent(Config(), None)
+    ba.start_step(mock.Mock(), mock.Mock)
+    assert ba._step_id is None
+
+
+@mock.patch.object(BehaveAgent, "_log")
+def test_post_log(mock_log, config):
+    mock_rps = mock.create_autospec(ReportPortalService)
+    ba = BehaveAgent(config, mock_rps)
+    ba._log_item_id = "log_item_id"
+    ba.post_log("message", file_to_attach="filepath")
+    mock_log.assert_called_once_with(
+        "message", "INFO", item_id="log_item_id", file_to_attach="filepath"
+    )
+
+
+@mock.patch.object(BehaveAgent, "_log")
+def test_post_launch_log(mock_log, config):
+    mock_rps = mock.create_autospec(ReportPortalService)
+    ba = BehaveAgent(config, mock_rps)
+    ba._log_item_id = "log_item_id"
+    ba.post_launch_log("message", file_to_attach="filepath")
+    mock_log.assert_called_once_with(
+        "message", "INFO", file_to_attach="filepath"
+    )
+
+
+@mock.patch("behave_reportportal.behave_agent.mimetypes")
+@mock.patch("behave_reportportal.behave_agent.timestamp")
+def test_post__log(mock_timestamp, mock_mime, config):
+    mock_timestamp.return_value = 123
+    mock_rps = mock.create_autospec(ReportPortalService)
+    ba = BehaveAgent(config, mock_rps)
+    mock_mime.guess_type.return_value = ("mime_type", None)
+    with mock.patch("builtins.open", mock.mock_open(read_data="data")):
+        ba._log(
+            "message", "ERROR", file_to_attach="filepath", item_id="item_id"
+        )
+        mock_rps.log.assert_called_once_with(
+            time=123,
+            message="message",
+            level="ERROR",
+            attachment={
+                "name": "filepath",
+                "data": "data",
+                "mime": "mime_type",
+            },
+            item_id="item_id",
+        )
+
+
+@mock.patch.object(PrettyTable, "__init__")
+@mock.patch.object(PrettyTable, "add_row")
+@mock.patch.object(PrettyTable, "get_string")
+def test_build_table_content(mock_get_string, mock_add_row, mock_init):
+    mock_init.return_value = None
+    mock_table = mock.Mock()
+    mock_table.headings = ["A", "B"]
+    mock_rows = mock.Mock()
+    mock_rows.cells = ["c", "d"]
+    mock_table.rows = [mock_rows]
+    BehaveAgent._build_table_content(mock_table)
+    mock_init.assert_called_once_with(field_names=["A", "B"])
+    mock_add_row.assert_called_once_with(["c", "d"])
+    mock_get_string.assert_called_once()

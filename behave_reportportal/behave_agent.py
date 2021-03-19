@@ -1,4 +1,6 @@
 """Functionality for integration of Behave tests with Report Portal."""
+import mimetypes
+import os
 from functools import wraps
 from os import getenv
 
@@ -37,6 +39,7 @@ def create_rp_service(cfg):
             project=cfg.project,
             token=cfg.token,
             is_skipped_an_issue=cfg.is_skipped_an_issue,
+            retries=cfg.retries,
         )
 
 
@@ -51,6 +54,7 @@ class BehaveAgent(object):
         self._feature_id = None
         self._scenario_id = None
         self._step_id = None
+        self._log_item_id = None
         self._skip_analytics = getenv("AGENT_NO_ANALYTICS")
         self.agent_name = "behave-reportportal"
         self.agent_version = get_package_version(self.agent_name)
@@ -88,6 +92,7 @@ class BehaveAgent(object):
             attributes=self._attributes(feature),
             **kwargs
         )
+        self._log_item_id = self._feature_id
 
     @check_rp_enabled
     def finish_feature(self, context, feature, status=None, **kwargs):
@@ -117,6 +122,7 @@ class BehaveAgent(object):
             description=self._item_description(scenario),
             **kwargs
         )
+        self._log_item_id = self._scenario_id
 
     @check_rp_enabled
     def finish_scenario(self, context, scenario, status=None, **kwargs):
@@ -129,6 +135,7 @@ class BehaveAgent(object):
             status=status or self.convert_to_rp_status(scenario.status.name),
             **kwargs
         )
+        self._log_item_id = self._feature_id
 
     @check_rp_enabled
     def start_step(self, context, step, **kwargs):
@@ -147,6 +154,7 @@ class BehaveAgent(object):
                 + self._build_table_content(step.table),
                 **kwargs
             )
+            self._log_item_id = self._step_id
 
     @check_rp_enabled
     def finish_step(self, context, step, **kwargs):
@@ -155,6 +163,41 @@ class BehaveAgent(object):
             self._finish_step_step_based(step, **kwargs)
             return
         self._finish_step_scenario_based(step, **kwargs)
+
+    @check_rp_enabled
+    def post_log(
+        self, message, level="INFO", item_id=None, file_to_attach=None
+    ):
+        """Post log message to current test item."""
+        self._log(
+            message,
+            level,
+            file_to_attach=file_to_attach,
+            item_id=item_id or self._log_item_id,
+        )
+
+    @check_rp_enabled
+    def post_launch_log(self, message, level="INFO", file_to_attach=None):
+        """Post log message to launch."""
+        self._log(message, level, file_to_attach=file_to_attach)
+
+    def _log(self, message, level, file_to_attach=None, item_id=None):
+        attachment = None
+        if file_to_attach:
+            with open(file_to_attach, "rb") as f:
+                attachment = {
+                    "name": os.path.basename(file_to_attach),
+                    "data": f.read(),
+                    "mime": mimetypes.guess_type(file_to_attach)[0]
+                    or "application/octet-stream",
+                }
+        self._rp.log(
+            time=timestamp(),
+            message=message,
+            level=level,
+            attachment=attachment,
+            item_id=item_id,
+        )
 
     def _get_launch_attributes(self):
         """Return launch attributes in the format supported by the rp."""
@@ -183,6 +226,7 @@ class BehaveAgent(object):
             status=status or self.convert_to_rp_status(step.status.name),
             **kwargs
         )
+        self._log_item_id = self._scenario_id
 
     def _finish_step_scenario_based(self, step, **kwargs):
         self._rp.log(
