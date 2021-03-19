@@ -1,5 +1,4 @@
 """Config is structure for configuration of behave Report Portal agent."""
-
 from configparser import ConfigParser
 
 
@@ -23,6 +22,7 @@ class Config(object):
         is_skipped_an_issue=None,
         tests_attributes=None,
         retries=None,
+        **kwargs
     ):
         """Initialize instance attributes."""
         self.endpoint = endpoint
@@ -34,12 +34,12 @@ class Config(object):
         self.launch_attributes = launch_attributes and launch_attributes.split(
             " "
         )
-        self.step_based = step_based or False
-        self.is_skipped_an_issue = is_skipped_an_issue or False
+        self.step_based = get_bool(step_based) or False
+        self.is_skipped_an_issue = get_bool(is_skipped_an_issue) or False
         self.tests_attributes = tests_attributes and tests_attributes.split(
             " "
         )
-        self.retries = retries
+        self.retries = retries and int(retries)
 
 
 def read_config(context):
@@ -48,46 +48,16 @@ def read_config(context):
     cmd_data = context._config.userdata
     path = cmd_data.get("config_file")
     cp.read(path or DEFAULT_CFG_FILE)
-    endpoint = cmd_data.get("endpoint")
-    project = cmd_data.get("project")
-    token = cmd_data.get("token")
-    launch_name = cmd_data.get("launch_name")
-    launch_description = cmd_data.get("launch_description")
-    launch_attributes = cmd_data.get("launch_attributes")
-    step_based = cmd_data.getbool("step_based", None)
-    is_skipped_an_issue = cmd_data.getbool("is_skipped_an_issue", None)
-    tests_attributes = cmd_data.get("tests_attributes")
-    retries = cmd_data.getint("retries", None)
+    rp_cfg = {}
+    if cp.has_section(RP_CFG_SECTION):
+        rp_cfg = cp[RP_CFG_SECTION]
+    rp_cfg.update(cmd_data)
 
-    if not cp.has_section(RP_CFG_SECTION):
-        return Config(
-            endpoint=endpoint,
-            project=project,
-            token=token,
-            launch_name=launch_name,
-            launch_description=launch_description,
-            launch_attributes=launch_attributes,
-            step_based=step_based,
-            is_skipped_an_issue=is_skipped_an_issue,
-            tests_attributes=tests_attributes,
-            retries=retries,
-        )
+    return Config(**rp_cfg)
 
-    rp_cfg = cp[RP_CFG_SECTION]
-    return Config(
-        endpoint=endpoint or rp_cfg.get("endpoint"),
-        project=project or rp_cfg.get("project"),
-        token=token or rp_cfg.get("token"),
-        launch_name=launch_name or rp_cfg.get("launch_name"),
-        launch_description=launch_description
-        or rp_cfg.get("launch_description"),
-        launch_attributes=launch_attributes or rp_cfg.get("launch_attributes"),
-        step_based=step_based
-        if step_based is not None
-        else rp_cfg.getboolean("step_based"),
-        is_skipped_an_issue=is_skipped_an_issue
-        if is_skipped_an_issue is not None
-        else rp_cfg.getboolean("is_skipped_an_issue"),
-        tests_attributes=tests_attributes or rp_cfg.get("tests_attributes"),
-        retries=retries or rp_cfg.getint("retries"),
-    )
+
+def get_bool(value):
+    """Convert string value to bool."""
+    if value is None:
+        return
+    return value.lower() == "true"
