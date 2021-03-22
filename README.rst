@@ -65,6 +65,8 @@ The following parameters are optional:
 - :code:`is_skipped_an_issue = False` - if it True, skipped tests are not marked as issue
 - :code:`tests_attributes = Regression Smoke` - list of attributes that will be added for each item in the launch
 - :code:`retries = 3` - amount of retries for performing REST calls to RP server
+- :code:`rerun = True` - marks the launch as the rerun
+- :code:`rerun_of = xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`` - launch id to rerun
 
 
 If you like to override the above parameters from command line, or from CI environment based on your build, then pass

@@ -22,6 +22,8 @@ class Config(object):
         is_skipped_an_issue=None,
         tests_attributes=None,
         retries=None,
+        rerun=None,
+        rerun_of=None,
         **kwargs
     ):
         """Initialize instance attributes."""
@@ -40,6 +42,8 @@ class Config(object):
             " "
         )
         self.retries = retries and int(retries)
+        self.rerun = get_bool(rerun) or False
+        self.rerun_of = rerun_of
 
 
 def read_config(context):

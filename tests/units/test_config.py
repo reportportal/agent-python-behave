@@ -42,6 +42,8 @@ def test_read_from_file(mock_cp):
         "is_skipped_an_issue": "True",
         "tests_attributes": "A B",
         "retries": "2",
+        "rerun": "True",
+        "rerun_of": "launch_id",
     }
     cfg = read_config(mock_context)
     expect(cfg.endpoint == "endpoint")
@@ -54,6 +56,8 @@ def test_read_from_file(mock_cp):
     expect(cfg.launch_description == "launch_description")
     expect(cfg.tests_attributes == ["A", "B"])
     expect(cfg.retries == 2)
+    expect(cfg.rerun is True)
+    expect(cfg.rerun_of == "launch_id")
     expect(cfg.enabled is True)
     assert_expectations()
 
@@ -75,6 +79,8 @@ def test_read_config_from_cmd(mock_cp):
             "is_skipped_an_issue": "False",
             "tests_attributes": "A B",
             "retries": 3,
+            "rerun": "True",
+            "rerun_of": "launch_id",
         }
     )
     cfg = read_config(mock_context)
@@ -88,6 +94,8 @@ def test_read_config_from_cmd(mock_cp):
     expect(cfg.is_skipped_an_issue is False)
     expect(cfg.tests_attributes == ["A", "B"])
     expect(cfg.retries == 3)
+    expect(cfg.rerun is True)
+    expect(cfg.rerun_of == "launch_id")
     expect(cfg.enabled is True)
     assert_expectations()
 
@@ -109,6 +117,8 @@ def test_read_config_override_from_cmd(mock_cp):
             "is_skipped_an_issue": "False",
             "tests_attributes": "A B",
             "retries": 3,
+            "rerun": "False",
+            "rerun_of": "rerun_launch_id",
         }
     )
     mock_cp().__getitem__.return_value = {
@@ -122,6 +132,8 @@ def test_read_config_override_from_cmd(mock_cp):
         "is_skipped_an_issue": "True",
         "tests_attributes": "A B",
         "retries": "2",
+        "rerun": "True",
+        "rerun_of": "launch_id",
     }
     cfg = read_config(mock_context)
     expect(cfg.endpoint == "endpoint")
@@ -134,6 +146,8 @@ def test_read_config_override_from_cmd(mock_cp):
     expect(cfg.is_skipped_an_issue is False)
     expect(cfg.tests_attributes == ["A", "B"])
     expect(cfg.retries == 3)
+    expect(cfg.rerun is False)
+    expect(cfg.rerun_of == "rerun_launch_id")
     expect(cfg.enabled is True)
     assert_expectations()
 
@@ -154,5 +168,7 @@ def test_read_config_default_values(mock_cp):
     expect(cfg.is_skipped_an_issue is False)
     expect(cfg.tests_attributes is None)
     expect(cfg.retries is None)
+    expect(cfg.rerun is False)
+    expect(cfg.rerun_of is None)
     expect(cfg.enabled is False)
     assert_expectations()

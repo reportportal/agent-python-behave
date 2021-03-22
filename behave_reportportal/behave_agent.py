@@ -67,6 +67,8 @@ class BehaveAgent(object):
             start_time=timestamp(),
             attributes=self._get_launch_attributes(),
             description=self._cfg.launch_description,
+            rerun=self._cfg.rerun,
+            rerunOf=self._cfg.rerun_of,
             **kwargs
         )
         if not self._skip_analytics:

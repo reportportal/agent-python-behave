@@ -168,6 +168,35 @@ def test_start_launch(mock_timestamp, config):
         attributes=ba._get_launch_attributes(),
         description=config.launch_description,
         some_key="some_value",
+        rerun=False,
+        rerunOf=None,
+    )
+
+
+@mock.patch("behave_reportportal.behave_agent.timestamp")
+def test_start_launch_with_rerun(mock_timestamp):
+    mock_timestamp.return_value = 123
+    mock_rps = mock.create_autospec(ReportPortalService)
+    mock_context = mock.Mock()
+    cfg = Config(
+        endpoint="endpoint",
+        token="token",
+        project="project",
+        launch_name="launch_name",
+        launch_description="launch_description",
+        retun=True,
+        rerun_of="launch_id",
+    )
+    ba = BehaveAgent(cfg, mock_rps)
+    ba.start_launch(mock_context, some_key="some_value")
+    mock_rps.start_launch.assert_called_once_with(
+        name=cfg.launch_name,
+        start_time=123,
+        attributes=ba._get_launch_attributes(),
+        description=cfg.launch_description,
+        some_key="some_value",
+        rerun=cfg.rerun,
+        rerunOf=cfg.rerun_of,
     )
 
 
