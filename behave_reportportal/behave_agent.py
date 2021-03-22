@@ -58,6 +58,7 @@ class BehaveAgent(object):
         self._skip_analytics = getenv("AGENT_NO_ANALYTICS")
         self.agent_name = "behave-reportportal"
         self.agent_version = get_package_version(self.agent_name)
+        self._ignore_tag_prefixes = ["attribute"]
 
     @check_rp_enabled
     def start_launch(self, context, **kwargs):
@@ -285,10 +286,34 @@ class BehaveAgent(object):
             )
 
     def _attributes(self, item):
-        attrs = self._cfg.tests_attributes or []
+        attrs = []
         if item.tags:
-            attrs.extend(item.tags)
+            significant_tags = [
+                t
+                for t in item.tags
+                if not any(t.startswith(p) for p in self._ignore_tag_prefixes)
+            ]
+            attrs.extend(significant_tags)
+            attrs.extend(self._get_attributes_from_tags(item.tags))
+
         return gen_attributes(attrs)
+
+    @staticmethod
+    def _get_attributes_from_tags(tags):
+        result = []
+        attr_tags = [t for t in tags if t.startswith("attribute")]
+
+        for attr_tag in attr_tags:
+            start = attr_tag.find("(")
+            end = attr_tag.find(")")
+            if start == -1 or end == -1:
+                continue
+            attr_str = attr_tag[start + 1 : end]
+            if not attr_str:
+                continue
+            result.extend([a.strip() for a in attr_str.split(",")])
+
+        return result
 
     @staticmethod
     def convert_to_rp_status(behave_status):

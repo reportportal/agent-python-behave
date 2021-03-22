@@ -11,6 +11,7 @@ Behave extension for reporting test results of Behave to the Reportal Portal.
 * Installation
 * Configuration
 * Launching
+* Test item attributes
 * Integration with GA
 * Copyright Notice
 
@@ -63,7 +64,6 @@ The following parameters are optional:
 - :code:`launch_description = Smoke test` - launch description
 - :code:`step_based = True` - responsible for Scenario or Step based logging (Scenario based approach is used by default)
 - :code:`is_skipped_an_issue = False` - if it True, skipped tests are not marked as issue
-- :code:`tests_attributes = Regression Smoke` - list of attributes that will be added for each item in the launch
 - :code:`retries = 3` - amount of retries for performing REST calls to RP server
 - :code:`rerun = True` - marks the launch as the rerun
 - :code:`rerun_of = xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`` - launch id to rerun
@@ -80,6 +80,26 @@ To execute tests with Report Portal you should run `behave` command and specify 
 .. code-block:: bash
 
     behave ./tests/features
+
+
+Test item attributes
+~~~~~~~~~
+
+Tag `attribute` could be used to specify attributes for features and scenarios.
+Attributes should be listed inside brackets of attribute tag separated by commas.
+
+Example:
+
+.. code-block:: python
+
+    @attribute(key:value, value2)
+    @attribute(some_other_attribute)
+    Feature: feature name
+
+        @attribute(key:value, value2, value3)
+        Scenario: scenario name
+
+
 
 
 Integration with GA

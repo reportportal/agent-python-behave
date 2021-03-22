@@ -37,22 +37,47 @@ def test_convert_to_rp_status(status, expected):
     ), "Incorrect status:\nActual: {}\nExpected:{}".format(actual, expected)
 
 
-def test_attributes():
+def test_attributes(config):
     mock_item = mock.Mock()
     mock_item.tags = None
     mock_rps = mock.create_autospec(ReportPortalService)
-    cfg = Config(endpoint="E", token="T", project="P")
-    ba = BehaveAgent(cfg, mock_rps)
+    ba = BehaveAgent(config, mock_rps)
     expect(ba._attributes(mock_item) == [], "Attributes is not empty")
-    cfg.tests_attributes = ["C", "D"]
-    mock_item.tags = ["a", "b"]
-    exp = [{"value": "C"}, {"value": "D"}, {"value": "a"}, {"value": "b"}]
+    mock_item.tags = ["a", "b", "attribute(k1:v1,v2)"]
+    exp = [
+        {"value": "a"},
+        {"value": "b"},
+        {"key": "k1", "value": "v1"},
+        {"value": "v2"},
+    ]
     act = ba._attributes(mock_item)
     expect(
         act == exp,
         "Attributes are incorrect:\nActual: {}\nExpected: {}".format(act, exp),
     )
     assert_expectations()
+
+
+@pytest.mark.parametrize(
+    "tags,exp_attrs",
+    [
+        (["attribute( k1: v1,  v2,v3 )"], ["k1: v1", "v2", "v3"]),
+        (["attribute(k1:v1,k2:v2)"], ["k1:v1", "k2:v2"]),
+        (["attribute(v1,v2)"], ["v1", "v2"]),
+        (["attribute(v1)"], ["v1"]),
+        (["attribute(v1)", "attribute(k2:v2,v3)"], ["v1", "k2:v2", "v3"]),
+        (["attr(v1)"], []),
+        (["attribute"], []),
+        (["attribute)"], []),
+        (["attribute("], []),
+        (["attribute()"], []),
+        (["attribute(some_text"], []),
+        (["attributesome_text)"], []),
+    ],
+)
+def test_get_attributes_from_tags(tags, exp_attrs):
+    act_attrs = BehaveAgent._get_attributes_from_tags(tags)
+    assert act_attrs == exp_attrs
 
 
 def test_code_ref():

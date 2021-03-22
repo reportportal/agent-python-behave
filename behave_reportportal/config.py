@@ -20,7 +20,6 @@ class Config(object):
         launch_attributes=None,
         step_based=None,
         is_skipped_an_issue=None,
-        tests_attributes=None,
         retries=None,
         rerun=None,
         rerun_of=None,
@@ -38,9 +37,6 @@ class Config(object):
         )
         self.step_based = get_bool(step_based) or False
         self.is_skipped_an_issue = get_bool(is_skipped_an_issue) or False
-        self.tests_attributes = tests_attributes and tests_attributes.split(
-            " "
-        )
         self.retries = retries and int(retries)
         self.rerun = get_bool(rerun) or False
         self.rerun_of = rerun_of
