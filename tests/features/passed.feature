@@ -1,3 +1,4 @@
+@fixture.feature_fixture
 @attribute(feature_key:feature_value,some_other_value)
 @first_feature_tag
 @second_feature_tag
@@ -8,6 +9,7 @@ Feature: Calculator functionality
   Background: Some requirement of this tests
     Given Some setup condition
 
+  @fixture.scenario_fixture
   @first_scenario_tag
   @second_scenario_tag
   Scenario: Scenario with tags, scenario and step descriptions

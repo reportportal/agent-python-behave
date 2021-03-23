@@ -7,6 +7,7 @@ from behave_reportportal.config import (
     DEFAULT_CFG_FILE,
     DEFAULT_LAUNCH_NAME,
     RP_CFG_SECTION,
+    get_bool,
     read_config,
 )
 
@@ -164,3 +165,21 @@ def test_read_config_default_values(mock_cp):
     expect(cfg.rerun_of is None)
     expect(cfg.enabled is False)
     assert_expectations()
+
+
+@pytest.mark.parametrize(
+    "val,exp",
+    [
+        ("True", True),
+        ("true", True),
+        ("False", False),
+        ("false", False),
+        (True, True),
+        (False, False),
+        (None, None),
+        ("other_value", None),
+    ],
+)
+def test_get_bool(val, exp):
+    act = get_bool(val)
+    assert act == exp, "Actual:{}\nExpected: {}".format(act, exp)

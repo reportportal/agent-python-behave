@@ -60,4 +60,9 @@ def get_bool(value):
     """Convert string value to bool."""
     if value is None:
         return
-    return value.lower() == "true"
+    if isinstance(value, bool):
+        return value
+    if value.lower() == "true":
+        return True
+    if value.lower() == "false":
+        return False
