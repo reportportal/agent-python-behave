@@ -24,10 +24,10 @@ jobs:
     - name: Run checks from the Makefile
       run: make check
     - name: Upload coverage to Codecov
+      if: matrix.python-version == 3.6 && success()
       uses: codecov/codecov-action@v1
       with:
         files: coverage.xml
         flags: unittests
         name: codecov-agent-behave
         path_to_write_report: codecov_report.txt
-        verbose: true
