@@ -732,7 +732,8 @@ def test_log_cleanup_no_cleanups(config):
     ],
 )
 @mock.patch("behave_reportportal.behave_agent.timestamp")
-def test_log_cleanup(mock_timestamp, config, scope, item_type, item_id):
+def test_log_cleanup_step_based(mock_timestamp, scope, item_type, item_id):
+    cfg = Config(endpoint="E", token="T", project="P", step_based=True)
     mock_timestamp.return_value = 123
     mock_rps = mock.create_autospec(ReportPortalService)
     mock_context, mock_func1, mock_func2 = mock.Mock(), mock.Mock, mock.Mock()
@@ -741,7 +742,7 @@ def test_log_cleanup(mock_timestamp, config, scope, item_type, item_id):
     mock_context._stack = [
         {"@layer": scope, "@cleanups": [mock_func1, mock_func2]}
     ]
-    ba = BehaveAgent(config, mock_rps)
+    ba = BehaveAgent(cfg, mock_rps)
     ba._feature_id = "feature_id"
     ba._scenario_id = "scenario_id"
     ba._log_cleanups(mock_context, scope)
@@ -756,3 +757,32 @@ def test_log_cleanup(mock_timestamp, config, scope, item_type, item_id):
     ]
     mock_rps.start_test_item.assert_has_calls(calls)
     assert mock_rps.finish_test_item.call_count == 2
+
+
+@pytest.mark.parametrize(
+    "scope,item_id", [("feature", "feature_id"), ("scenario", "scenario_id")]
+)
+@mock.patch("behave_reportportal.behave_agent.timestamp")
+def test_log_cleanup_scenario_based(mock_timestamp, config, scope, item_id):
+    mock_timestamp.return_value = 123
+    mock_rps = mock.create_autospec(ReportPortalService)
+    mock_context, mock_func1, mock_func2 = mock.Mock(), mock.Mock, mock.Mock()
+    mock_func1.__name__ = "cleanup_func1"
+    mock_func2.__name__ = "cleanup_func2"
+    mock_context._stack = [
+        {"@layer": scope, "@cleanups": [mock_func1, mock_func2]}
+    ]
+    ba = BehaveAgent(config, mock_rps)
+    ba._feature_id = "feature_id"
+    ba._scenario_id = "scenario_id"
+    ba._log_cleanups(mock_context, scope)
+    calls = [
+        mock.call(
+            123,
+            "Execution of '{}' cleanup function".format(f_name),
+            level="INFO",
+            item_id=item_id,
+        )
+        for f_name in ("cleanup_func1", "cleanup_func2")
+    ]
+    mock_rps.log.assert_has_calls(calls)

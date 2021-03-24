@@ -331,13 +331,21 @@ class BehaveAgent(object):
         item_id = self._feature_id if scope == "feature" else self._scenario_id
         for cleanup in layer.get("@cleanups", []):
             msg = "Execution of '{}' cleanup function".format(cleanup.__name__)
-            self._step_id = self._step_id = self._rp.start_test_item(
-                name=msg,
-                start_time=timestamp(),
-                item_type=item_type,
-                parent_item_id=item_id,
+            if self._cfg.step_based:
+                self._step_id = self._step_id = self._rp.start_test_item(
+                    name=msg,
+                    start_time=timestamp(),
+                    item_type=item_type,
+                    parent_item_id=item_id,
+                )
+                self._rp.finish_test_item(self._step_id, timestamp(), "PASSED")
+                continue
+            self._rp.log(
+                timestamp(),
+                msg,
+                level="INFO",
+                item_id=item_id,
             )
-            self._rp.finish_test_item(self._step_id, timestamp(), "PASSED")
 
     @staticmethod
     def _item_description(item):
