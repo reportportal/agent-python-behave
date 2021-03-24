@@ -11,6 +11,7 @@ Behave extension for reporting test results of Behave to the Reportal Portal.
 * Installation
 * Configuration
 * Launching
+* Test item attributes
 * Integration with GA
 * Copyright Notice
 
@@ -59,9 +60,14 @@ The following parameters are optional:
 
 - :code:`launch_name = AnyLaunchName` - launch name (default value is 'Python Behave Launch')
 - :code:`launch_id = xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx` - id of the existing launch (the session will not handle the lifecycle of the given launch)
-- :code:`launch_attributes = 'Smoke Env:Python3'` - list of attributes for launch
-- :code:`launch_description = 'Smoke test'` - launch description
+- :code:`launch_attributes = Smoke Env:Python3` - list of attributes for launch
+- :code:`launch_description = Smoke test` - launch description
 - :code:`step_based = True` - responsible for Scenario or Step based logging (Scenario based approach is used by default)
+- :code:`is_skipped_an_issue = False` - option to mark skipped tests as not 'To Investigate' items on Server side.
+- :code:`retries = 3` - amount of retries for performing REST calls to RP server
+- :code:`rerun = True` - marks the launch as the rerun
+- :code:`rerun_of = xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`` - launch id to rerun
+
 
 If you like to override the above parameters from command line, or from CI environment based on your build, then pass
 - :code:`-D parameter=value` during invocation.
@@ -76,6 +82,26 @@ To execute tests with Report Portal you should run `behave` command and specify 
     behave ./tests/features
 
 
+Test item attributes
+~~~~~~~~~
+
+Tag `attribute` could be used to specify attributes for features and scenarios.
+Attributes should be listed inside brackets of attribute tag separated by commas.
+
+Example:
+
+.. code-block:: python
+
+    @attribute(key:value, value2)
+    @attribute(some_other_attribute)
+    Feature: feature name
+
+        @attribute(key:value, value2, value3)
+        Scenario: scenario name
+
+
+
+
 Integration with GA
 -------------------
 ReportPortal is now supporting integrations with more than 15 test frameworks simultaneously. In order to define the most popular agents and plan the team workload accordingly, we are using Google analytics.
@@ -85,7 +111,7 @@ If you still want to switch Off Google analytics, please change env variable the
 
 .. code-block:: bash
 
-    export ALLURE_NO_ANALYTICS=1
+    export AGENT_NO_ANALYTICS=1
 
 
 Copyright Notice

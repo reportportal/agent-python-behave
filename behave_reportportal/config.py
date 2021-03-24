@@ -1,5 +1,4 @@
 """Config is structure for configuration of behave Report Portal agent."""
-
 from configparser import ConfigParser
 
 
@@ -20,6 +19,11 @@ class Config(object):
         launch_description=None,
         launch_attributes=None,
         step_based=None,
+        is_skipped_an_issue=None,
+        retries=None,
+        rerun=None,
+        rerun_of=None,
+        **kwargs
     ):
         """Initialize instance attributes."""
         self.endpoint = endpoint
@@ -31,7 +35,11 @@ class Config(object):
         self.launch_attributes = launch_attributes and launch_attributes.split(
             " "
         )
-        self.step_based = step_based or False
+        self.step_based = get_bool(step_based) or False
+        self.is_skipped_an_issue = get_bool(is_skipped_an_issue) or False
+        self.retries = retries and int(retries)
+        self.rerun = get_bool(rerun) or False
+        self.rerun_of = rerun_of
 
 
 def read_config(context):
@@ -40,33 +48,21 @@ def read_config(context):
     cmd_data = context._config.userdata
     path = cmd_data.get("config_file")
     cp.read(path or DEFAULT_CFG_FILE)
-    endpoint = cmd_data.get("endpoint")
-    project = cmd_data.get("project")
-    token = cmd_data.get("token")
-    launch_name = cmd_data.get("launch_name")
-    launch_description = cmd_data.get("launch_description")
-    launch_attributes = cmd_data.get("launch_attributes")
-    step_based = cmd_data.getbool("step_based")
+    rp_cfg = {}
+    if cp.has_section(RP_CFG_SECTION):
+        rp_cfg = cp[RP_CFG_SECTION]
+    rp_cfg.update(cmd_data)
 
-    if not cp.has_section(RP_CFG_SECTION):
-        return Config(
-            endpoint=endpoint,
-            project=project,
-            token=token,
-            launch_name=launch_name,
-            launch_description=launch_description,
-            launch_attributes=launch_attributes,
-            step_based=step_based,
-        )
+    return Config(**rp_cfg)
 
-    rp_cfg = cp[RP_CFG_SECTION]
-    return Config(
-        endpoint=endpoint or rp_cfg.get("endpoint"),
-        project=project or rp_cfg.get("project"),
-        token=token or rp_cfg.get("token"),
-        launch_name=launch_name or rp_cfg.get("launch_name"),
-        launch_description=launch_description
-        or rp_cfg.get("launch_description"),
-        launch_attributes=launch_attributes or rp_cfg.get("launch_attributes"),
-        step_based=step_based or rp_cfg.getboolean("step_based"),
-    )
+
+def get_bool(value):
+    """Convert string value to bool."""
+    if value is None:
+        return
+    if isinstance(value, bool):
+        return value
+    if value.lower() == "true":
+        return True
+    if value.lower() == "false":
+        return False

@@ -1,9 +1,15 @@
+@fixture.feature_fixture
+@attribute(feature_key:feature_value,some_other_value)
 @first_feature_tag
 @second_feature_tag
 Feature: Calculator functionality
   Calculator should implement all basic arithmetic operations
   such as addition, subtraction, multiplication, division
 
+  Background: Some requirement of this tests
+    Given Some setup condition
+
+  @fixture.scenario_fixture
   @first_scenario_tag
   @second_scenario_tag
   Scenario: Scenario with tags, scenario and step descriptions
@@ -16,6 +22,7 @@ Feature: Calculator functionality
     """
     Then Result is 5
 
+  @attribute(scenario_key:scenario_value,some_other_value)
   Scenario: Scenario with step data table
     Given I want to calculate two numbers
 
