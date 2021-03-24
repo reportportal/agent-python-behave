@@ -58,7 +58,7 @@ class BehaveAgent(object):
         self._skip_analytics = getenv("AGENT_NO_ANALYTICS")
         self.agent_name = "behave-reportportal"
         self.agent_version = get_package_version(self.agent_name)
-        self._ignore_tag_prefixes = ["attribute"]
+        self._ignore_tag_prefixes = ["attribute", "fixture"]
 
     @check_rp_enabled
     def start_launch(self, context, **kwargs):
@@ -103,7 +103,7 @@ class BehaveAgent(object):
         """Finish feature in Report Portal."""
         if feature.tags and "skip" in feature.tags:
             status = "SKIPPED"
-        self._log_feature_cleanup(context)
+        self._log_cleanups(context, "feature")
         self._rp.finish_test_item(
             item_id=self._feature_id,
             end_time=timestamp(),
@@ -137,7 +137,7 @@ class BehaveAgent(object):
             status = "SKIPPED"
         if scenario.status.name == "failed":
             self._log_scenario_exception(scenario)
-        self._log_scenario_cleanup(context)
+        self._log_cleanups(context, "scenario"),
         self._rp.finish_test_item(
             item_id=self._scenario_id,
             end_time=timestamp(),
@@ -260,10 +260,9 @@ class BehaveAgent(object):
             )
         ]
         if step.exception:
-            if step.exception:
-                message.append(", ".join(step.exception.args))
-            if step.error_message:
-                message.append(step.error_message)
+            message.append(", ".join(step.exception.args))
+        if step.error_message:
+            message.append(step.error_message)
 
         self._rp.log(
             item_id=item_id,
@@ -290,7 +289,7 @@ class BehaveAgent(object):
         """
         Log used fixtures for item.
 
-        It will be log records for scenario based approach
+        It will log records for scenario based approach
         and step for step based.
         """
         if not item.tags:
@@ -315,60 +314,30 @@ class BehaveAgent(object):
                 item_id=parent_item_id,
             )
 
-    def _log_feature_cleanup(self, context):
+    def _log_cleanups(self, context, scope):
         layer = next(
             iter(
                 [
                     level
                     for level in context._stack
-                    if level.get("@layer") == "feature"
+                    if level.get("@layer") == scope
                 ]
             ),
             None,
         )
         if not layer:
             return
-        if not layer.get("@cleanups"):
-            return
-        for cleanup in layer.get("@cleanups"):
+        item_type = "AFTER_SUITE" if scope == "feature" else "AFTER_TEST"
+        item_id = self._feature_id if scope == "feature" else self._scenario_id
+        for cleanup in layer.get("@cleanups", []):
             msg = "Execution of '{}' cleanup function".format(cleanup.__name__)
             self._step_id = self._step_id = self._rp.start_test_item(
                 name=msg,
                 start_time=timestamp(),
-                item_type="AFTER_SUITE",
-                parent_item_id=self._feature_id,
+                item_type=item_type,
+                parent_item_id=item_id,
             )
             self._rp.finish_test_item(self._step_id, timestamp(), "PASSED")
-
-    def _log_scenario_cleanup(self, context):
-        layer = next(
-            iter(
-                [
-                    level
-                    for level in context._stack
-                    if level.get("@layer") == "scenario"
-                ]
-            ),
-            None,
-        )
-        if not layer:
-            return
-        if not layer.get("@cleanups"):
-            return
-        for cleanup in layer.get("@cleanups"):
-            msg = "Execution of '{}' cleanup function".format(cleanup.__name__)
-            if self._cfg.step_based:
-                self._step_id = self._step_id = self._rp.start_test_item(
-                    name=msg,
-                    start_time=timestamp(),
-                    item_type="AFTER_TEST",
-                    parent_item_id=self._scenario_id,
-                )
-                self._rp.finish_test_item(self._step_id, timestamp(), "PASSED")
-            else:
-                self._rp.log(
-                    timestamp(), msg, level="INFO", item_id=self._scenario_id
-                )
 
     @staticmethod
     def _item_description(item):

@@ -508,6 +508,7 @@ def test_log_exception_without_message(mock_timestamp):
     mock_timestamp.return_value = 123
     mock_step = mock.Mock()
     mock_step.exception = None
+    mock_step.error_message = None
     mock_step.keyword = "keyword"
     mock_step.name = "name"
     mock_rps = mock.create_autospec(ReportPortalService)
@@ -703,133 +704,55 @@ def test_log_fixtures(mock_timestamp):
     assert mock_rps.finish_test_item.call_count == 2
 
 
-def test_log_feature_cleanup_no_feature_layer(config):
+def test_log_cleanup_no_layer(config):
     mock_rps = mock.create_autospec(ReportPortalService)
-    mock_context = mock.Mock()
-    mock_context._stack = [{"@layer": "scenario"}]
-    BehaveAgent(config, mock_rps)._log_feature_cleanup(mock_context)
+    mock_context, mock_func = mock.Mock(), mock.Mock()
+    mock_func.__name__ = "cleanup_func"
+    mock_context._stack = [{"@layer": "scenario", "@cleanups": [mock_func]}]
+    BehaveAgent(config, mock_rps)._log_cleanups(mock_context, "feature")
+    mock_rps.start_test_item.assert_not_called()
+    mock_context._stack = [{"@layer": "feature"}]
+    BehaveAgent(config, mock_rps)._log_cleanups(mock_context, "scenario")
     mock_rps.start_test_item.assert_not_called()
 
 
-def test_log_feature_cleanup_no_cleanups(config):
+def test_log_cleanup_no_cleanups(config):
     mock_rps = mock.create_autospec(ReportPortalService)
     mock_context = mock.Mock()
     mock_context._stack = [{"@layer": "feature"}]
-    BehaveAgent(config, mock_rps)._log_feature_cleanup(mock_context)
+    BehaveAgent(config, mock_rps)._log_cleanups(mock_context, "feature")
     mock_rps.start_test_item.assert_not_called()
 
 
+@pytest.mark.parametrize(
+    "scope,item_type,item_id",
+    [
+        ("feature", "AFTER_SUITE", "feature_id"),
+        ("scenario", "AFTER_TEST", "scenario_id"),
+    ],
+)
 @mock.patch("behave_reportportal.behave_agent.timestamp")
-def test_log_feature_cleanup(mock_timestamp, config):
+def test_log_cleanup(mock_timestamp, config, scope, item_type, item_id):
     mock_timestamp.return_value = 123
     mock_rps = mock.create_autospec(ReportPortalService)
     mock_context, mock_func1, mock_func2 = mock.Mock(), mock.Mock, mock.Mock()
     mock_func1.__name__ = "cleanup_func1"
     mock_func2.__name__ = "cleanup_func2"
     mock_context._stack = [
-        {"@layer": "feature", "@cleanups": [mock_func1, mock_func2]}
+        {"@layer": scope, "@cleanups": [mock_func1, mock_func2]}
     ]
     ba = BehaveAgent(config, mock_rps)
     ba._feature_id = "feature_id"
-    ba._log_feature_cleanup(mock_context)
-    mock_rps.start_test_item.assert_has_calls(
-        [
-            mock.call(
-                name="Execution of 'cleanup_func1' cleanup function",
-                start_time=123,
-                item_type="AFTER_SUITE",
-                parent_item_id="feature_id",
-            ),
-            mock.call(
-                name="Execution of 'cleanup_func2' cleanup function",
-                start_time=123,
-                item_type="AFTER_SUITE",
-                parent_item_id="feature_id",
-            ),
-        ]
-    )
-    assert mock_rps.finish_test_item.call_count == 2
-
-
-def test_log_scenario_cleanup_no_scenario_layer():
-    cfg = Config(
-        endpoint="endpoint",
-        token="token",
-        project="project",
-        step_based="True",
-    )
-    mock_rps = mock.create_autospec(ReportPortalService)
-    mock_context = mock.Mock()
-    mock_context._stack = [{"@layer": "feature"}]
-    BehaveAgent(cfg, mock_rps)._log_scenario_cleanup(mock_context)
-    mock_rps.start_test_item.assert_not_called()
-
-
-def test_log_scenario_cleanup_no_cleanups():
-    cfg = Config(
-        endpoint="endpoint",
-        token="token",
-        project="project",
-        step_based="True",
-    )
-    mock_rps = mock.create_autospec(ReportPortalService)
-    mock_context = mock.Mock()
-    mock_context._stack = [{"@layer": "scenario"}]
-    BehaveAgent(cfg, mock_rps)._log_scenario_cleanup(mock_context)
-    mock_rps.start_test_item.assert_not_called()
-
-
-@mock.patch("behave_reportportal.behave_agent.timestamp")
-def test_log_scenario_cleanup(mock_timestamp):
-    cfg = Config(
-        endpoint="endpoint",
-        token="token",
-        project="project",
-        step_based="True",
-    )
-    mock_timestamp.return_value = 123
-    mock_rps = mock.create_autospec(ReportPortalService)
-    mock_context, mock_func1, mock_func2 = mock.Mock(), mock.Mock, mock.Mock()
-    mock_func1.__name__ = "cleanup_func1"
-    mock_func2.__name__ = "cleanup_func2"
-    mock_context._stack = [
-        {"@layer": "scenario", "@cleanups": [mock_func1, mock_func2]}
-    ]
-    ba = BehaveAgent(cfg, mock_rps)
     ba._scenario_id = "scenario_id"
-    ba._log_scenario_cleanup(mock_context)
-    mock_rps.start_test_item.assert_has_calls(
-        [
-            mock.call(
-                name="Execution of 'cleanup_func1' cleanup function",
-                start_time=123,
-                item_type="AFTER_TEST",
-                parent_item_id="scenario_id",
-            ),
-            mock.call(
-                name="Execution of 'cleanup_func2' cleanup function",
-                start_time=123,
-                item_type="AFTER_TEST",
-                parent_item_id="scenario_id",
-            ),
-        ]
-    )
+    ba._log_cleanups(mock_context, scope)
+    calls = [
+        mock.call(
+            name="Execution of '{}' cleanup function".format(f_name),
+            start_time=123,
+            item_type=item_type,
+            parent_item_id=item_id,
+        )
+        for f_name in ("cleanup_func1", "cleanup_func2")
+    ]
+    mock_rps.start_test_item.assert_has_calls(calls)
     assert mock_rps.finish_test_item.call_count == 2
-    cfg.step_based = False
-    ba._log_scenario_cleanup(mock_context)
-    mock_rps.log.assert_has_calls(
-        [
-            mock.call(
-                123,
-                "Execution of 'cleanup_func1' cleanup function",
-                level="INFO",
-                item_id="scenario_id",
-            ),
-            mock.call(
-                123,
-                "Execution of 'cleanup_func2' cleanup function",
-                level="INFO",
-                item_id="scenario_id",
-            ),
-        ]
-    )
