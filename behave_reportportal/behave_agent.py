@@ -14,7 +14,7 @@ from reportportal_client.helpers import (
 )
 from reportportal_client.service import _dict_to_payload
 
-from behave_reportportal.utils import timestamp
+from behave_reportportal.utils import Singleton, timestamp
 
 
 def check_rp_enabled(func):
@@ -43,7 +43,7 @@ def create_rp_service(cfg):
         )
 
 
-class BehaveAgent(object):
+class BehaveAgent(metaclass=Singleton):
     """Functionality for integration of Behave tests with Report Portal."""
 
     def __init__(self, cfg, rp_service=None):
