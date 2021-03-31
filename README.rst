@@ -12,6 +12,8 @@ Behave extension for reporting test results of Behave to the Reportal Portal.
 * Configuration
 * Launching
 * Test item attributes
+* Logging
+* Test case ID
 * Integration with GA
 * Copyright Notice
 
@@ -145,6 +147,11 @@ in steps:
         context.log.info("log message for launch with attachment", file_to_attach="path_to_file", is_launch_log=True)
 
 
+
+Test case ID
+-------------------
+
+It's possible to mark some scenario with `test_case_id(<some_id>)` tag. ID specified in brackets will be sent to ReportPortal.
 
 Integration with GA
 -------------------

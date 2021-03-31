@@ -22,6 +22,7 @@ Feature: Calculator functionality
     """
     Then Result is 5
 
+  @test_case_id(ID123)
   @attribute(scenario_key:scenario_value,some_other_value)
   Scenario: Scenario with step data table
     Given I want to calculate two numbers

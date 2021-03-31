@@ -1,3 +1,3 @@
 behave==1.2.6
 prettytable
-reportportal-client>=5.0.9
+reportportal-client>=5.0.10

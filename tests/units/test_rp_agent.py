@@ -87,6 +87,27 @@ def test_get_attributes_from_tags(tags, exp_attrs):
     assert act_attrs == exp_attrs
 
 
+@pytest.mark.parametrize(
+    "tags,exp_test_case_id",
+    [
+        (["test_case_id(123)"], "123"),
+        (["test_case_id(1,2,3)"], "1,2,3"),
+        (["test_case_id()"], None),
+        (["test_case_id(1)", "test_case_id(2)"], "1"),
+        (["some_tag"], None),
+        (["some_tag", "test_case_id(2)"], "2"),
+        (["test_case_id"], None),
+        (["test_case_id("], None),
+        (["test_case_id)"], None),
+    ],
+)
+def test_case_id(tags, exp_test_case_id):
+    mock_scenario = mock.Mock()
+    mock_scenario.tags = tags
+    act_test_case_id = BehaveAgent._test_case_id(mock_scenario)
+    assert act_test_case_id == exp_test_case_id
+
+
 def test_code_ref():
     mock_item = mock.Mock()
     mock_item.location = None
@@ -341,6 +362,7 @@ def verify_start_scenario(mock_scenario, config):
         code_ref=BehaveAgent._code_ref(mock_scenario),
         parameters=BehaveAgent._get_parameters(mock_scenario),
         attributes=ba._attributes(mock_scenario),
+        test_case_id=ba._test_case_id(mock_scenario),
         some_key="some_value",
     )
     assert (

@@ -1,5 +1,4 @@
 """Module contains utility functions."""
-from time import time
 
 
 class Singleton(type):
@@ -14,8 +13,3 @@ class Singleton(type):
                 *args, **kwargs
             )
         return cls._instances[cls]
-
-
-def timestamp():
-    """Return current time."""
-    return str(int(time() * 1000))
