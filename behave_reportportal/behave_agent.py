@@ -416,8 +416,7 @@ class BehaveAgent(metaclass=Singleton):
             )
             if not tc_tag:
                 return
-            start = tc_tag.find("(")
-            end = tc_tag.find(")")
+            start, end = tc_tag.find("("), tc_tag.find(")")
             if start == -1 or end == -1:
                 return
             tc_id = tc_tag[start + 1 : end]
