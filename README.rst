@@ -117,21 +117,17 @@ in environment.py:
     from behave_reportportal.config import read_config
     from behave_reportportal.logger import RPLogger, RPHandler
 
-    cfg = None
-    rp_agent = None
-
 
     def before_all(context):
-        global cfg, rp_agent
         cfg = read_config(context)
-        rp_agent = BehaveAgent(cfg, create_rp_service(cfg))
+        context.rp_agent = BehaveAgent(cfg, create_rp_service(cfg))
+        context.rp_agent.start_launch(context)
         logging.setLoggerClass(RPLogger)
-        log = logging.getLogger("some_name")
-        log.setLevel(logging.DEBUG)
+        log = logging.getLogger(__name__)
         rph = RPHandler(rp=rp_agent)
         log.addHandler(rph)
         context.log = log
-        rp_agent.start_launch(context)
+        context.rp_agent.start_launch(context)
 
 in steps:
 
