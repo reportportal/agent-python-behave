@@ -12,7 +12,7 @@ class RPLogger(Logger):
         :param name:  logger name
         :param level: level of logs
         """
-        super(RPLogger, self).__init__(name, level=level)
+        super().__init__(name, level=level)
 
     def _log(
         self,
@@ -66,7 +66,7 @@ class RPHandler(Handler):
 
     def __init__(self, rp, level=NOTSET):
         """Initialize handler."""
-        super(RPHandler, self).__init__(level)
+        super().__init__(level)
         self.rp = rp
 
     def emit(self, record):

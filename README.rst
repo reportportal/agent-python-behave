@@ -124,10 +124,10 @@ in environment.py:
         context.rp_agent.start_launch(context)
         logging.setLoggerClass(RPLogger)
         log = logging.getLogger(__name__)
-        rph = RPHandler(rp=rp_agent)
+        log.setLevel("DEBUG")
+        rph = RPHandler(rp=context.rp_agent)
         log.addHandler(rph)
         context.log = log
-        context.rp_agent.start_launch(context)
 
 It's possible to send log message to launch. `is_launch_log` flag is responsible for this behaviour.
 Also logger provides ability to attach some file in scope of log message (see examples below).
