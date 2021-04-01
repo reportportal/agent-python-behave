@@ -129,6 +129,9 @@ in environment.py:
         context.log = log
         context.rp_agent.start_launch(context)
 
+It's possible to send log message to launch. `is_launch_log` flag is responsible for this behaviour.
+Also logger provides ability to attach some file in scope of log message (see examples below).
+
 in steps:
 
 .. code-block:: python
