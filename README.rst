@@ -12,6 +12,8 @@ Behave extension for reporting test results of Behave to the Reportal Portal.
 * Configuration
 * Launching
 * Test item attributes
+* Logging
+* Test case ID
 * Integration with GA
 * Copyright Notice
 
@@ -100,7 +102,55 @@ Example:
         Scenario: scenario name
 
 
+Logging
+~~~~~~~~
 
+For logging of the test item flow to Report Portal, please, use the python
+logging handler and logger class provided by extension like bellow:
+in environment.py:
+
+.. code-block:: python
+
+    import logging
+
+    from behave_reportportal.behave_agent import BehaveAgent, create_rp_service
+    from behave_reportportal.config import read_config
+    from behave_reportportal.logger import RPLogger, RPHandler
+
+
+    def before_all(context):
+        cfg = read_config(context)
+        context.rp_agent = BehaveAgent(cfg, create_rp_service(cfg))
+        context.rp_agent.start_launch(context)
+        logging.setLoggerClass(RPLogger)
+        log = logging.getLogger(__name__)
+        log.setLevel("DEBUG")
+        rph = RPHandler(rp=context.rp_agent)
+        log.addHandler(rph)
+        context.log = log
+
+It's possible to send log message to launch. `is_launch_log` flag is responsible for this behaviour.
+Also logger provides ability to attach some file in scope of log message (see examples below).
+
+in steps:
+
+.. code-block:: python
+
+    @given("I want to calculate {number_a:d} and {number_b:d}")
+    def calculate_two_numbers(context, number_a, number_b):
+        context.number_a = number_a
+        context.number_b = number_b
+        context.log.info("log message")
+        context.log.info("log message with attachment", file_to_attach="path_to_file")
+        context.log.info("log message for launch", is_launch_log=True)
+        context.log.info("log message for launch with attachment", file_to_attach="path_to_file", is_launch_log=True)
+
+
+
+Test case ID
+-------------------
+
+It's possible to mark some scenario with `test_case_id(<some_id>)` tag. ID specified in brackets will be sent to ReportPortal.
 
 Integration with GA
 -------------------

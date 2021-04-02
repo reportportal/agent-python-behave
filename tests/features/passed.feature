@@ -22,12 +22,13 @@ Feature: Calculator functionality
     """
     Then Result is 5
 
+  @test_case_id(ID123)
   @attribute(scenario_key:scenario_value,some_other_value)
   Scenario: Scenario with step data table
     Given I want to calculate two numbers
 
       | number_a | number_b | expected |
-      | 2        | 3        | 6        |
+      | 6        | 5        | 30        |
       | 5        | 4        | 20       |
     When Use multiplication method
     Then Result should be correct
@@ -39,7 +40,7 @@ Feature: Calculator functionality
 
     Examples: numbers data
       | number_a | number_b | expected |
-      | 2        | 3        | 5        |
+      | 12        | 13        | 25        |
       | 3        | 3        | 6        |
 
   @skip

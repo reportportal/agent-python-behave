@@ -11,10 +11,11 @@ from reportportal_client.helpers import (
     gen_attributes,
     get_launch_sys_attrs,
     get_package_version,
+    timestamp,
 )
 from reportportal_client.service import _dict_to_payload
 
-from behave_reportportal.utils import timestamp
+from behave_reportportal.utils import Singleton
 
 
 def check_rp_enabled(func):
@@ -43,7 +44,7 @@ def create_rp_service(cfg):
         )
 
 
-class BehaveAgent(object):
+class BehaveAgent(metaclass=Singleton):
     """Functionality for integration of Behave tests with Report Portal."""
 
     def __init__(self, cfg, rp_service=None):
@@ -58,7 +59,9 @@ class BehaveAgent(object):
         self._skip_analytics = getenv("AGENT_NO_ANALYTICS")
         self.agent_name = "behave-reportportal"
         self.agent_version = get_package_version(self.agent_name)
-        self._ignore_tag_prefixes = ["attribute", "fixture"]
+        # these tags are ignored during collection of test attributes
+        # there are other rules for processing of these tags
+        self._ignore_tag_prefixes = ["attribute", "fixture", "test_case_id"]
 
     @check_rp_enabled
     def start_launch(self, context, **kwargs):
@@ -125,6 +128,7 @@ class BehaveAgent(object):
             attributes=self._attributes(scenario),
             parameters=self._get_parameters(scenario),
             description=self._item_description(scenario),
+            test_case_id=self._test_case_id(scenario),
             **kwargs
         )
         self._log_fixtures(scenario, "BEFORE_TEST", self._scenario_id)
@@ -400,6 +404,25 @@ class BehaveAgent(object):
             result.extend([a.strip() for a in attr_str.split(",")])
 
         return result
+
+    @staticmethod
+    def _test_case_id(scenario):
+        if scenario.tags:
+            tc_tag = next(
+                iter(
+                    [t for t in scenario.tags if t.startswith("test_case_id(")]
+                ),
+                None,
+            )
+            if not tc_tag:
+                return
+            start, end = tc_tag.find("("), tc_tag.find(")")
+            if start == -1 or end == -1:
+                return
+            tc_id = tc_tag[start + 1 : end]
+            if not tc_id:
+                return
+            return tc_id
 
     @staticmethod
     def convert_to_rp_status(behave_status):

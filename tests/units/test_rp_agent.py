@@ -8,6 +8,7 @@ from reportportal_client import ReportPortalService
 
 from behave_reportportal.behave_agent import BehaveAgent, create_rp_service
 from behave_reportportal.config import Config
+from behave_reportportal.utils import Singleton
 
 
 @pytest.fixture()
@@ -19,6 +20,12 @@ def config():
         launch_name="launch_name",
         launch_description="launch_description",
     )
+
+
+@pytest.fixture(autouse=True)
+def clean_instances():
+    yield
+    Singleton._instances = {}
 
 
 @pytest.mark.parametrize(
@@ -80,6 +87,27 @@ def test_get_attributes_from_tags(tags, exp_attrs):
     assert act_attrs == exp_attrs
 
 
+@pytest.mark.parametrize(
+    "tags,exp_test_case_id",
+    [
+        (["test_case_id(123)"], "123"),
+        (["test_case_id(1,2,3)"], "1,2,3"),
+        (["test_case_id()"], None),
+        (["test_case_id(1)", "test_case_id(2)"], "1"),
+        (["some_tag"], None),
+        (["some_tag", "test_case_id(2)"], "2"),
+        (["test_case_id"], None),
+        (["test_case_id("], None),
+        (["test_case_id)"], None),
+    ],
+)
+def test_case_id(tags, exp_test_case_id):
+    mock_scenario = mock.Mock()
+    mock_scenario.tags = tags
+    act_test_case_id = BehaveAgent._test_case_id(mock_scenario)
+    assert act_test_case_id == exp_test_case_id
+
+
 def test_code_ref():
     mock_item = mock.Mock()
     mock_item.location = None
@@ -123,8 +151,8 @@ def test_create_rp_service_disabled_rp():
     ), "Service is not None for disabled integration with RP in config"
 
 
-def test_create_rp_service_enabled_rp():
-    rp = create_rp_service(Config(endpoint="A", token="B", project="C"))
+def test_create_rp_service_enabled_rp(config):
+    rp = create_rp_service(config)
     assert isinstance(
         rp, ReportPortalService
     ), "Invalid initialization of RP ReportPortalService"
@@ -148,16 +176,12 @@ def test_create_rp_service_init(mock_rps):
 
 
 def test_init_invalid_config():
-    cfg = Config()
-    ba = BehaveAgent(cfg)
+    ba = BehaveAgent(Config())
     assert ba._rp is None, "Incorrect initialization of agent"
 
 
-def test_init_valid_config():
-    cfg = Config(endpoint="endpoint", token="token", project="project")
-    mock_rp = mock.Mock()
-    ba = BehaveAgent(cfg, mock_rp)
-    cfg.endpoint = "122"
+def test_init_valid_config(config):
+    ba = BehaveAgent(config, mock.Mock())
     expect(ba._cfg is not None, "Config is None")
     expect(ba._rp is not None, "Incorrect initialization of agent")
     assert_expectations()
@@ -338,6 +362,7 @@ def verify_start_scenario(mock_scenario, config):
         code_ref=BehaveAgent._code_ref(mock_scenario),
         parameters=BehaveAgent._get_parameters(mock_scenario),
         attributes=ba._attributes(mock_scenario),
+        test_case_id=ba._test_case_id(mock_scenario),
         some_key="some_value",
     )
     assert (
@@ -598,9 +623,8 @@ def test_post__log(mock_timestamp, mock_mime, config):
 @mock.patch.object(PrettyTable, "get_string")
 def test_build_table_content(mock_get_string, mock_add_row, mock_init):
     mock_init.return_value = None
-    mock_table = mock.Mock()
+    mock_table, mock_rows = mock.Mock(), mock.Mock()
     mock_table.headings = ["A", "B"]
-    mock_rows = mock.Mock()
     mock_rows.cells = ["c", "d"]
     mock_table.rows = [mock_rows]
     BehaveAgent._build_table_content(mock_table)
@@ -674,11 +698,12 @@ def test_log_fixtures(mock_timestamp):
     mock_rps.log.assert_has_calls(
         [
             mock.call(
-                123, "Using of 'A' fixture", level="INFO", item_id="item_id"
-            ),
-            mock.call(
-                123, "Using of 'B' fixture", level="INFO", item_id="item_id"
-            ),
+                123,
+                "Using of '{}' fixture".format(t),
+                level="INFO",
+                item_id="item_id",
+            )
+            for t in ("A", "B")
         ],
         any_order=True,
     )
@@ -688,16 +713,11 @@ def test_log_fixtures(mock_timestamp):
         [
             mock.call(
                 start_time=123,
-                name="Using of 'A' fixture",
+                name="Using of '{}' fixture".format(t),
                 item_type="type",
                 parent_item_id="item_id",
-            ),
-            mock.call(
-                start_time=123,
-                name="Using of 'B' fixture",
-                item_type="type",
-                parent_item_id="item_id",
-            ),
+            )
+            for t in ("A", "B")
         ],
         any_order=True,
     )
