@@ -31,7 +31,6 @@ setup(
     license='Apache 2.0',
     keywords=['testing', 'reporting', 'reportportal', 'behave'],
     classifiers=[
-        'Framework :: Behave',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8'
