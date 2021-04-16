@@ -27,6 +27,7 @@ setup(
     author_email='SupportEPMC-TSTReportPortal@epam.com',
     url='https://github.com/reportportal/agent-python-behave',
     packages=['behave_reportportal'],
+    python_requires='>=3.6',
     install_requires=read_file('requirements.txt').splitlines(),
     license='Apache 2.0',
     keywords=['testing', 'reporting', 'reportportal', 'behave'],
