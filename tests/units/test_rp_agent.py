@@ -17,6 +17,7 @@ def config():
         endpoint="endpoint",
         token="token",
         project="project",
+        launch_id=None,
         launch_name="launch_name",
         launch_description="launch_description",
     )
@@ -165,6 +166,7 @@ def test_create_rp_service_init(mock_rps):
         [
             mock.call(
                 endpoint="A",
+                launch_id=None,
                 token="B",
                 project="C",
                 is_skipped_an_issue=False,
@@ -208,6 +210,7 @@ def test_item_description():
 def test_start_launch(mock_timestamp, config):
     mock_timestamp.return_value = 123
     mock_rps = mock.create_autospec(ReportPortalService)
+    mock_rps.launch_id = None
     mock_context = mock.Mock()
     ba = BehaveAgent(config, mock_rps)
     ba.start_launch(mock_context, some_key="some_value")
@@ -226,6 +229,7 @@ def test_start_launch(mock_timestamp, config):
 def test_start_launch_with_rerun(mock_timestamp):
     mock_timestamp.return_value = 123
     mock_rps = mock.create_autospec(ReportPortalService)
+    mock_rps.launch_id = None
     mock_context = mock.Mock()
     cfg = Config(
         endpoint="endpoint",
@@ -551,6 +555,7 @@ def test_log_exception_without_message(mock_timestamp):
 @mock.patch("behave_reportportal.behave_agent.send_event")
 def test_skip_analytics(mock_send_event, config):
     mock_rps = mock.create_autospec(ReportPortalService)
+    mock_rps.launch_id = None
     mock_context = mock.Mock()
     ba = BehaveAgent(config, mock_rps)
     ba.start_launch(mock_context)
@@ -560,6 +565,7 @@ def test_skip_analytics(mock_send_event, config):
 @mock.patch("behave_reportportal.behave_agent.send_event")
 def test_analytics(mock_send_event, config):
     mock_rps = mock.create_autospec(ReportPortalService)
+    mock_rps.launch_id = None
     mock_context = mock.Mock()
     ba = BehaveAgent(config, mock_rps)
     ba.start_launch(mock_context)
