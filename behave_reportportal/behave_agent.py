@@ -37,6 +37,7 @@ def create_rp_service(cfg):
     if cfg.enabled:
         return ReportPortalService(
             endpoint=cfg.endpoint,
+            launch_id=cfg.launch_id,
             project=cfg.project,
             token=cfg.token,
             is_skipped_an_issue=cfg.is_skipped_an_issue,
@@ -66,7 +67,7 @@ class BehaveAgent(metaclass=Singleton):
     @check_rp_enabled
     def start_launch(self, context, **kwargs):
         """Start launch in Report Portal."""
-        self._launch_id = self._rp.start_launch(
+        self._launch_id = self._rp.launch_id or self._rp.start_launch(
             name=self._cfg.launch_name,
             start_time=timestamp(),
             attributes=self._get_launch_attributes(),

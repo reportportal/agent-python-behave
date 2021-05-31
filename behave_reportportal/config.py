@@ -15,6 +15,7 @@ class Config(object):
         endpoint=None,
         project=None,
         token=None,
+        launch_id=None,
         launch_name=None,
         launch_description=None,
         launch_attributes=None,
@@ -30,6 +31,7 @@ class Config(object):
         self.project = project
         self.token = token
         self.enabled = all([self.endpoint, self.project, self.token])
+        self.launch_id = launch_id
         self.launch_name = launch_name or DEFAULT_LAUNCH_NAME
         self.launch_description = launch_description
         self.launch_attributes = launch_attributes and launch_attributes.split(
