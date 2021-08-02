@@ -1,4 +1,5 @@
 """Module provides logging functionality."""
+import sys
 from logging import NOTSET, Handler, Logger
 
 
@@ -32,7 +33,10 @@ class RPLogger(Logger):
                 extra["file_to_attach"] = file_to_attach
             if is_launch_log:
                 extra["is_launch_log"] = is_launch_log
-        super()._log(level, msg, args, exc_info, extra, stack_info, stacklevel)
+        pass_args = [level, msg, args, exc_info, extra, stack_info]
+        if sys.version_info >= (3, 8):
+            pass_args.append(stacklevel)
+        super()._log(*pass_args)
 
     def makeRecord(
         self,
