@@ -1,3 +1,4 @@
+import sys
 from logging import Logger
 
 from delayed_assert import assert_expectations, expect
@@ -19,15 +20,17 @@ def test_log(mock_log):
         file_to_attach="file",
         is_launch_log=True,
     )
-    mock_log.assert_called_once_with(
+    args = [
         1,
         "msg",
         mock_args,
         None,
         {"a": "A", "file_to_attach": "file", "is_launch_log": True},
         False,
-        1,
-    )
+    ]
+    if sys.version_info >= (3, 8):
+        args.append(1)
+    mock_log.assert_called_once_with(*args)
 
 
 @patch.object(Logger, "makeRecord")
