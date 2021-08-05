@@ -812,3 +812,21 @@ def test_log_cleanup_scenario_based(mock_timestamp, config, scope, item_id):
         for f_name in ("cleanup_func1", "cleanup_func2")
     ]
     mock_rps.log.assert_has_calls(calls)
+
+
+@pytest.mark.parametrize(
+    "args, exp",
+    [
+        (("A", "B"), ["A", "B"]),
+        (("",), None),
+        (("", ""), None),
+        ((None,), None),
+        ((None, None), None),
+        (("", None), None),
+        (("A", "", None), ["A"]),
+    ],
+)
+def test_not_empty_exception_args(args, exp):
+    exception = mock.Mock()
+    exception.args = args
+    assert BehaveAgent.not_empty_exception_args(exception) == exp
