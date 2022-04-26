@@ -265,9 +265,9 @@ class BehaveAgent(metaclass=Singleton):
             )
         ]
         if step.exception:
-            not_empty_args = self.not_empty_exception_args(step.exception)
-            if not_empty_args:
-                message.append(", ".join(not_empty_args))
+            valuable_args = self.fetch_valuable_args(step.exception)
+            if valuable_args:
+                message.append(", ".join(valuable_args))
         if step.error_message:
             message.append(step.error_message)
 
@@ -281,9 +281,9 @@ class BehaveAgent(metaclass=Singleton):
     def _log_scenario_exception(self, scenario):
         message = ["Scenario '{}' finished with error.".format(scenario.name)]
         if scenario.exception:
-            not_empty_args = self.not_empty_exception_args(scenario.exception)
-            if not_empty_args:
-                message.append(", ".join(not_empty_args))
+            valuable_args = self.fetch_valuable_args(scenario.exception)
+            if valuable_args:
+                message.append(", ".join(valuable_args))
         if scenario.error_message:
             message.append(scenario.error_message)
 
@@ -448,8 +448,7 @@ class BehaveAgent(metaclass=Singleton):
             return "PASSED"
 
     @staticmethod
-    def not_empty_exception_args(exception):
+    def fetch_valuable_args(exception):
         """Return valuable exception args."""
-        if exception.args:
-            if any(exception.args):
-                return [a for a in exception.args if a]
+        if exception.args and any(exception.args):
+            return [str(arg) for arg in exception.args if arg]

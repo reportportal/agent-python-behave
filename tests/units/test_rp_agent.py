@@ -824,9 +824,10 @@ def test_log_cleanup_scenario_based(mock_timestamp, config, scope, item_id):
         ((None, None), None),
         (("", None), None),
         (("A", "", None), ["A"]),
+        (("A", ["A", "B", "C"]), ["A", "['A', 'B', 'C']"]),
     ],
 )
-def test_not_empty_exception_args(args, exp):
+def test_fetch_valuable_args(args, exp):
     exception = mock.Mock()
     exception.args = args
-    assert BehaveAgent.not_empty_exception_args(exception) == exp
+    assert BehaveAgent.fetch_valuable_args(exception) == exp
