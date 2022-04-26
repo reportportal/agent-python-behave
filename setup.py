@@ -4,8 +4,7 @@ import os
 
 from setuptools import setup
 
-
-__version__ = '1.0.0'
+__version__ = '1.0.1'
 
 
 def read_file(fname):
@@ -34,6 +33,8 @@ setup(
     classifiers=[
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8'
-        ],
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10'
+    ]
 )
