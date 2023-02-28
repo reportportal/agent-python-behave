@@ -49,7 +49,7 @@ any one using behave command line option:
 The :code:`behave.ini` file should have next mandatory fields under [report_portal] section:
 
 - :code:`token` - value could be found in the User Profile section
-- :code:`project` - name of project in Report Potal
+- :code:`project` - name of project in Report Portal
 - :code:`endpoint` - address of Report Portal Server
 
 Example of :code:`behave.ini`:
@@ -70,6 +70,7 @@ The following parameters are optional:
 - :code:`launch_id = xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx` - id of the existing launch (the session will not handle the lifecycle of the given launch)
 - :code:`launch_attributes = Smoke Env:Python3` - list of attributes for launch
 - :code:`launch_description = Smoke test` - launch description
+- :code:`debug_mode = True` - creates the launch either as debug or default mode (defaults to False)
 - :code:`step_based = True` - responsible for Scenario or Step based logging (Scenario based approach is used by default)
 - :code:`is_skipped_an_issue = False` - option to mark skipped tests as not 'To Investigate' items on Server side.
 - :code:`retries = 3` - amount of retries for performing REST calls to RP server

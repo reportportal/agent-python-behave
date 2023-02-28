@@ -74,6 +74,7 @@ class BehaveAgent(metaclass=Singleton):
             description=self._cfg.launch_description,
             rerun=self._cfg.rerun,
             rerunOf=self._cfg.rerun_of,
+            mode="DEBUG" if self._cfg.debug_mode else "DEFAULT",
             **kwargs
         )
         if not self._skip_analytics:
