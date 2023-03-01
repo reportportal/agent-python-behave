@@ -4,7 +4,7 @@ import os
 from functools import wraps
 from os import getenv
 
-from prettytable import PrettyTable
+from prettytable import MARKDOWN, PrettyTable
 from reportportal_client import ReportPortalService
 from reportportal_client.external.google_analytics import send_event
 from reportportal_client.helpers import (
@@ -156,7 +156,7 @@ class BehaveAgent(metaclass=Singleton):
     def start_step(self, context, step, **kwargs):
         """Start test in Report Portal."""
         if self._cfg.step_based:
-            description = step.text or ""
+            step_content = self._build_step_content(step)
             self._step_id = self._rp.start_test_item(
                 name="[{keyword}]: {name}".format(
                     keyword=step.keyword, name=step.name
@@ -165,11 +165,13 @@ class BehaveAgent(metaclass=Singleton):
                 item_type="STEP",
                 parent_item_id=self._scenario_id,
                 code_ref=self._code_ref(step),
-                description=description
-                + self._build_table_content(step.table),
+                description=step_content,
+                has_stats=False if self._cfg.nested_steps else True,
                 **kwargs
             )
             self._log_item_id = self._step_id
+            if self._cfg.nested_steps and step_content:
+                self.post_log(step_content)
 
     @check_rp_enabled
     def finish_step(self, context, step, **kwargs):
@@ -224,13 +226,16 @@ class BehaveAgent(metaclass=Singleton):
         return attributes + _dict_to_payload(system_attributes)
 
     @staticmethod
-    def _build_table_content(table):
-        if not table:
-            return ""
-
-        pt = PrettyTable(field_names=table.headings)
-        [pt.add_row(row.cells) for row in table.rows]
-        return "\n" + pt.get_string()
+    def _build_step_content(step):
+        txt = ""
+        if step.text:
+            txt += "```\n" + step.text + "\n```\n"
+        if step.table:
+            pt = PrettyTable(field_names=step.table.headings)
+            [pt.add_row(row.cells) for row in step.table.rows]
+            pt.set_style(MARKDOWN)
+            txt += pt.get_string()
+        return txt
 
     def _finish_step_step_based(self, step, status=None, **kwargs):
         if step.status.name == "failed":
@@ -247,11 +252,10 @@ class BehaveAgent(metaclass=Singleton):
         self._rp.log(
             item_id=self._scenario_id,
             time=timestamp(),
-            message="[{keyword}]: {name}. {text}{table}".format(
+            message="[{keyword}]: {name}.\n{content}".format(
                 keyword=step.keyword,
                 name=step.name,
-                text=step.text or "",
-                table=self._build_table_content(step.table),
+                content=self._build_step_content(step),
             ),
             level="INFO",
             **kwargs
@@ -314,6 +318,7 @@ class BehaveAgent(metaclass=Singleton):
                     start_time=timestamp(),
                     item_type=item_type,
                     parent_item_id=parent_item_id,
+                    has_stats=False if self._cfg.nested_steps else True,
                 )
                 self._rp.finish_test_item(self._step_id, timestamp(), "PASSED")
                 continue
@@ -347,6 +352,7 @@ class BehaveAgent(metaclass=Singleton):
                     start_time=timestamp(),
                     item_type=item_type,
                     parent_item_id=item_id,
+                    has_stats=False if self._cfg.nested_steps else True,
                 )
                 self._rp.finish_test_item(self._step_id, timestamp(), "PASSED")
                 continue

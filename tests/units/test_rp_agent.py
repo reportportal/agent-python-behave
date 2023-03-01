@@ -528,7 +528,7 @@ def test_finish_failed_step_scenario_based(mock_timestamp, config):
             item_id="scenario_id",
             time=123,
             level="INFO",
-            message="[keyword]: name. ",
+            message="[keyword]: name.\n",
         ),
     ]
     mock_rps.log.assert_has_calls(calls, any_order=True)
@@ -631,14 +631,26 @@ def test_post__log(mock_timestamp, mock_mime, config):
 @mock.patch.object(PrettyTable, "get_string")
 def test_build_table_content(mock_get_string, mock_add_row, mock_init):
     mock_init.return_value = None
-    mock_table, mock_rows = mock.Mock(), mock.Mock()
+    mock_step, mock_table, mock_rows = mock.Mock(), mock.Mock(), mock.Mock()
     mock_table.headings = ["A", "B"]
     mock_rows.cells = ["c", "d"]
     mock_table.rows = [mock_rows]
-    BehaveAgent._build_table_content(mock_table)
+    mock_step.table = mock_table
+    mock_step.text = None
+    BehaveAgent._build_step_content(mock_step)
     mock_init.assert_called_once_with(field_names=["A", "B"])
     mock_add_row.assert_called_once_with(["c", "d"])
     mock_get_string.assert_called_once()
+
+
+@mock.patch.object(PrettyTable, "__init__")
+def test_build_text_content(mock_init):
+    mock_step = mock.Mock()
+    mock_step.table = None
+    mock_step.text = "Step text"
+    text = BehaveAgent._build_step_content(mock_step)
+    mock_init.assert_not_called()
+    assert text == "```\nStep text\n```\n"
 
 
 @mock.patch("behave_reportportal.behave_agent.timestamp")

@@ -72,6 +72,7 @@ The following parameters are optional:
 - :code:`launch_description = Smoke test` - launch description
 - :code:`debug_mode = True` - creates the launch either as debug or default mode (defaults to False)
 - :code:`step_based = True` - responsible for Scenario or Step based logging (Scenario based approach is used by default)
+- :code:`nested_steps = True` - makes the steps nested test steps (collapsable). Only in effect when step_based is true. (defaults to false)
 - :code:`is_skipped_an_issue = False` - option to mark skipped tests as not 'To Investigate' items on Server side.
 - :code:`retries = 3` - amount of retries for performing REST calls to RP server
 - :code:`rerun = True` - marks the launch as the rerun
