@@ -222,7 +222,7 @@ def test_start_launch(mock_timestamp, config):
         some_key="some_value",
         rerun=False,
         rerunOf=None,
-        mode="DEFAULT"
+        mode="DEFAULT",
     )
 
 
@@ -251,7 +251,7 @@ def test_start_launch_with_rerun(mock_timestamp):
         some_key="some_value",
         rerun=cfg.rerun,
         rerunOf=cfg.rerun_of,
-        mode="DEFAULT"
+        mode="DEFAULT",
     )
 
 
