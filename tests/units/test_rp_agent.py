@@ -434,6 +434,7 @@ def test_start_step_step_based(mock_timestamp, config):
         start_time=123,
         item_type="STEP",
         parent_item_id="scenario_id",
+        has_stats=True,
         description="",
         code_ref=BehaveAgent._code_ref(mock_step),
         some_key="some_value",
@@ -564,6 +565,7 @@ def test_skip_analytics(mock_send_event, config):
     mock_send_event.assert_not_called()
 
 
+@mock.patch.dict(os.environ, {"AGENT_NO_ANALYTICS": ""})
 @mock.patch("behave_reportportal.behave_agent.send_event")
 def test_analytics(mock_send_event, config):
     mock_rps = mock.create_autospec(ReportPortalService)
@@ -736,6 +738,7 @@ def test_log_fixtures(mock_timestamp):
                 name="Using of '{}' fixture".format(t),
                 item_type="type",
                 parent_item_id="item_id",
+                has_stats=True,
             )
             for t in ("A", "B")
         ],
@@ -792,6 +795,7 @@ def test_log_cleanup_step_based(mock_timestamp, scope, item_type, item_id):
             start_time=123,
             item_type=item_type,
             parent_item_id=item_id,
+            has_stats=True,
         )
         for f_name in ("cleanup_func1", "cleanup_func2")
     ]
