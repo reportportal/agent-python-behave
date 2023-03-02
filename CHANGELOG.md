@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+### Added
+- `debug_mode` config parameter support, by @nicke46
 
 ## [1.0.1]
 ### Fixed
