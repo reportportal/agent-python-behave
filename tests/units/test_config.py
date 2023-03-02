@@ -39,6 +39,7 @@ def test_read_from_file(mock_cp):
         "launch_name": "launch_name",
         "launch_description": "launch_description",
         "launch_attributes": "X Y Z",
+        "debug_mode": "False",
         "step_based": "False",
         "is_skipped_an_issue": "True",
         "retries": "2",
@@ -50,6 +51,7 @@ def test_read_from_file(mock_cp):
     expect(cfg.token == "token")
     expect(cfg.project == "project")
     expect(cfg.launch_name == "launch_name")
+    expect(cfg.debug_mode is False)
     expect(cfg.step_based is False)
     expect(cfg.is_skipped_an_issue is True)
     expect(cfg.launch_attributes == ["X", "Y", "Z"])
@@ -74,6 +76,7 @@ def test_read_config_from_cmd(mock_cp):
             "launch_name": "launch_name",
             "launch_attributes": "A B C",
             "launch_description": "launch_description",
+            "debug_mode": "True",
             "step_based": "True",
             "is_skipped_an_issue": "False",
             "retries": 3,
@@ -86,6 +89,7 @@ def test_read_config_from_cmd(mock_cp):
     expect(cfg.token == "token")
     expect(cfg.project == "project")
     expect(cfg.launch_name == "launch_name")
+    expect(cfg.debug_mode is True)
     expect(cfg.step_based is True)
     expect(cfg.launch_attributes == ["A", "B", "C"])
     expect(cfg.launch_description == "launch_description")
@@ -110,6 +114,7 @@ def test_read_config_override_from_cmd(mock_cp):
             "launch_name": "launch_name",
             "launch_attributes": "A B C",
             "launch_description": "launch_description",
+            "debug_mode": "True",
             "step_based": "True",
             "is_skipped_an_issue": "False",
             "retries": 3,
@@ -124,6 +129,7 @@ def test_read_config_override_from_cmd(mock_cp):
         "launch_name": "launch_name",
         "launch_description": "launch_description",
         "launch_attributes": "X Y Z",
+        "debug_mode": "False",
         "step_based": "False",
         "is_skipped_an_issue": "True",
         "retries": "2",
@@ -135,6 +141,7 @@ def test_read_config_override_from_cmd(mock_cp):
     expect(cfg.token == "token")
     expect(cfg.project == "project")
     expect(cfg.launch_name == "launch_name")
+    expect(cfg.debug_mode is True)
     expect(cfg.step_based is True)
     expect(cfg.launch_attributes == ["A", "B", "C"])
     expect(cfg.launch_description == "launch_description")
@@ -156,6 +163,7 @@ def test_read_config_default_values(mock_cp):
     expect(cfg.token is None)
     expect(cfg.project is None)
     expect(cfg.launch_name == DEFAULT_LAUNCH_NAME)
+    expect(cfg.debug_mode is False)
     expect(cfg.step_based is False)
     expect(cfg.launch_attributes is None)
     expect(cfg.launch_description is None)
