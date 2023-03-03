@@ -441,6 +441,7 @@ def test_start_step_step_based(mock_timestamp, config):
     )
     ba._step_id = "step_id"
 
+
 @mock.patch("behave_reportportal.behave_agent.timestamp")
 def test_start_step_nested_based(mock_timestamp, config):
     config.log_layout = LogLayout.NESTED
