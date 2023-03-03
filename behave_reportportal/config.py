@@ -19,6 +19,7 @@ class Config(object):
         launch_name=None,
         launch_description=None,
         launch_attributes=None,
+        debug_mode=None,
         step_based=None,
         is_skipped_an_issue=None,
         retries=None,
@@ -37,6 +38,7 @@ class Config(object):
         self.launch_attributes = launch_attributes and launch_attributes.split(
             " "
         )
+        self.debug_mode = get_bool(debug_mode) or False
         self.step_based = get_bool(step_based) or False
         self.is_skipped_an_issue = get_bool(is_skipped_an_issue) or False
         self.retries = retries and int(retries)
