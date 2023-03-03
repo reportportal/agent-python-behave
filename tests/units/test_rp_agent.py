@@ -474,6 +474,7 @@ def test_finish_failed_step_step_based(mock_timestamp, config):
     mock_step.keyword = "keyword"
     mock_step.name = "name"
     mock_step.status.name = "failed"
+    mock_step.exception = AssertionError()
     mock_step.exception.args = ["Exception message"]
     mock_step.error_message = "Error massage"
     mock_timestamp.return_value = 123
@@ -508,6 +509,7 @@ def test_finish_failed_step_scenario_based(mock_timestamp, config):
     mock_step.status.name = "failed"
     mock_step.text = None
     mock_step.table = None
+    mock_step.exception = AssertionError()
     mock_step.exception.args = ["Exception message"]
     mock_step.error_message = "Error message"
     mock_timestamp.return_value = 123
@@ -664,6 +666,8 @@ def test_log_scenario_exception_default_message(mock_timestamp, config):
 def test_log_scenario_exception(mock_timestamp, config):
     mock_timestamp.return_value = 123
     mock_scenario = mock.Mock()
+    mock_scenario.exception = TypeError()
+    mock_scenario.exc_traceback = "traceback message"
     mock_scenario.exception.args = ["Exception arg1", "Exception arg2"]
     mock_scenario.error_message = "Error message"
     mock_scenario.name = "scenario_name"
@@ -676,7 +680,9 @@ def test_log_scenario_exception(mock_timestamp, config):
         time=123,
         level="ERROR",
         message="Scenario 'scenario_name' finished with error.\n"
-        "Exception arg1, Exception arg2\nError message",
+        "traceback message\n"
+        "TypeError: Exception arg1, Exception arg2\n"
+        "Error message",
     )
 
 
@@ -833,3 +839,33 @@ def test_fetch_valuable_args(args, exp):
     exception = mock.Mock()
     exception.args = args
     assert BehaveAgent.fetch_valuable_args(exception) == exp
+
+
+@pytest.mark.parametrize(
+    "exception, args, trc, exp",
+    [
+        (AssertionError(), ["exception arg"], "stack trace", "exception arg"),
+        (
+            AssertionError(),
+            None,
+            "stack trace",
+            "stack trace\nAssertionError: ",
+        ),
+        (
+            TypeError(),
+            ["exception arg"],
+            "stack trace",
+            "stack trace\nTypeError: exception arg",
+        ),
+        (None, None, None, "None\nNoneType: "),
+    ],
+)
+def test_format_exception(exception, args, trc, exp):
+    step = mock.Mock()
+    step.exception = exception
+    if args:
+        step.exception.args = args
+    step.exc_traceback = trc
+    mock_rps = mock.create_autospec(ReportPortalService)
+    ba = BehaveAgent(config, mock_rps)
+    assert ba._format_exception(step) == exp

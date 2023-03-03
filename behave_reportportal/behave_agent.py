@@ -260,36 +260,30 @@ class BehaveAgent(metaclass=Singleton):
             self._log_step_exception(step, self._scenario_id)
 
     def _log_step_exception(self, step, item_id):
-        message = [
+        self._log_exception(
             "Step [{keyword}]: {name} was finished with exception.".format(
                 keyword=step.keyword, name=step.name
-            )
-        ]
-        if step.exception:
-            valuable_args = self.fetch_valuable_args(step.exception)
-            if valuable_args:
-                message.append(", ".join(valuable_args))
-        if step.error_message:
-            message.append(step.error_message)
-
-        self._rp.log(
-            item_id=item_id,
-            time=timestamp(),
-            level="ERROR",
-            message="\n".join(message),
+            ),
+            step,
+            item_id,
         )
 
     def _log_scenario_exception(self, scenario):
-        message = ["Scenario '{}' finished with error.".format(scenario.name)]
-        if scenario.exception:
-            valuable_args = self.fetch_valuable_args(scenario.exception)
-            if valuable_args:
-                message.append(", ".join(valuable_args))
-        if scenario.error_message:
-            message.append(scenario.error_message)
+        self._log_exception(
+            "Scenario '{}' finished with error.".format(scenario.name),
+            scenario,
+            self._scenario_id,
+        )
+
+    def _log_exception(self, initial_msg, exc_holder, item_id):
+        message = [initial_msg]
+        if exc_holder.exception:
+            message.append(self._format_exception(exc_holder))
+        if exc_holder.error_message:
+            message.append(exc_holder.error_message)
 
         self._rp.log(
-            item_id=self._scenario_id,
+            item_id=item_id,
             time=timestamp(),
             level="ERROR",
             message="\n".join(message),
@@ -448,8 +442,22 @@ class BehaveAgent(metaclass=Singleton):
             # todo define what to do
             return "PASSED"
 
+    def _format_exception(self, exc_holder):
+        if (
+            isinstance(exc_holder.exception, AssertionError)
+            and exc_holder.exception.args
+        ):
+            return ", ".join(self.fetch_valuable_args(exc_holder.exception))
+        return "{trc}\n{exc_name}: {args}".format(
+            trc=exc_holder.exc_traceback,
+            exc_name=type(exc_holder.exception).__name__,
+            args=", ".join(
+                self.fetch_valuable_args(exc_holder.exception) or ""
+            ),
+        )
+
     @staticmethod
     def fetch_valuable_args(exception):
         """Return valuable exception args."""
-        if exception.args and any(exception.args):
+        if exception and exception.args and any(exception.args):
             return [str(arg) for arg in exception.args if arg]

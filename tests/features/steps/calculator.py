@@ -44,6 +44,11 @@ def result_is(context, result):
     )
 
 
+@then("Result is {result:d} but without message")
+def result_is_without_message(context, result):
+    assert context.result == result
+
+
 @then("Result should be correct")
 def result_should_be_correct(context):
     for row in context.test_data:
