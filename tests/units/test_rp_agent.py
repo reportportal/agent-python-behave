@@ -441,6 +441,39 @@ def test_start_step_step_based(mock_timestamp, config):
     )
     ba._step_id = "step_id"
 
+@mock.patch("behave_reportportal.behave_agent.timestamp")
+def test_start_step_nested_based(mock_timestamp, config):
+    config.log_layout = LogLayout.NESTED
+    mock_step = mock.Mock()
+    mock_step.keyword = "keyword"
+    mock_step.name = "name"
+    mock_step.text = "step text"
+    mock_step.table = None
+    mock_timestamp.return_value = 123
+    mock_rps = mock.create_autospec(ReportPortalService)
+    mock_rps.start_test_item.return_value = "step_id"
+    mock_context = mock.Mock()
+    ba = BehaveAgent(config, mock_rps)
+    ba._scenario_id = "scenario_id"
+    ba.start_step(mock_context, mock_step, some_key="some_value")
+    mock_rps.start_test_item.assert_called_once_with(
+        name="[keyword]: name",
+        start_time=123,
+        item_type="STEP",
+        parent_item_id="scenario_id",
+        code_ref=BehaveAgent._code_ref(mock_step),
+        description="```\nstep text\n```\n",
+        has_stats=False,
+        some_key="some_value",
+    )
+    mock_rps.log.assert_called_once_with(
+        time=123,
+        message="```\nstep text\n```\n",
+        level="INFO",
+        attachment=None,
+        item_id="step_id",
+    )
+
 
 def test_start_step_scenario_based(config):
     config.log_layout = LogLayout.SCENARIO
