@@ -1,6 +1,8 @@
+import logging
 import sys
 from logging import Logger
 
+import pytest
 from delayed_assert import assert_expectations, expect
 from mock import Mock, patch
 
@@ -69,7 +71,7 @@ def test_emit_for_launch(mock_format):
     mock_format.return_value = "msg"
     mock_rp, mock_record = Mock(), Mock()
     mock_record.is_launch_log = True
-    mock_record.levelname = "INFO"
+    mock_record.levelno = 20
     mock_record.file_to_attach = "file"
     RPHandler(mock_rp).emit(mock_record)
     mock_rp.post_launch_log.assert_called_once_with(
@@ -82,9 +84,26 @@ def test_emit(mock_format):
     mock_format.return_value = "msg"
     mock_rp, mock_record = Mock(), Mock()
     mock_record.is_launch_log = False
-    mock_record.levelname = "INFO"
+    mock_record.levelno = 20
     mock_record.file_to_attach = "file"
     RPHandler(mock_rp).emit(mock_record)
     mock_rp.post_log.assert_called_once_with(
         "msg", "INFO", file_to_attach="file"
     )
+
+
+@pytest.mark.parametrize(
+    "levelno, rp_level",
+    [
+        (100, "FATAL"),
+        (logging.CRITICAL, "FATAL"),
+        (logging.ERROR, "ERROR"),
+        (logging.WARNING, "WARN"),
+        (logging.INFO, "INFO"),
+        (logging.DEBUG, "DEBUG"),
+        (5, "TRACE"),
+        (-10, "TRACE"),
+    ],
+)
+def test_fetch_valuable_args(levelno, rp_level):
+    assert RPHandler(Mock())._get_rp_log_level(levelno) == rp_level
