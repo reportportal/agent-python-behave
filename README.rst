@@ -93,7 +93,7 @@ To execute tests with Report Portal you should run `behave` command and specify 
 
 
 Test item attributes
-~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
 
 Tag `attribute` could be used to specify attributes for features and scenarios.
 Attributes should be listed inside brackets of attribute tag separated by commas.
@@ -111,7 +111,7 @@ Example:
 
 
 Logging
-~~~~~~~~
+~~~~~~~
 
 For logging of the test item flow to Report Portal, please, use the python
 logging handler and logger class provided by extension like bellow:
@@ -156,7 +156,7 @@ in steps:
 
 
 Test case ID
--------------------
+------------
 
 It's possible to mark some scenario with `test_case_id(<some_id>)` tag. ID specified in brackets will be sent to ReportPortal.
 
