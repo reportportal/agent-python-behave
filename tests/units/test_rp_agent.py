@@ -7,7 +7,7 @@ from prettytable import PrettyTable
 from reportportal_client import ReportPortalService
 
 from behave_reportportal.behave_agent import BehaveAgent, create_rp_service
-from behave_reportportal.config import Config
+from behave_reportportal.config import Config, LogLayout
 from behave_reportportal.utils import Singleton
 
 
@@ -416,7 +416,7 @@ def test_finish_failed_scenario(mock_log, config):
 
 @mock.patch("behave_reportportal.behave_agent.timestamp")
 def test_start_step_step_based(mock_timestamp, config):
-    config.step_based = True
+    config.log_layout = LogLayout.STEP
     mock_step = mock.Mock()
     mock_step.keyword = "keyword"
     mock_step.name = "name"
@@ -443,7 +443,7 @@ def test_start_step_step_based(mock_timestamp, config):
 
 
 def test_start_step_scenario_based(config):
-    config.step_based = False
+    config.log_layout = LogLayout.SCENARIO
     mock_step = mock.Mock()
     mock_rps = mock.create_autospec(ReportPortalService)
     mock_context = mock.Mock()
@@ -454,7 +454,7 @@ def test_start_step_scenario_based(config):
 
 @mock.patch("behave_reportportal.behave_agent.timestamp")
 def test_finish_passed_step_step_based(mock_timestamp, config):
-    config.step_based = True
+    config.log_layout = LogLayout.STEP
     mock_step = mock.Mock()
     mock_step.status.name = "passed"
     mock_timestamp.return_value = 123
@@ -470,7 +470,7 @@ def test_finish_passed_step_step_based(mock_timestamp, config):
 
 @mock.patch("behave_reportportal.behave_agent.timestamp")
 def test_finish_failed_step_step_based(mock_timestamp, config):
-    config.step_based = True
+    config.log_layout = LogLayout.STEP
     mock_step = mock.Mock()
     mock_step.keyword = "keyword"
     mock_step.name = "name"
@@ -502,7 +502,7 @@ def test_finish_failed_step_step_based(mock_timestamp, config):
 
 @mock.patch("behave_reportportal.behave_agent.timestamp")
 def test_finish_failed_step_scenario_based(mock_timestamp, config):
-    config.step_based = False
+    config.log_layout = LogLayout.SCENARIO
     mock_step = mock.Mock()
     mock_step.keyword = "keyword"
     mock_step.name = "name"
@@ -711,7 +711,7 @@ def test_log_fixtures(mock_timestamp):
         endpoint="endpoint",
         token="token",
         project="project",
-        step_based="False",
+        log_layout=LogLayout.SCENARIO,
     )
     mock_rps = mock.create_autospec(ReportPortalService)
     mock_item = mock.Mock()
@@ -729,7 +729,7 @@ def test_log_fixtures(mock_timestamp):
         ],
         any_order=True,
     )
-    cfg.step_based = True
+    cfg.log_layout = LogLayout.STEP
     BehaveAgent(cfg, mock_rps)._log_fixtures(mock_item, "type", "item_id")
     mock_rps.start_test_item.assert_has_calls(
         [

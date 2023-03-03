@@ -15,6 +15,7 @@ from reportportal_client.helpers import (
 )
 from reportportal_client.service import _dict_to_payload
 
+from behave_reportportal.config import LogLayout
 from behave_reportportal.utils import Singleton
 
 
@@ -155,7 +156,7 @@ class BehaveAgent(metaclass=Singleton):
     @check_rp_enabled
     def start_step(self, context, step, **kwargs):
         """Start test in Report Portal."""
-        if self._cfg.step_based:
+        if self._cfg.log_layout is not LogLayout.SCENARIO:
             step_content = self._build_step_content(step)
             self._step_id = self._rp.start_test_item(
                 name="[{keyword}]: {name}".format(
@@ -166,17 +167,19 @@ class BehaveAgent(metaclass=Singleton):
                 parent_item_id=self._scenario_id,
                 code_ref=self._code_ref(step),
                 description=step_content,
-                has_stats=False if self._cfg.nested_steps else True,
+                has_stats=False
+                if self._cfg.log_layout is LogLayout.NESTED
+                else True,
                 **kwargs
             )
             self._log_item_id = self._step_id
-            if self._cfg.nested_steps and step_content:
+            if self._cfg.log_layout is LogLayout.NESTED and step_content:
                 self.post_log(step_content)
 
     @check_rp_enabled
     def finish_step(self, context, step, **kwargs):
         """Finish test in Report Portal."""
-        if self._cfg.step_based:
+        if self._cfg.log_layout is not LogLayout.SCENARIO:
             self._finish_step_step_based(step, **kwargs)
             return
         self._finish_step_scenario_based(step, **kwargs)
@@ -312,13 +315,15 @@ class BehaveAgent(metaclass=Singleton):
             if not tag.startswith("fixture."):
                 continue
             msg = "Using of '{}' fixture".format(tag[len("fixture.") :])
-            if self._cfg.step_based:
+            if self._cfg.log_layout is not LogLayout.SCENARIO:
                 self._step_id = self._rp.start_test_item(
                     name=msg,
                     start_time=timestamp(),
                     item_type=item_type,
                     parent_item_id=parent_item_id,
-                    has_stats=False if self._cfg.nested_steps else True,
+                    has_stats=False
+                    if self._cfg.log_layout is LogLayout.NESTED
+                    else True,
                 )
                 self._rp.finish_test_item(self._step_id, timestamp(), "PASSED")
                 continue
@@ -346,13 +351,15 @@ class BehaveAgent(metaclass=Singleton):
         item_id = self._feature_id if scope == "feature" else self._scenario_id
         for cleanup in layer.get("@cleanups", []):
             msg = "Execution of '{}' cleanup function".format(cleanup.__name__)
-            if self._cfg.step_based:
+            if self._cfg.log_layout is not LogLayout.SCENARIO:
                 self._step_id = self._step_id = self._rp.start_test_item(
                     name=msg,
                     start_time=timestamp(),
                     item_type=item_type,
                     parent_item_id=item_id,
-                    has_stats=False if self._cfg.nested_steps else True,
+                    has_stats=False
+                    if self._cfg.log_layout is LogLayout.NESTED
+                    else True,
                 )
                 self._rp.finish_test_item(self._step_id, timestamp(), "PASSED")
                 continue

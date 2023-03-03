@@ -1,10 +1,29 @@
 """Config is structure for configuration of behave Report Portal agent."""
 from configparser import ConfigParser
+from enum import Enum
+from warnings import simplefilter, warn
 
 
 RP_CFG_SECTION = "report_portal"
 DEFAULT_LAUNCH_NAME = "Python Behave Launch"
 DEFAULT_CFG_FILE = "behave.ini"
+
+
+class LogLayout(Enum):
+    """Enum holding the different log layout styles that are possible."""
+
+    SCENARIO = 0
+    STEP = 1
+    NESTED = 2
+
+    @classmethod
+    def _missing_(cls, value):
+        if value:
+            value = value.upper()
+            for member in cls:
+                if member.name == value:
+                    return member
+        return cls.SCENARIO
 
 
 class Config(object):
@@ -20,8 +39,8 @@ class Config(object):
         launch_description=None,
         launch_attributes=None,
         debug_mode=None,
+        log_layout=None,
         step_based=None,
-        nested_steps=None,
         is_skipped_an_issue=None,
         retries=None,
         rerun=None,
@@ -40,12 +59,24 @@ class Config(object):
             " "
         )
         self.debug_mode = get_bool(debug_mode) or False
-        self.step_based = get_bool(step_based) or False
-        self.nested_steps = get_bool(nested_steps) or False
         self.is_skipped_an_issue = get_bool(is_skipped_an_issue) or False
         self.retries = retries and int(retries)
         self.rerun = get_bool(rerun) or False
         self.rerun_of = rerun_of
+
+        if step_based and not log_layout:
+            simplefilter("default")
+            warn(
+                "'step_based' config setting has been deprecated"
+                "in favor of the new log_layout configuration.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            self.log_layout = (
+                LogLayout.STEP if get_bool(step_based) else LogLayout.SCENARIO
+            )
+        else:
+            self.log_layout = LogLayout(log_layout)
 
 
 def read_config(context):
