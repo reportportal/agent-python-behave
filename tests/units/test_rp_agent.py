@@ -1,4 +1,6 @@
 import os
+import sys
+import traceback
 
 import mock
 import pytest
@@ -502,71 +504,88 @@ def test_finish_passed_step_step_based(mock_timestamp, config):
 
 @mock.patch("behave_reportportal.behave_agent.timestamp")
 def test_finish_failed_step_step_based(mock_timestamp, config):
-    config.log_layout = LogLayout.STEP
-    mock_step = mock.Mock()
-    mock_step.keyword = "keyword"
-    mock_step.name = "name"
-    mock_step.status.name = "failed"
-    mock_step.exception = AssertionError()
-    mock_step.exception.args = ["Exception message"]
-    mock_step.error_message = "Error massage"
-    mock_timestamp.return_value = 123
-    mock_rps = mock.create_autospec(ReportPortalService)
-    mock_context = mock.Mock()
-    ba = BehaveAgent(config, mock_rps)
-    ba._step_id = "step_id"
-    ba._scenario_id = "step_id"
-    ba.finish_step(mock_context, mock_step, some_key="some_value")
-    mock_rps.finish_test_item.assert_called_once_with(
-        item_id="step_id", end_time=123, status="FAILED", some_key="some_value"
-    )
-    mock_rps.log.assert_has_calls(
-        [
-            mock.call(
-                item_id="step_id",
-                time=123,
-                level="ERROR",
-                message="Step [keyword]: name was finished with exception.\n"
-                "Exception message\nError massage",
-            )
-        ]
-    )
+    try:
+        raise AssertionError("error!")
+    except AssertionError as e:
+        e_traceback = sys.exc_info()[2]
+        config.log_layout = LogLayout.STEP
+        mock_step = mock.Mock()
+        mock_step.keyword = "keyword"
+        mock_step.name = "name"
+        mock_step.status.name = "failed"
+        mock_step.exception = e
+        mock_step.exc_traceback = e_traceback
+        mock_step.error_message = "Error massage"
+        mock_timestamp.return_value = 123
+        mock_rps = mock.create_autospec(ReportPortalService)
+        mock_context = mock.Mock()
+        ba = BehaveAgent(config, mock_rps)
+        ba._step_id = "step_id"
+        ba._scenario_id = "step_id"
+        ba.finish_step(mock_context, mock_step, some_key="some_value")
+        mock_rps.finish_test_item.assert_called_once_with(
+            item_id="step_id",
+            end_time=123,
+            status="FAILED",
+            some_key="some_value",
+        )
+        mock_rps.log.assert_has_calls(
+            [
+                mock.call(
+                    item_id="step_id",
+                    time=123,
+                    level="ERROR",
+                    message="Step [keyword]: "
+                    "name was finished with exception.\n"
+                    + "".join(
+                        traceback.format_exception(type(e), e, e_traceback)
+                    )
+                    + "\nError massage",
+                )
+            ]
+        )
 
 
 @mock.patch("behave_reportportal.behave_agent.timestamp")
 def test_finish_failed_step_scenario_based(mock_timestamp, config):
-    config.log_layout = LogLayout.SCENARIO
-    mock_step = mock.Mock()
-    mock_step.keyword = "keyword"
-    mock_step.name = "name"
-    mock_step.status.name = "failed"
-    mock_step.text = None
-    mock_step.table = None
-    mock_step.exception = AssertionError()
-    mock_step.exception.args = ["Exception message"]
-    mock_step.error_message = "Error message"
-    mock_timestamp.return_value = 123
-    mock_rps = mock.create_autospec(ReportPortalService)
-    mock_context = mock.Mock()
-    ba = BehaveAgent(config, mock_rps)
-    ba._scenario_id = "scenario_id"
-    ba.finish_step(mock_context, mock_step)
-    calls = [
-        mock.call(
-            item_id="scenario_id",
-            time=123,
-            level="ERROR",
-            message="Step [keyword]: name was finished with exception.\n"
-            "Exception message\nError message",
-        ),
-        mock.call(
-            item_id="scenario_id",
-            time=123,
-            level="INFO",
-            message="[keyword]: name.\n",
-        ),
-    ]
-    mock_rps.log.assert_has_calls(calls, any_order=True)
+    try:
+        raise AssertionError("error!")
+    except AssertionError as e:
+        e_traceback = sys.exc_info()[2]
+        config.log_layout = LogLayout.SCENARIO
+        mock_step = mock.Mock()
+        mock_step.keyword = "keyword"
+        mock_step.name = "name"
+        mock_step.status.name = "failed"
+        mock_step.text = None
+        mock_step.table = None
+        mock_step.exception = e
+        mock_step.exception.args = ["Exception message"]
+        mock_step.exc_traceback = e_traceback
+        mock_step.error_message = "Error message"
+        mock_timestamp.return_value = 123
+        mock_rps = mock.create_autospec(ReportPortalService)
+        mock_context = mock.Mock()
+        ba = BehaveAgent(config, mock_rps)
+        ba._scenario_id = "scenario_id"
+        ba.finish_step(mock_context, mock_step)
+        calls = [
+            mock.call(
+                item_id="scenario_id",
+                time=123,
+                level="ERROR",
+                message="Step [keyword]: name was finished with exception.\n"
+                + "".join(traceback.format_exception(type(e), e, e_traceback))
+                + "\nError message",
+            ),
+            mock.call(
+                item_id="scenario_id",
+                time=123,
+                level="INFO",
+                message="[keyword]: name.\n",
+            ),
+        ]
+        mock_rps.log.assert_has_calls(calls, any_order=True)
 
 
 @mock.patch("behave_reportportal.behave_agent.timestamp")
@@ -710,26 +729,28 @@ def test_log_scenario_exception_default_message(mock_timestamp, config):
 
 @mock.patch("behave_reportportal.behave_agent.timestamp")
 def test_log_scenario_exception(mock_timestamp, config):
-    mock_timestamp.return_value = 123
-    mock_scenario = mock.Mock()
-    mock_scenario.exception = TypeError()
-    mock_scenario.exc_traceback = "traceback message"
-    mock_scenario.exception.args = ["Exception arg1", "Exception arg2"]
-    mock_scenario.error_message = "Error message"
-    mock_scenario.name = "scenario_name"
-    mock_rps = mock.create_autospec(ReportPortalService)
-    ba = BehaveAgent(config, mock_rps)
-    ba._scenario_id = "scenario_id"
-    ba._log_scenario_exception(mock_scenario)
-    mock_rps.log.assert_called_once_with(
-        item_id="scenario_id",
-        time=123,
-        level="ERROR",
-        message="Scenario 'scenario_name' finished with error.\n"
-        "traceback message\n"
-        "TypeError: Exception arg1, Exception arg2\n"
-        "Error message",
-    )
+    try:
+        raise ValueError("error!")
+    except ValueError as e:
+        e_traceback = sys.exc_info()[2]
+        mock_timestamp.return_value = 123
+        mock_scenario = mock.Mock()
+        mock_scenario.exception = e
+        mock_scenario.exc_traceback = e_traceback
+        mock_scenario.error_message = "Error message"
+        mock_scenario.name = "scenario_name"
+        mock_rps = mock.create_autospec(ReportPortalService)
+        ba = BehaveAgent(config, mock_rps)
+        ba._scenario_id = "scenario_id"
+        ba._log_scenario_exception(mock_scenario)
+        mock_rps.log.assert_called_once_with(
+            item_id="scenario_id",
+            time=123,
+            level="ERROR",
+            message="Scenario 'scenario_name' finished with error.\n"
+            + "".join(traceback.format_exception(type(e), e, e_traceback))
+            + "\nError message",
+        )
 
 
 @pytest.mark.parametrize("tags", [None, ["A", "B"]])
@@ -814,7 +835,9 @@ def test_log_cleanup_no_cleanups(config):
 )
 @mock.patch("behave_reportportal.behave_agent.timestamp")
 def test_log_cleanup_step_based(mock_timestamp, scope, item_type, item_id):
-    cfg = Config(endpoint="E", token="T", project="P", step_based=True)
+    cfg = Config(
+        endpoint="E", token="T", project="P", log_layout=LogLayout.STEP
+    )
     mock_timestamp.return_value = 123
     mock_rps = mock.create_autospec(ReportPortalService)
     mock_context, mock_func1, mock_func2 = mock.Mock(), mock.Mock, mock.Mock()
@@ -868,52 +891,3 @@ def test_log_cleanup_scenario_based(mock_timestamp, config, scope, item_id):
         for f_name in ("cleanup_func1", "cleanup_func2")
     ]
     mock_rps.log.assert_has_calls(calls)
-
-
-@pytest.mark.parametrize(
-    "args, exp",
-    [
-        (("A", "B"), ["A", "B"]),
-        (("",), None),
-        (("", ""), None),
-        ((None,), None),
-        ((None, None), None),
-        (("", None), None),
-        (("A", "", None), ["A"]),
-        (("A", ["A", "B", "C"]), ["A", "['A', 'B', 'C']"]),
-    ],
-)
-def test_fetch_valuable_args(args, exp):
-    exception = mock.Mock()
-    exception.args = args
-    assert BehaveAgent.fetch_valuable_args(exception) == exp
-
-
-@pytest.mark.parametrize(
-    "exception, args, trc, exp",
-    [
-        (AssertionError(), ["exception arg"], "stack trace", "exception arg"),
-        (
-            AssertionError(),
-            None,
-            "stack trace",
-            "stack trace\nAssertionError: ",
-        ),
-        (
-            TypeError(),
-            ["exception arg"],
-            "stack trace",
-            "stack trace\nTypeError: exception arg",
-        ),
-        (None, None, None, "None\nNoneType: "),
-    ],
-)
-def test_format_exception(exception, args, trc, exp):
-    step = mock.Mock()
-    step.exception = exception
-    if args:
-        step.exception.args = args
-    step.exc_traceback = trc
-    mock_rps = mock.create_autospec(ReportPortalService)
-    ba = BehaveAgent(config, mock_rps)
-    assert ba._format_exception(step) == exp

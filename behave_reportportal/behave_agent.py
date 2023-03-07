@@ -1,6 +1,7 @@
 """Functionality for integration of Behave tests with Report Portal."""
 import mimetypes
 import os
+import traceback
 from functools import wraps
 from os import getenv
 
@@ -261,16 +262,14 @@ class BehaveAgent(metaclass=Singleton):
 
     def _log_step_exception(self, step, item_id):
         self._log_exception(
-            "Step [{keyword}]: {name} was finished with exception.".format(
-                keyword=step.keyword, name=step.name
-            ),
+            f"Step [{step.keyword}]: {step.name} was finished with exception.",
             step,
             item_id,
         )
 
     def _log_scenario_exception(self, scenario):
         self._log_exception(
-            "Scenario '{}' finished with error.".format(scenario.name),
+            f"Scenario '{scenario.name}' finished with error.",
             scenario,
             self._scenario_id,
         )
@@ -278,7 +277,15 @@ class BehaveAgent(metaclass=Singleton):
     def _log_exception(self, initial_msg, exc_holder, item_id):
         message = [initial_msg]
         if exc_holder.exception:
-            message.append(self._format_exception(exc_holder))
+            message.append(
+                "".join(
+                    traceback.format_exception(
+                        type(exc_holder.exception),
+                        exc_holder.exception,
+                        exc_holder.exc_traceback,
+                    )
+                )
+            )
         if exc_holder.error_message:
             message.append(exc_holder.error_message)
 
@@ -445,23 +452,3 @@ class BehaveAgent(metaclass=Singleton):
         else:
             # todo define what to do
             return "PASSED"
-
-    def _format_exception(self, exc_holder):
-        if (
-            isinstance(exc_holder.exception, AssertionError)
-            and exc_holder.exception.args
-        ):
-            return ", ".join(self.fetch_valuable_args(exc_holder.exception))
-        return "{trc}\n{exc_name}: {args}".format(
-            trc=exc_holder.exc_traceback,
-            exc_name=type(exc_holder.exception).__name__,
-            args=", ".join(
-                self.fetch_valuable_args(exc_holder.exception) or ""
-            ),
-        )
-
-    @staticmethod
-    def fetch_valuable_args(exception):
-        """Return valuable exception args."""
-        if exception and exception.args and any(exception.args):
-            return [str(arg) for arg in exception.args if arg]
