@@ -35,6 +35,11 @@ def use_multiplication_method(context):
         row["actual"] = row["number_a"] * row["number_b"]
 
 
+@when("Use division operation")
+def use_division_operation(context):
+    context.result = context.number_a / context.number_b
+
+
 @then("Result is {result:d}")
 def result_is(context, result):
     assert (

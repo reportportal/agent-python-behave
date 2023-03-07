@@ -26,7 +26,6 @@ Feature: Calculator functionality
   @attribute(scenario_key:scenario_value,some_other_value)
   Scenario: Scenario with step data table
     Given I want to calculate two numbers
-
       | number_a | number_b | expected |
       | 6        | 5        | 30       |
       | 5        | 4        | 20       |
