@@ -119,7 +119,9 @@ def test_code_ref():
     mock_item.location = mock_location
     expect(
         BehaveAgent._code_ref(mock_item) == "filename:24",
-        f"code_ref is incorrect:\nActual: {BehaveAgent._code_ref(mock_item)}\nExpected: {'filename:24'}",
+        f"code_ref is incorrect:\n"
+        f"Actual: {BehaveAgent._code_ref(mock_item)}\n"
+        f"Expected: {'filename:24'}",
     )
     assert_expectations()
 
@@ -137,7 +139,9 @@ def test_get_parameters():
     mock_item._row = mock_row
     expect(
         BehaveAgent._get_parameters(mock_item) == {"A": 1, "B": 2},
-        f"parameters are incorrect:\nActual: {BehaveAgent._get_parameters(mock_item)}\nExpected: {{'A': 1, 'B': 2}}",
+        f"parameters are incorrect:\n"
+        f"Actual: {BehaveAgent._get_parameters(mock_item)}\n"
+        f"Expected: {{'A': 1, 'B': 2}}",
     )
     assert_expectations()
 
@@ -195,7 +199,9 @@ def test_item_description():
     mock_item.description = ["a", "b"]
     expect(
         BehaveAgent._item_description(mock_item) == "Description:\na\nb",
-        f"Description is incorrect:\nActual: {BehaveAgent._item_description(mock_item)}\nExpected: Description:\na\nb",
+        f"Description is incorrect:\n"
+        f"Actual: {BehaveAgent._item_description(mock_item)}\n"
+        f"Expected: Description:\na\nb",
     )
     assert_expectations()
 
@@ -296,9 +302,10 @@ def verify_start_feature(mock_feature, config):
         attributes=ba._attributes(mock_feature),
         some_key="some_value",
     )
-    assert (
-        ba._feature_id == "feature_id"
-    ), f"Invalid feature_id:\nActual: {ba._feature_id}\nExpected: {'feature_id'}\n"
+    assert ba._feature_id == "feature_id", (
+        f"Invalid feature_id:\nActual: {ba._feature_id}\n"
+        f"Expected: {'feature_id'}\n"
+    )
 
 
 @pytest.mark.parametrize(
@@ -363,9 +370,10 @@ def verify_start_scenario(mock_scenario, config):
         test_case_id=ba._test_case_id(mock_scenario),
         some_key="some_value",
     )
-    assert (
-        ba._scenario_id == "scenario_id"
-    ), f"Invalid scenario_id:\nActual: {ba._scenario_id}\nExpected: {'scenario_id'}\n"
+    assert ba._scenario_id == "scenario_id", (
+        f"Invalid scenario_id:\nActual: {ba._scenario_id}\n"
+        f"Expected: {'scenario_id'}\n"
+    )
 
 
 @pytest.mark.parametrize(

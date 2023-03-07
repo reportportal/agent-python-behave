@@ -251,7 +251,8 @@ class BehaveAgent(metaclass=Singleton):
         self._rp.log(
             item_id=self._scenario_id,
             time=timestamp(),
-            message=f"[{step.keyword}]: {step.name}.\n{self._build_step_content(step)}",
+            message=f"[{step.keyword}]: {step.name}.\n"
+            f"{self._build_step_content(step)}",
             level="INFO",
             **kwargs,
         )
