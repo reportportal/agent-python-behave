@@ -4,6 +4,7 @@ import traceback
 
 import mock
 import pytest
+from behave.model_core import Status
 from delayed_assert import assert_expectations, expect
 from prettytable import PrettyTable
 from reportportal_client import ReportPortalService
@@ -402,7 +403,7 @@ def test_finish_scenario(mock_timestamp, config, tags, expected_status):
 
 
 @mock.patch.object(BehaveAgent, "_log_scenario_exception")
-def test_finish_failed_scenario(mock_log, config):
+def test_finish_failed_scenario_scenario_based(mock_log, config):
     mock_scenario = mock.Mock()
     mock_scenario.tags = []
     mock_scenario.status.name = "failed"
@@ -412,6 +413,35 @@ def test_finish_failed_scenario(mock_log, config):
     ba = BehaveAgent(config, mock_rps)
     ba.finish_scenario(mock_context, mock_scenario)
     mock_log.assert_called_once_with(mock_scenario)
+
+
+@mock.patch.object(BehaveAgent, "finish_step")
+@mock.patch.object(BehaveAgent, "start_step")
+@mock.patch.object(BehaveAgent, "_log_scenario_exception")
+def test_finish_failed_scenario_step_based(
+    mock_log, mock_start_step, mock_finish_step, config
+):
+    config.log_layout = LogLayout.STEP
+    mock_scenario = mock.Mock()
+    mock_scenario.tags = []
+    mock_scenario.status.name = "failed"
+    mock_skipped_step = mock.Mock()
+    mock_skipped_step.status = Status.skipped
+    mock_skipped_step.keyword = "Then"
+    mock_skipped_step.name = "step name"
+    mock_skipped_step.text = "step text"
+    mock_skipped_step.table = None
+    mock_failed_step = mock.Mock()
+    mock_failed_step.status = Status.failed
+    mock_scenario.steps = [mock_failed_step, mock_skipped_step]
+    mock_rps = mock.create_autospec(ReportPortalService)
+    mock_context = mock.Mock()
+    mock_context._stack = []
+    ba = BehaveAgent(config, mock_rps)
+    ba.finish_scenario(mock_context, mock_scenario)
+    mock_log.assert_called_once_with(mock_scenario)
+    mock_start_step.assert_called_once_with(mock_context, mock_skipped_step)
+    mock_finish_step.assert_called_once_with(mock_context, mock_skipped_step)
 
 
 @mock.patch("behave_reportportal.behave_agent.timestamp")

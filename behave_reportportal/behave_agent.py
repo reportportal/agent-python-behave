@@ -144,6 +144,7 @@ class BehaveAgent(metaclass=Singleton):
         if scenario.tags and "skip" in scenario.tags:
             status = "SKIPPED"
         if scenario.status.name == "failed":
+            self._log_skipped_steps(context, scenario)
             self._log_scenario_exception(scenario)
         self._log_cleanups(context, "scenario"),
         self._rp.finish_test_item(
@@ -153,6 +154,17 @@ class BehaveAgent(metaclass=Singleton):
             **kwargs,
         )
         self._log_item_id = self._feature_id
+
+    def _log_skipped_steps(self, context, scenario):
+        if self._cfg.log_layout is not LogLayout.SCENARIO:
+            skipped_steps = [
+                step
+                for step in scenario.steps
+                if step.status.name == "skipped"
+            ]
+            for step in skipped_steps:
+                self.start_step(context, step)
+                self.finish_step(context, step)
 
     @check_rp_enabled
     def start_step(self, context, step, **kwargs):
@@ -276,7 +288,7 @@ class BehaveAgent(metaclass=Singleton):
 
     def _log_exception(self, initial_msg, exc_holder, item_id):
         message = [initial_msg]
-        if exc_holder.exception:
+        if exc_holder.exception and exc_holder.exc_traceback:
             message.append(
                 "".join(
                     traceback.format_exception(
