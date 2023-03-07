@@ -42,7 +42,7 @@ def test_convert_to_rp_status(status, expected):
     actual = BehaveAgent.convert_to_rp_status(status)
     assert (
         actual == expected
-    ), "Incorrect status:\nActual: {}\nExpected:{}".format(actual, expected)
+    ), f"Incorrect status:\nActual: {actual}\nExpected:{expected}"
 
 
 def test_attributes(config):
@@ -61,7 +61,7 @@ def test_attributes(config):
     act = ba._attributes(mock_item)
     expect(
         act == exp,
-        "Attributes are incorrect:\nActual: {}\nExpected: {}".format(act, exp),
+        f"Attributes are incorrect:\nActual: {act}\nExpected: {exp}",
     )
     assert_expectations()
 
@@ -119,9 +119,7 @@ def test_code_ref():
     mock_item.location = mock_location
     expect(
         BehaveAgent._code_ref(mock_item) == "filename:24",
-        "code_ref is incorrect:\nActual: {}\nExpected: {}".format(
-            BehaveAgent._code_ref(mock_item), "filename:24"
-        ),
+        f"code_ref is incorrect:\nActual: {BehaveAgent._code_ref(mock_item)}\nExpected: {'filename:24'}",
     )
     assert_expectations()
 
@@ -139,9 +137,7 @@ def test_get_parameters():
     mock_item._row = mock_row
     expect(
         BehaveAgent._get_parameters(mock_item) == {"A": 1, "B": 2},
-        "parameters are incorrect:\nActual: {}\nExpected: {}".format(
-            BehaveAgent._get_parameters(mock_item), {"A": 1, "B": 2}
-        ),
+        f"parameters are incorrect:\nActual: {BehaveAgent._get_parameters(mock_item)}\nExpected: {{'A': 1, 'B': 2}}",
     )
     assert_expectations()
 
@@ -199,9 +195,7 @@ def test_item_description():
     mock_item.description = ["a", "b"]
     expect(
         BehaveAgent._item_description(mock_item) == "Description:\na\nb",
-        "Description is incorrect:\nActual: {}\nExpected: {}".format(
-            BehaveAgent._item_description(mock_item), "Description:\na\nb"
-        ),
+        f"Description is incorrect:\nActual: {BehaveAgent._item_description(mock_item)}\nExpected: Description:\na\nb",
     )
     assert_expectations()
 
@@ -304,9 +298,7 @@ def verify_start_feature(mock_feature, config):
     )
     assert (
         ba._feature_id == "feature_id"
-    ), "Invalid feature_id:\nActual: {}\nExpected: {}\n".format(
-        ba._feature_id, "feature_id"
-    )
+    ), f"Invalid feature_id:\nActual: {ba._feature_id}\nExpected: {'feature_id'}\n"
 
 
 @pytest.mark.parametrize(
@@ -373,9 +365,7 @@ def verify_start_scenario(mock_scenario, config):
     )
     assert (
         ba._scenario_id == "scenario_id"
-    ), "Invalid scenario_id:\nActual: {}\nExpected: {}\n".format(
-        ba._scenario_id, "scenario_id"
-    )
+    ), f"Invalid scenario_id:\nActual: {ba._scenario_id}\nExpected: {'scenario_id'}\n"
 
 
 @pytest.mark.parametrize(
@@ -755,7 +745,7 @@ def test_log_fixtures(mock_timestamp):
         [
             mock.call(
                 123,
-                "Using of '{}' fixture".format(t),
+                f"Using of '{t}' fixture",
                 level="INFO",
                 item_id="item_id",
             )
@@ -769,7 +759,7 @@ def test_log_fixtures(mock_timestamp):
         [
             mock.call(
                 start_time=123,
-                name="Using of '{}' fixture".format(t),
+                name=f"Using of '{t}' fixture",
                 item_type="type",
                 parent_item_id="item_id",
                 has_stats=True,
@@ -825,7 +815,7 @@ def test_log_cleanup_step_based(mock_timestamp, scope, item_type, item_id):
     ba._log_cleanups(mock_context, scope)
     calls = [
         mock.call(
-            name="Execution of '{}' cleanup function".format(f_name),
+            name=f"Execution of '{f_name}' cleanup function",
             start_time=123,
             item_type=item_type,
             parent_item_id=item_id,
@@ -857,7 +847,7 @@ def test_log_cleanup_scenario_based(mock_timestamp, config, scope, item_id):
     calls = [
         mock.call(
             123,
-            "Execution of '{}' cleanup function".format(f_name),
+            f"Execution of '{f_name}' cleanup function",
             level="INFO",
             item_id=item_id,
         )

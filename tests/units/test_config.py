@@ -191,7 +191,7 @@ def test_read_config_default_values(mock_cp):
 )
 def test_get_bool(val, exp):
     act = get_bool(val)
-    assert act == exp, "Actual:{}\nExpected: {}".format(act, exp)
+    assert act == exp, f"Actual:{act}\nExpected: {exp}"
 
 
 @pytest.mark.parametrize(

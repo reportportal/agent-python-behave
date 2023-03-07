@@ -76,7 +76,7 @@ class BehaveAgent(metaclass=Singleton):
             rerun=self._cfg.rerun,
             rerunOf=self._cfg.rerun_of,
             mode="DEBUG" if self._cfg.debug_mode else "DEFAULT",
-            **kwargs
+            **kwargs,
         )
         if not self._skip_analytics:
             send_event(self.agent_name, self.agent_version)
@@ -99,7 +99,7 @@ class BehaveAgent(metaclass=Singleton):
             description=self._item_description(feature),
             code_ref=self._code_ref(feature),
             attributes=self._attributes(feature),
-            **kwargs
+            **kwargs,
         )
         self._log_fixtures(feature, "BEFORE_SUITE", self._feature_id)
         self._log_item_id = self._feature_id
@@ -114,7 +114,7 @@ class BehaveAgent(metaclass=Singleton):
             item_id=self._feature_id,
             end_time=timestamp(),
             status=status or self.convert_to_rp_status(feature.status.name),
-            **kwargs
+            **kwargs,
         )
 
     @check_rp_enabled
@@ -132,7 +132,7 @@ class BehaveAgent(metaclass=Singleton):
             parameters=self._get_parameters(scenario),
             description=self._item_description(scenario),
             test_case_id=self._test_case_id(scenario),
-            **kwargs
+            **kwargs,
         )
         self._log_fixtures(scenario, "BEFORE_TEST", self._scenario_id)
         self._log_item_id = self._scenario_id
@@ -149,7 +149,7 @@ class BehaveAgent(metaclass=Singleton):
             item_id=self._scenario_id,
             end_time=timestamp(),
             status=status or self.convert_to_rp_status(scenario.status.name),
-            **kwargs
+            **kwargs,
         )
         self._log_item_id = self._feature_id
 
@@ -159,9 +159,7 @@ class BehaveAgent(metaclass=Singleton):
         if self._cfg.log_layout is not LogLayout.SCENARIO:
             step_content = self._build_step_content(step)
             self._step_id = self._rp.start_test_item(
-                name="[{keyword}]: {name}".format(
-                    keyword=step.keyword, name=step.name
-                ),
+                name=f"[{step.keyword}]: {step.name}",
                 start_time=timestamp(),
                 item_type="STEP",
                 parent_item_id=self._scenario_id,
@@ -170,7 +168,7 @@ class BehaveAgent(metaclass=Singleton):
                 has_stats=False
                 if self._cfg.log_layout is LogLayout.NESTED
                 else True,
-                **kwargs
+                **kwargs,
             )
             self._log_item_id = self._step_id
             if self._cfg.log_layout is LogLayout.NESTED and step_content:
@@ -223,16 +221,14 @@ class BehaveAgent(metaclass=Singleton):
         """Return launch attributes in the format supported by the rp."""
         attributes = self._cfg.launch_attributes or []
         system_attributes = get_launch_sys_attrs()
-        system_attributes["agent"] = "{}-{}".format(
-            self.agent_name, self.agent_version
-        )
+        system_attributes["agent"] = f"{self.agent_name}-{self.agent_version}"
         return attributes + _dict_to_payload(system_attributes)
 
     @staticmethod
     def _build_step_content(step):
         txt = ""
         if step.text:
-            txt += "```\n" + step.text + "\n```\n"
+            txt += f"```\n{step.text}\n```\n"
         if step.table:
             pt = PrettyTable(field_names=step.table.headings)
             [pt.add_row(row.cells) for row in step.table.rows]
@@ -247,7 +243,7 @@ class BehaveAgent(metaclass=Singleton):
             item_id=self._step_id,
             end_time=timestamp(),
             status=status or self.convert_to_rp_status(step.status.name),
-            **kwargs
+            **kwargs,
         )
         self._log_item_id = self._scenario_id
 
@@ -255,22 +251,16 @@ class BehaveAgent(metaclass=Singleton):
         self._rp.log(
             item_id=self._scenario_id,
             time=timestamp(),
-            message="[{keyword}]: {name}.\n{content}".format(
-                keyword=step.keyword,
-                name=step.name,
-                content=self._build_step_content(step),
-            ),
+            message=f"[{step.keyword}]: {step.name}.\n{self._build_step_content(step)}",
             level="INFO",
-            **kwargs
+            **kwargs,
         )
         if step.status.name == "failed":
             self._log_step_exception(step, self._scenario_id)
 
     def _log_step_exception(self, step, item_id):
         message = [
-            "Step [{keyword}]: {name} was finished with exception.".format(
-                keyword=step.keyword, name=step.name
-            )
+            f"Step [{step.keyword}]: {step.name} was finished with exception."
         ]
         if step.exception:
             valuable_args = self.fetch_valuable_args(step.exception)
@@ -287,7 +277,7 @@ class BehaveAgent(metaclass=Singleton):
         )
 
     def _log_scenario_exception(self, scenario):
-        message = ["Scenario '{}' finished with error.".format(scenario.name)]
+        message = [f"Scenario '{scenario.name}' finished with error."]
         if scenario.exception:
             valuable_args = self.fetch_valuable_args(scenario.exception)
             if valuable_args:
@@ -314,7 +304,7 @@ class BehaveAgent(metaclass=Singleton):
         for tag in item.tags:
             if not tag.startswith("fixture."):
                 continue
-            msg = "Using of '{}' fixture".format(tag[len("fixture.") :])
+            msg = f"Using of '{tag[len('fixture.'):]}' fixture"
             if self._cfg.log_layout is not LogLayout.SCENARIO:
                 self._step_id = self._rp.start_test_item(
                     name=msg,
@@ -350,7 +340,7 @@ class BehaveAgent(metaclass=Singleton):
         item_type = "AFTER_SUITE" if scope == "feature" else "AFTER_TEST"
         item_id = self._feature_id if scope == "feature" else self._scenario_id
         for cleanup in layer.get("@cleanups", []):
-            msg = "Execution of '{}' cleanup function".format(cleanup.__name__)
+            msg = f"Execution of '{cleanup.__name__}' cleanup function"
             if self._cfg.log_layout is not LogLayout.SCENARIO:
                 self._step_id = self._step_id = self._rp.start_test_item(
                     name=msg,
@@ -373,7 +363,8 @@ class BehaveAgent(metaclass=Singleton):
     @staticmethod
     def _item_description(item):
         if item.description:
-            return "Description:\n{}".format("\n".join(item.description))
+            desc = "\n".join(item.description)
+            return f"Description:\n{desc}"
 
     @staticmethod
     def _get_parameters(scenario):
@@ -389,10 +380,7 @@ class BehaveAgent(metaclass=Singleton):
     @staticmethod
     def _code_ref(item):
         if item.location:
-            return "{file}:{line}".format(
-                file=item.location.filename,
-                line=item.location.line,
-            )
+            return f"{item.location.filename}:{item.location.line}"
 
     def _attributes(self, item):
         attrs = []
