@@ -71,7 +71,7 @@ The following parameters are optional:
 - :code:`launch_attributes = Smoke Env:Python3` - list of attributes for launch
 - :code:`launch_description = Smoke test` - launch description
 - :code:`debug_mode = True` - creates the launch either as debug or default mode (defaults to False)
-- :code:`step_based = True` - responsible for Scenario or Step based logging (Scenario based approach is used by default)
+- :code:`log_layout = Nested` - responsible for Scenario, Step or Nested based logging (Scenario based approach is used by default)
 - :code:`is_skipped_an_issue = False` - option to mark skipped tests as not 'To Investigate' items on Server side.
 - :code:`retries = 3` - amount of retries for performing REST calls to RP server
 - :code:`rerun = True` - marks the launch as the rerun
@@ -92,7 +92,7 @@ To execute tests with Report Portal you should run `behave` command and specify 
 
 
 Test item attributes
-~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
 
 Tag `attribute` could be used to specify attributes for features and scenarios.
 Attributes should be listed inside brackets of attribute tag separated by commas.
@@ -110,7 +110,7 @@ Example:
 
 
 Logging
-~~~~~~~~
+~~~~~~~
 
 For logging of the test item flow to Report Portal, please, use the python
 logging handler and logger class provided by extension like bellow:
@@ -155,7 +155,7 @@ in steps:
 
 
 Test case ID
--------------------
+------------
 
 It's possible to mark some scenario with `test_case_id(<some_id>)` tag. ID specified in brackets will be sent to ReportPortal.
 

@@ -1,4 +1,5 @@
 """Module provides logging functionality."""
+import logging
 import sys
 from logging import NOTSET, Handler, Logger
 
@@ -68,6 +69,16 @@ class RPLogger(Logger):
 class RPHandler(Handler):
     """Provide ability to send logs to Report Portal."""
 
+    # Map loglevel codes from `logging` module to ReportPortal text names:
+    _loglevel_map = {
+        logging.CRITICAL: "FATAL",
+        logging.ERROR: "ERROR",
+        logging.WARNING: "WARN",
+        logging.INFO: "INFO",
+        logging.DEBUG: "DEBUG",
+        logging.NOTSET: "TRACE",
+    }
+
     def __init__(self, rp, level=NOTSET):
         """Initialize handler."""
         super().__init__(level)
@@ -76,11 +87,26 @@ class RPHandler(Handler):
     def emit(self, record):
         """Send log message to Report Portal."""
         msg = self.format(record)
+        log_level = self._get_rp_log_level(record.levelno)
         if record.is_launch_log:
             self.rp.post_launch_log(
-                msg, record.levelname, file_to_attach=record.file_to_attach
+                msg,
+                log_level,
+                file_to_attach=record.file_to_attach,
             )
         else:
             self.rp.post_log(
-                msg, record.levelname, file_to_attach=record.file_to_attach
+                msg,
+                log_level,
+                file_to_attach=record.file_to_attach,
             )
+
+    def _get_rp_log_level(self, levelno):
+        return next(
+            (
+                self._loglevel_map[level]
+                for level in self._loglevel_map
+                if levelno >= level
+            ),
+            "TRACE",
+        )

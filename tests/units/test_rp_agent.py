@@ -7,7 +7,7 @@ from prettytable import PrettyTable
 from reportportal_client import ReportPortalService
 
 from behave_reportportal.behave_agent import BehaveAgent, create_rp_service
-from behave_reportportal.config import Config
+from behave_reportportal.config import Config, LogLayout
 from behave_reportportal.utils import Singleton
 
 
@@ -42,7 +42,7 @@ def test_convert_to_rp_status(status, expected):
     actual = BehaveAgent.convert_to_rp_status(status)
     assert (
         actual == expected
-    ), "Incorrect status:\nActual: {}\nExpected:{}".format(actual, expected)
+    ), f"Incorrect status:\nActual: {actual}\nExpected:{expected}"
 
 
 def test_attributes(config):
@@ -61,7 +61,7 @@ def test_attributes(config):
     act = ba._attributes(mock_item)
     expect(
         act == exp,
-        "Attributes are incorrect:\nActual: {}\nExpected: {}".format(act, exp),
+        f"Attributes are incorrect:\nActual: {act}\nExpected: {exp}",
     )
     assert_expectations()
 
@@ -119,9 +119,9 @@ def test_code_ref():
     mock_item.location = mock_location
     expect(
         BehaveAgent._code_ref(mock_item) == "filename:24",
-        "code_ref is incorrect:\nActual: {}\nExpected: {}".format(
-            BehaveAgent._code_ref(mock_item), "filename:24"
-        ),
+        f"code_ref is incorrect:\n"
+        f"Actual: {BehaveAgent._code_ref(mock_item)}\n"
+        f"Expected: {'filename:24'}",
     )
     assert_expectations()
 
@@ -139,9 +139,9 @@ def test_get_parameters():
     mock_item._row = mock_row
     expect(
         BehaveAgent._get_parameters(mock_item) == {"A": 1, "B": 2},
-        "parameters are incorrect:\nActual: {}\nExpected: {}".format(
-            BehaveAgent._get_parameters(mock_item), {"A": 1, "B": 2}
-        ),
+        f"parameters are incorrect:\n"
+        f"Actual: {BehaveAgent._get_parameters(mock_item)}\n"
+        f"Expected: {{'A': 1, 'B': 2}}",
     )
     assert_expectations()
 
@@ -199,9 +199,9 @@ def test_item_description():
     mock_item.description = ["a", "b"]
     expect(
         BehaveAgent._item_description(mock_item) == "Description:\na\nb",
-        "Description is incorrect:\nActual: {}\nExpected: {}".format(
-            BehaveAgent._item_description(mock_item), "Description:\na\nb"
-        ),
+        f"Description is incorrect:\n"
+        f"Actual: {BehaveAgent._item_description(mock_item)}\n"
+        f"Expected: Description:\na\nb",
     )
     assert_expectations()
 
@@ -302,10 +302,9 @@ def verify_start_feature(mock_feature, config):
         attributes=ba._attributes(mock_feature),
         some_key="some_value",
     )
-    assert (
-        ba._feature_id == "feature_id"
-    ), "Invalid feature_id:\nActual: {}\nExpected: {}\n".format(
-        ba._feature_id, "feature_id"
+    assert ba._feature_id == "feature_id", (
+        f"Invalid feature_id:\nActual: {ba._feature_id}\n"
+        f"Expected: {'feature_id'}\n"
     )
 
 
@@ -371,10 +370,9 @@ def verify_start_scenario(mock_scenario, config):
         test_case_id=ba._test_case_id(mock_scenario),
         some_key="some_value",
     )
-    assert (
-        ba._scenario_id == "scenario_id"
-    ), "Invalid scenario_id:\nActual: {}\nExpected: {}\n".format(
-        ba._scenario_id, "scenario_id"
+    assert ba._scenario_id == "scenario_id", (
+        f"Invalid scenario_id:\nActual: {ba._scenario_id}\n"
+        f"Expected: {'scenario_id'}\n"
     )
 
 
@@ -416,7 +414,7 @@ def test_finish_failed_scenario(mock_log, config):
 
 @mock.patch("behave_reportportal.behave_agent.timestamp")
 def test_start_step_step_based(mock_timestamp, config):
-    config.step_based = True
+    config.log_layout = LogLayout.STEP
     mock_step = mock.Mock()
     mock_step.keyword = "keyword"
     mock_step.name = "name"
@@ -434,6 +432,7 @@ def test_start_step_step_based(mock_timestamp, config):
         start_time=123,
         item_type="STEP",
         parent_item_id="scenario_id",
+        has_stats=True,
         description="",
         code_ref=BehaveAgent._code_ref(mock_step),
         some_key="some_value",
@@ -441,8 +440,42 @@ def test_start_step_step_based(mock_timestamp, config):
     ba._step_id = "step_id"
 
 
+@mock.patch("behave_reportportal.behave_agent.timestamp")
+def test_start_step_nested_based(mock_timestamp, config):
+    config.log_layout = LogLayout.NESTED
+    mock_step = mock.Mock()
+    mock_step.keyword = "keyword"
+    mock_step.name = "name"
+    mock_step.text = "step text"
+    mock_step.table = None
+    mock_timestamp.return_value = 123
+    mock_rps = mock.create_autospec(ReportPortalService)
+    mock_rps.start_test_item.return_value = "step_id"
+    mock_context = mock.Mock()
+    ba = BehaveAgent(config, mock_rps)
+    ba._scenario_id = "scenario_id"
+    ba.start_step(mock_context, mock_step, some_key="some_value")
+    mock_rps.start_test_item.assert_called_once_with(
+        name="[keyword]: name",
+        start_time=123,
+        item_type="STEP",
+        parent_item_id="scenario_id",
+        code_ref=BehaveAgent._code_ref(mock_step),
+        description="```\nstep text\n```\n",
+        has_stats=False,
+        some_key="some_value",
+    )
+    mock_rps.log.assert_called_once_with(
+        time=123,
+        message="```\nstep text\n```\n",
+        level="INFO",
+        attachment=None,
+        item_id="step_id",
+    )
+
+
 def test_start_step_scenario_based(config):
-    config.step_based = False
+    config.log_layout = LogLayout.SCENARIO
     mock_step = mock.Mock()
     mock_rps = mock.create_autospec(ReportPortalService)
     mock_context = mock.Mock()
@@ -453,7 +486,7 @@ def test_start_step_scenario_based(config):
 
 @mock.patch("behave_reportportal.behave_agent.timestamp")
 def test_finish_passed_step_step_based(mock_timestamp, config):
-    config.step_based = True
+    config.log_layout = LogLayout.STEP
     mock_step = mock.Mock()
     mock_step.status.name = "passed"
     mock_timestamp.return_value = 123
@@ -469,7 +502,7 @@ def test_finish_passed_step_step_based(mock_timestamp, config):
 
 @mock.patch("behave_reportportal.behave_agent.timestamp")
 def test_finish_failed_step_step_based(mock_timestamp, config):
-    config.step_based = True
+    config.log_layout = LogLayout.STEP
     mock_step = mock.Mock()
     mock_step.keyword = "keyword"
     mock_step.name = "name"
@@ -502,7 +535,7 @@ def test_finish_failed_step_step_based(mock_timestamp, config):
 
 @mock.patch("behave_reportportal.behave_agent.timestamp")
 def test_finish_failed_step_scenario_based(mock_timestamp, config):
-    config.step_based = False
+    config.log_layout = LogLayout.SCENARIO
     mock_step = mock.Mock()
     mock_step.keyword = "keyword"
     mock_step.name = "name"
@@ -530,7 +563,7 @@ def test_finish_failed_step_scenario_based(mock_timestamp, config):
             item_id="scenario_id",
             time=123,
             level="INFO",
-            message="[keyword]: name. ",
+            message="[keyword]: name.\n",
         ),
     ]
     mock_rps.log.assert_has_calls(calls, any_order=True)
@@ -566,6 +599,7 @@ def test_skip_analytics(mock_send_event, config):
     mock_send_event.assert_not_called()
 
 
+@mock.patch.dict(os.environ, {"AGENT_NO_ANALYTICS": ""})
 @mock.patch("behave_reportportal.behave_agent.send_event")
 def test_analytics(mock_send_event, config):
     mock_rps = mock.create_autospec(ReportPortalService)
@@ -633,14 +667,26 @@ def test_post__log(mock_timestamp, mock_mime, config):
 @mock.patch.object(PrettyTable, "get_string")
 def test_build_table_content(mock_get_string, mock_add_row, mock_init):
     mock_init.return_value = None
-    mock_table, mock_rows = mock.Mock(), mock.Mock()
+    mock_step, mock_table, mock_rows = mock.Mock(), mock.Mock(), mock.Mock()
     mock_table.headings = ["A", "B"]
     mock_rows.cells = ["c", "d"]
     mock_table.rows = [mock_rows]
-    BehaveAgent._build_table_content(mock_table)
+    mock_step.table = mock_table
+    mock_step.text = None
+    BehaveAgent._build_step_content(mock_step)
     mock_init.assert_called_once_with(field_names=["A", "B"])
     mock_add_row.assert_called_once_with(["c", "d"])
     mock_get_string.assert_called_once()
+
+
+@mock.patch.object(PrettyTable, "__init__")
+def test_build_text_content(mock_init):
+    mock_step = mock.Mock()
+    mock_step.table = None
+    mock_step.text = "Step text"
+    text = BehaveAgent._build_step_content(mock_step)
+    mock_init.assert_not_called()
+    assert text == "```\nStep text\n```\n"
 
 
 @mock.patch("behave_reportportal.behave_agent.timestamp")
@@ -703,7 +749,7 @@ def test_log_fixtures(mock_timestamp):
         endpoint="endpoint",
         token="token",
         project="project",
-        step_based="False",
+        log_layout=LogLayout.SCENARIO,
     )
     mock_rps = mock.create_autospec(ReportPortalService)
     mock_item = mock.Mock()
@@ -713,7 +759,7 @@ def test_log_fixtures(mock_timestamp):
         [
             mock.call(
                 123,
-                "Using of '{}' fixture".format(t),
+                f"Using of '{t}' fixture",
                 level="INFO",
                 item_id="item_id",
             )
@@ -721,15 +767,16 @@ def test_log_fixtures(mock_timestamp):
         ],
         any_order=True,
     )
-    cfg.step_based = True
+    cfg.log_layout = LogLayout.STEP
     BehaveAgent(cfg, mock_rps)._log_fixtures(mock_item, "type", "item_id")
     mock_rps.start_test_item.assert_has_calls(
         [
             mock.call(
                 start_time=123,
-                name="Using of '{}' fixture".format(t),
+                name=f"Using of '{t}' fixture",
                 item_type="type",
                 parent_item_id="item_id",
+                has_stats=True,
             )
             for t in ("A", "B")
         ],
@@ -782,10 +829,11 @@ def test_log_cleanup_step_based(mock_timestamp, scope, item_type, item_id):
     ba._log_cleanups(mock_context, scope)
     calls = [
         mock.call(
-            name="Execution of '{}' cleanup function".format(f_name),
+            name=f"Execution of '{f_name}' cleanup function",
             start_time=123,
             item_type=item_type,
             parent_item_id=item_id,
+            has_stats=True,
         )
         for f_name in ("cleanup_func1", "cleanup_func2")
     ]
@@ -813,7 +861,7 @@ def test_log_cleanup_scenario_based(mock_timestamp, config, scope, item_id):
     calls = [
         mock.call(
             123,
-            "Execution of '{}' cleanup function".format(f_name),
+            f"Execution of '{f_name}' cleanup function",
             level="INFO",
             item_id=item_id,
         )
