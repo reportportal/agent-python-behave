@@ -19,9 +19,9 @@ class LogLayout(Enum):
     @classmethod
     def _missing_(cls, value):
         if value:
-            value = value.upper()
+            value_upper = str(value).upper()
             for member in cls:
-                if member.name == value:
+                if member.name == value_upper:
                     return member
         return cls.SCENARIO
 
