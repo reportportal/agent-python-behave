@@ -1,6 +1,7 @@
 """Functionality for integration of Behave tests with Report Portal."""
 import mimetypes
 import os
+import traceback
 from functools import wraps
 from os import getenv
 
@@ -143,6 +144,7 @@ class BehaveAgent(metaclass=Singleton):
         if scenario.tags and "skip" in scenario.tags:
             status = "SKIPPED"
         if scenario.status.name == "failed":
+            self._log_skipped_steps(context, scenario)
             self._log_scenario_exception(scenario)
         self._log_cleanups(context, "scenario"),
         self._rp.finish_test_item(
@@ -152,6 +154,17 @@ class BehaveAgent(metaclass=Singleton):
             **kwargs,
         )
         self._log_item_id = self._feature_id
+
+    def _log_skipped_steps(self, context, scenario):
+        if self._cfg.log_layout is not LogLayout.SCENARIO:
+            skipped_steps = [
+                step
+                for step in scenario.steps
+                if step.status.name == "skipped"
+            ]
+            for step in skipped_steps:
+                self.start_step(context, step)
+                self.finish_step(context, step)
 
     @check_rp_enabled
     def start_step(self, context, step, **kwargs):
@@ -260,34 +273,36 @@ class BehaveAgent(metaclass=Singleton):
             self._log_step_exception(step, self._scenario_id)
 
     def _log_step_exception(self, step, item_id):
-        message = [
-            f"Step [{step.keyword}]: {step.name} was finished with exception."
-        ]
-        if step.exception:
-            valuable_args = self.fetch_valuable_args(step.exception)
-            if valuable_args:
-                message.append(", ".join(valuable_args))
-        if step.error_message:
-            message.append(step.error_message)
-
-        self._rp.log(
-            item_id=item_id,
-            time=timestamp(),
-            level="ERROR",
-            message="\n".join(message),
+        self._log_exception(
+            f"Step [{step.keyword}]: {step.name} was finished with exception.",
+            step,
+            item_id,
         )
 
     def _log_scenario_exception(self, scenario):
-        message = [f"Scenario '{scenario.name}' finished with error."]
-        if scenario.exception:
-            valuable_args = self.fetch_valuable_args(scenario.exception)
-            if valuable_args:
-                message.append(", ".join(valuable_args))
-        if scenario.error_message:
-            message.append(scenario.error_message)
+        self._log_exception(
+            f"Scenario '{scenario.name}' finished with error.",
+            scenario,
+            self._scenario_id,
+        )
+
+    def _log_exception(self, initial_msg, exc_holder, item_id):
+        message = [initial_msg]
+        if exc_holder.exception and exc_holder.exc_traceback:
+            message.append(
+                "".join(
+                    traceback.format_exception(
+                        type(exc_holder.exception),
+                        exc_holder.exception,
+                        exc_holder.exc_traceback,
+                    )
+                )
+            )
+        if exc_holder.error_message:
+            message.append(exc_holder.error_message)
 
         self._rp.log(
-            item_id=self._scenario_id,
+            item_id=item_id,
             time=timestamp(),
             level="ERROR",
             message="\n".join(message),
@@ -449,9 +464,3 @@ class BehaveAgent(metaclass=Singleton):
         else:
             # todo define what to do
             return "PASSED"
-
-    @staticmethod
-    def fetch_valuable_args(exception):
-        """Return valuable exception args."""
-        if exception.args and any(exception.args):
-            return [str(arg) for arg in exception.args if arg]

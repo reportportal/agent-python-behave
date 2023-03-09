@@ -35,20 +35,28 @@ def use_multiplication_method(context):
         row["actual"] = row["number_a"] * row["number_b"]
 
 
+@when("Use division operation")
+def use_division_operation(context):
+    context.result = context.number_a / context.number_b
+
+
 @then("Result is {result:d}")
 def result_is(context, result):
     assert (
         context.result == result
-    ), "Incorrect result:\nActual: {actual}\nExpected: {expected}".format(
-        actual=context.result, expected=result
-    )
+    ), f"Incorrect result:\nActual: {context.result}\nExpected: {result}"
+
+
+@then("Result is {result:d} but without message")
+def result_is_without_message(context, result):
+    assert context.result == result
 
 
 @then("Result should be correct")
 def result_should_be_correct(context):
     for row in context.test_data:
-        assert (
-            row["actual"] == row["expected"]
-        ), "Incorrect result:\nActual: {actual}\nExpected: {expected}".format(
-            actual=row["actual"], expected=row["expected"]
+        assert row["actual"] == row["expected"], (
+            f"Incorrect result:\n"
+            f"Actual: {row['actual']}\n"
+            f"Expected: {row['expected']}"
         )
