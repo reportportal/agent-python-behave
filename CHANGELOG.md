@@ -1,6 +1,7 @@
 # Changelog
 
 ## [Unreleased]
+## [2.0.1]
 ### Fixed
 - Invalid rerun parameter on Launch start, by @HardNorth
 - Logging part at README.rst, by @HardNorth
