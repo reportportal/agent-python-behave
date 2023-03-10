@@ -6,7 +6,6 @@ from functools import wraps
 from os import getenv
 
 from prettytable import MARKDOWN, PrettyTable
-from reportportal_client import ReportPortalService
 from reportportal_client.client import RPClient
 from reportportal_client.external.google_analytics import send_event
 from reportportal_client.helpers import (
@@ -422,7 +421,7 @@ class BehaveAgent(metaclass=Singleton):
             end = attr_tag.find(")")
             if start == -1 or end == -1:
                 continue
-            attr_str = attr_tag[start + 1 : end]
+            attr_str = attr_tag[start + 1: end]
             if not attr_str:
                 continue
             result.extend([a.strip() for a in attr_str.split(",")])
@@ -443,7 +442,7 @@ class BehaveAgent(metaclass=Singleton):
             start, end = tc_tag.find("("), tc_tag.find(")")
             if start == -1 or end == -1:
                 return
-            tc_id = tc_tag[start + 1 : end]
+            tc_id = tc_tag[start + 1: end]
             if not tc_id:
                 return
             return tc_id
