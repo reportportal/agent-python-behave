@@ -1,4 +1,5 @@
-import mock
+from unittest import mock
+# noinspection PyPackageRequirements
 import pytest
 from behave.userdata import UserData
 from delayed_assert import assert_expectations, expect
