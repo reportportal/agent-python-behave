@@ -3,10 +3,13 @@
 ## [Unreleased]
 ### Changed
 - `step_based` config parameter deprecated in favor of `log_layout` parameter, by @nicke46
+- The Agent uses `RPClient` class instead of `ReportPortalService`, by @HardNorth
 ### Added
 - RPHandler support for all Report Portal log levels, by @nicke46
 - Logged exceptions now include traceback, by @nicke46
 - Skipped steps after failures will be logged for `STEP` and `NESTED` log_layout, by @nicke46
+### Removed
+- `logger.py` module in favor to `reportportal_client.logs`, by @HardNorth
 
 ## [1.0.2]
 ### Added
