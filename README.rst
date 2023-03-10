@@ -120,7 +120,7 @@ in environment.py:
 
     import logging
 
-    from behave_reportportal.logger import RPLogger, RPHandler
+    from reportportal_client.logs import RPLogger, RPLogHandler
 
     from behave_reportportal.behave_agent import BehaveAgent, create_rp_service
     from behave_reportportal.config import read_config
@@ -135,7 +135,7 @@ in environment.py:
         logging.setLoggerClass(RPLogger)
         log = logging.getLogger(__name__)
         log.setLevel("DEBUG")
-        rph = RPHandler(rp_client=context.rp_client)
+        rph = RPLogHandler(rp_client=context.rp_client)
         log.addHandler(rph)
         context.log = log
 
