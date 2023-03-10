@@ -7,6 +7,7 @@ from os import getenv
 
 from prettytable import MARKDOWN, PrettyTable
 from reportportal_client import ReportPortalService
+from reportportal_client.client import RPClient
 from reportportal_client.external.google_analytics import send_event
 from reportportal_client.helpers import (
     gen_attributes,
@@ -37,12 +38,12 @@ def check_rp_enabled(func):
 def create_rp_service(cfg):
     """Create instance of ReportPortalService."""
     if cfg.enabled:
-        return ReportPortalService(
+        return RPClient(
             endpoint=cfg.endpoint,
-            launch_id=cfg.launch_id,
             project=cfg.project,
             token=cfg.token,
             is_skipped_an_issue=cfg.is_skipped_an_issue,
+            launch_id=cfg.launch_id,
             retries=cfg.retries,
         )
 
