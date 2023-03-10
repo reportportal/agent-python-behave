@@ -26,9 +26,8 @@ Feature: Calculator functionality
   @attribute(scenario_key:scenario_value,some_other_value)
   Scenario: Scenario with step data table
     Given I want to calculate two numbers
-
       | number_a | number_b | expected |
-      | 6        | 5        | 30        |
+      | 6        | 5        | 30       |
       | 5        | 4        | 20       |
     When Use multiplication method
     Then Result should be correct
@@ -40,7 +39,7 @@ Feature: Calculator functionality
 
     Examples: numbers data
       | number_a | number_b | expected |
-      | 12        | 13        | 25        |
+      | 12       | 13       | 25       |
       | 3        | 3        | 6        |
 
   @skip

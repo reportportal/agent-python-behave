@@ -1,11 +1,4 @@
-black>=19.10b0
 delayed_assert
-flake8>=3.8.3
-isort>=5.4.2
-mock>=4.0.3
 pytest>=3.0.7
-pycodestyle
-pydocstyle
-pytest-cov==2.10.1
-six
-wheel
+pytest-cov==4.0.0
+pre-commit>=1.11.0

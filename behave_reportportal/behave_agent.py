@@ -1,11 +1,12 @@
 """Functionality for integration of Behave tests with Report Portal."""
 import mimetypes
 import os
+import traceback
 from functools import wraps
 from os import getenv
 
-from prettytable import PrettyTable
-from reportportal_client import ReportPortalService
+from prettytable import MARKDOWN, PrettyTable
+from reportportal_client.client import RPClient
 from reportportal_client.external.google_analytics import send_event
 from reportportal_client.helpers import (
     gen_attributes,
@@ -15,6 +16,7 @@ from reportportal_client.helpers import (
 )
 from reportportal_client.service import _dict_to_payload
 
+from behave_reportportal.config import LogLayout
 from behave_reportportal.utils import Singleton
 
 
@@ -35,12 +37,12 @@ def check_rp_enabled(func):
 def create_rp_service(cfg):
     """Create instance of ReportPortalService."""
     if cfg.enabled:
-        return ReportPortalService(
+        return RPClient(
             endpoint=cfg.endpoint,
-            launch_id=cfg.launch_id,
             project=cfg.project,
             token=cfg.token,
             is_skipped_an_issue=cfg.is_skipped_an_issue,
+            launch_id=cfg.launch_id,
             retries=cfg.retries,
         )
 
@@ -75,7 +77,7 @@ class BehaveAgent(metaclass=Singleton):
             rerun=self._cfg.rerun,
             rerunOf=self._cfg.rerun_of,
             mode="DEBUG" if self._cfg.debug_mode else "DEFAULT",
-            **kwargs
+            **kwargs,
         )
         if not self._skip_analytics:
             send_event(self.agent_name, self.agent_version)
@@ -98,7 +100,7 @@ class BehaveAgent(metaclass=Singleton):
             description=self._item_description(feature),
             code_ref=self._code_ref(feature),
             attributes=self._attributes(feature),
-            **kwargs
+            **kwargs,
         )
         self._log_fixtures(feature, "BEFORE_SUITE", self._feature_id)
         self._log_item_id = self._feature_id
@@ -113,7 +115,7 @@ class BehaveAgent(metaclass=Singleton):
             item_id=self._feature_id,
             end_time=timestamp(),
             status=status or self.convert_to_rp_status(feature.status.name),
-            **kwargs
+            **kwargs,
         )
 
     @check_rp_enabled
@@ -131,7 +133,7 @@ class BehaveAgent(metaclass=Singleton):
             parameters=self._get_parameters(scenario),
             description=self._item_description(scenario),
             test_case_id=self._test_case_id(scenario),
-            **kwargs
+            **kwargs,
         )
         self._log_fixtures(scenario, "BEFORE_TEST", self._scenario_id)
         self._log_item_id = self._scenario_id
@@ -142,39 +144,53 @@ class BehaveAgent(metaclass=Singleton):
         if scenario.tags and "skip" in scenario.tags:
             status = "SKIPPED"
         if scenario.status.name == "failed":
+            self._log_skipped_steps(context, scenario)
             self._log_scenario_exception(scenario)
         self._log_cleanups(context, "scenario"),
         self._rp.finish_test_item(
             item_id=self._scenario_id,
             end_time=timestamp(),
             status=status or self.convert_to_rp_status(scenario.status.name),
-            **kwargs
+            **kwargs,
         )
         self._log_item_id = self._feature_id
+
+    def _log_skipped_steps(self, context, scenario):
+        if self._cfg.log_layout is not LogLayout.SCENARIO:
+            skipped_steps = [
+                step
+                for step in scenario.steps
+                if step.status.name == "skipped"
+            ]
+            for step in skipped_steps:
+                self.start_step(context, step)
+                self.finish_step(context, step)
 
     @check_rp_enabled
     def start_step(self, context, step, **kwargs):
         """Start test in Report Portal."""
-        if self._cfg.step_based:
-            description = step.text or ""
+        if self._cfg.log_layout is not LogLayout.SCENARIO:
+            step_content = self._build_step_content(step)
             self._step_id = self._rp.start_test_item(
-                name="[{keyword}]: {name}".format(
-                    keyword=step.keyword, name=step.name
-                ),
+                name=f"[{step.keyword}]: {step.name}",
                 start_time=timestamp(),
                 item_type="STEP",
                 parent_item_id=self._scenario_id,
                 code_ref=self._code_ref(step),
-                description=description
-                + self._build_table_content(step.table),
-                **kwargs
+                description=step_content,
+                has_stats=False
+                if self._cfg.log_layout is LogLayout.NESTED
+                else True,
+                **kwargs,
             )
             self._log_item_id = self._step_id
+            if self._cfg.log_layout is LogLayout.NESTED and step_content:
+                self.post_log(step_content)
 
     @check_rp_enabled
     def finish_step(self, context, step, **kwargs):
         """Finish test in Report Portal."""
-        if self._cfg.step_based:
+        if self._cfg.log_layout is not LogLayout.SCENARIO:
             self._finish_step_step_based(step, **kwargs)
             return
         self._finish_step_scenario_based(step, **kwargs)
@@ -218,19 +234,20 @@ class BehaveAgent(metaclass=Singleton):
         """Return launch attributes in the format supported by the rp."""
         attributes = self._cfg.launch_attributes or []
         system_attributes = get_launch_sys_attrs()
-        system_attributes["agent"] = "{}-{}".format(
-            self.agent_name, self.agent_version
-        )
+        system_attributes["agent"] = f"{self.agent_name}-{self.agent_version}"
         return attributes + _dict_to_payload(system_attributes)
 
     @staticmethod
-    def _build_table_content(table):
-        if not table:
-            return ""
-
-        pt = PrettyTable(field_names=table.headings)
-        [pt.add_row(row.cells) for row in table.rows]
-        return "\n" + pt.get_string()
+    def _build_step_content(step):
+        txt = ""
+        if step.text:
+            txt += f"```\n{step.text}\n```\n"
+        if step.table:
+            pt = PrettyTable(field_names=step.table.headings)
+            [pt.add_row(row.cells) for row in step.table.rows]
+            pt.set_style(MARKDOWN)
+            txt += pt.get_string()
+        return txt
 
     def _finish_step_step_based(self, step, status=None, **kwargs):
         if step.status.name == "failed":
@@ -239,7 +256,7 @@ class BehaveAgent(metaclass=Singleton):
             item_id=self._step_id,
             end_time=timestamp(),
             status=status or self.convert_to_rp_status(step.status.name),
-            **kwargs
+            **kwargs,
         )
         self._log_item_id = self._scenario_id
 
@@ -247,49 +264,45 @@ class BehaveAgent(metaclass=Singleton):
         self._rp.log(
             item_id=self._scenario_id,
             time=timestamp(),
-            message="[{keyword}]: {name}. {text}{table}".format(
-                keyword=step.keyword,
-                name=step.name,
-                text=step.text or "",
-                table=self._build_table_content(step.table),
-            ),
+            message=f"[{step.keyword}]: {step.name}.\n"
+            f"{self._build_step_content(step)}",
             level="INFO",
-            **kwargs
+            **kwargs,
         )
         if step.status.name == "failed":
             self._log_step_exception(step, self._scenario_id)
 
     def _log_step_exception(self, step, item_id):
-        message = [
-            "Step [{keyword}]: {name} was finished with exception.".format(
-                keyword=step.keyword, name=step.name
-            )
-        ]
-        if step.exception:
-            valuable_args = self.fetch_valuable_args(step.exception)
-            if valuable_args:
-                message.append(", ".join(valuable_args))
-        if step.error_message:
-            message.append(step.error_message)
-
-        self._rp.log(
-            item_id=item_id,
-            time=timestamp(),
-            level="ERROR",
-            message="\n".join(message),
+        self._log_exception(
+            f"Step [{step.keyword}]: {step.name} was finished with exception.",
+            step,
+            item_id,
         )
 
     def _log_scenario_exception(self, scenario):
-        message = ["Scenario '{}' finished with error.".format(scenario.name)]
-        if scenario.exception:
-            valuable_args = self.fetch_valuable_args(scenario.exception)
-            if valuable_args:
-                message.append(", ".join(valuable_args))
-        if scenario.error_message:
-            message.append(scenario.error_message)
+        self._log_exception(
+            f"Scenario '{scenario.name}' finished with error.",
+            scenario,
+            self._scenario_id,
+        )
+
+    def _log_exception(self, initial_msg, exc_holder, item_id):
+        message = [initial_msg]
+        if exc_holder.exception and exc_holder.exc_traceback:
+            message.append(
+                "".join(
+                    traceback.format_exception(
+                        type(exc_holder.exception),
+                        exc_holder.exception,
+                        exc_holder.exc_traceback,
+                    )
+                )
+            )
+        if exc_holder.error_message:
+            message.append(exc_holder.error_message)
 
         self._rp.log(
-            item_id=self._scenario_id,
+            item_id=item_id,
             time=timestamp(),
             level="ERROR",
             message="\n".join(message),
@@ -307,13 +320,16 @@ class BehaveAgent(metaclass=Singleton):
         for tag in item.tags:
             if not tag.startswith("fixture."):
                 continue
-            msg = "Using of '{}' fixture".format(tag[len("fixture.") :])
-            if self._cfg.step_based:
+            msg = f"Using of '{tag[len('fixture.'):]}' fixture"
+            if self._cfg.log_layout is not LogLayout.SCENARIO:
                 self._step_id = self._rp.start_test_item(
                     name=msg,
                     start_time=timestamp(),
                     item_type=item_type,
                     parent_item_id=parent_item_id,
+                    has_stats=False
+                    if self._cfg.log_layout is LogLayout.NESTED
+                    else True,
                 )
                 self._rp.finish_test_item(self._step_id, timestamp(), "PASSED")
                 continue
@@ -340,13 +356,16 @@ class BehaveAgent(metaclass=Singleton):
         item_type = "AFTER_SUITE" if scope == "feature" else "AFTER_TEST"
         item_id = self._feature_id if scope == "feature" else self._scenario_id
         for cleanup in layer.get("@cleanups", []):
-            msg = "Execution of '{}' cleanup function".format(cleanup.__name__)
-            if self._cfg.step_based:
+            msg = f"Execution of '{cleanup.__name__}' cleanup function"
+            if self._cfg.log_layout is not LogLayout.SCENARIO:
                 self._step_id = self._step_id = self._rp.start_test_item(
                     name=msg,
                     start_time=timestamp(),
                     item_type=item_type,
                     parent_item_id=item_id,
+                    has_stats=False
+                    if self._cfg.log_layout is LogLayout.NESTED
+                    else True,
                 )
                 self._rp.finish_test_item(self._step_id, timestamp(), "PASSED")
                 continue
@@ -360,7 +379,8 @@ class BehaveAgent(metaclass=Singleton):
     @staticmethod
     def _item_description(item):
         if item.description:
-            return "Description:\n{}".format("\n".join(item.description))
+            desc = "\n".join(item.description)
+            return f"Description:\n{desc}"
 
     @staticmethod
     def _get_parameters(scenario):
@@ -376,10 +396,7 @@ class BehaveAgent(metaclass=Singleton):
     @staticmethod
     def _code_ref(item):
         if item.location:
-            return "{file}:{line}".format(
-                file=item.location.filename,
-                line=item.location.line,
-            )
+            return f"{item.location.filename}:{item.location.line}"
 
     def _attributes(self, item):
         attrs = []
@@ -404,7 +421,7 @@ class BehaveAgent(metaclass=Singleton):
             end = attr_tag.find(")")
             if start == -1 or end == -1:
                 continue
-            attr_str = attr_tag[start + 1 : end]
+            attr_str = attr_tag[start + 1: end]
             if not attr_str:
                 continue
             result.extend([a.strip() for a in attr_str.split(",")])
@@ -425,7 +442,7 @@ class BehaveAgent(metaclass=Singleton):
             start, end = tc_tag.find("("), tc_tag.find(")")
             if start == -1 or end == -1:
                 return
-            tc_id = tc_tag[start + 1 : end]
+            tc_id = tc_tag[start + 1: end]
             if not tc_id:
                 return
             return tc_id
@@ -447,9 +464,3 @@ class BehaveAgent(metaclass=Singleton):
         else:
             # todo define what to do
             return "PASSED"
-
-    @staticmethod
-    def fetch_valuable_args(exception):
-        """Return valuable exception args."""
-        if exception.args and any(exception.args):
-            return [str(arg) for arg in exception.args if arg]

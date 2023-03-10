@@ -1,13 +1,17 @@
 import os
+import sys
+import traceback
 
-import mock
+from unittest import mock
+# noinspection PyPackageRequirements
 import pytest
+from behave.model_core import Status
 from delayed_assert import assert_expectations, expect
 from prettytable import PrettyTable
-from reportportal_client import ReportPortalService
+from reportportal_client.client import RPClient
 
 from behave_reportportal.behave_agent import BehaveAgent, create_rp_service
-from behave_reportportal.config import Config
+from behave_reportportal.config import Config, LogLayout
 from behave_reportportal.utils import Singleton
 
 
@@ -42,13 +46,13 @@ def test_convert_to_rp_status(status, expected):
     actual = BehaveAgent.convert_to_rp_status(status)
     assert (
         actual == expected
-    ), "Incorrect status:\nActual: {}\nExpected:{}".format(actual, expected)
+    ), f"Incorrect status:\nActual: {actual}\nExpected:{expected}"
 
 
 def test_attributes(config):
     mock_item = mock.Mock()
     mock_item.tags = None
-    mock_rps = mock.create_autospec(ReportPortalService)
+    mock_rps = mock.create_autospec(RPClient)
     ba = BehaveAgent(config, mock_rps)
     expect(ba._attributes(mock_item) == [], "Attributes is not empty")
     mock_item.tags = ["a", "b", "attribute(k1:v1,v2)"]
@@ -61,7 +65,7 @@ def test_attributes(config):
     act = ba._attributes(mock_item)
     expect(
         act == exp,
-        "Attributes are incorrect:\nActual: {}\nExpected: {}".format(act, exp),
+        f"Attributes are incorrect:\nActual: {act}\nExpected: {exp}",
     )
     assert_expectations()
 
@@ -119,9 +123,9 @@ def test_code_ref():
     mock_item.location = mock_location
     expect(
         BehaveAgent._code_ref(mock_item) == "filename:24",
-        "code_ref is incorrect:\nActual: {}\nExpected: {}".format(
-            BehaveAgent._code_ref(mock_item), "filename:24"
-        ),
+        f"code_ref is incorrect:\n"
+        f"Actual: {BehaveAgent._code_ref(mock_item)}\n"
+        f"Expected: {'filename:24'}",
     )
     assert_expectations()
 
@@ -139,9 +143,9 @@ def test_get_parameters():
     mock_item._row = mock_row
     expect(
         BehaveAgent._get_parameters(mock_item) == {"A": 1, "B": 2},
-        "parameters are incorrect:\nActual: {}\nExpected: {}".format(
-            BehaveAgent._get_parameters(mock_item), {"A": 1, "B": 2}
-        ),
+        f"parameters are incorrect:\n"
+        f"Actual: {BehaveAgent._get_parameters(mock_item)}\n"
+        f"Expected: {{'A': 1, 'B': 2}}",
     )
     assert_expectations()
 
@@ -155,21 +159,21 @@ def test_create_rp_service_disabled_rp():
 def test_create_rp_service_enabled_rp(config):
     rp = create_rp_service(config)
     assert isinstance(
-        rp, ReportPortalService
+        rp, RPClient
     ), "Invalid initialization of RP ReportPortalService"
 
 
-@mock.patch("behave_reportportal.behave_agent.ReportPortalService")
+@mock.patch("behave_reportportal.behave_agent.RPClient")
 def test_create_rp_service_init(mock_rps):
     create_rp_service(Config(endpoint="A", token="B", project="C"))
     mock_rps.assert_has_calls(
         [
             mock.call(
                 endpoint="A",
-                launch_id=None,
-                token="B",
                 project="C",
+                token="B",
                 is_skipped_an_issue=False,
+                launch_id=None,
                 retries=None,
             )
         ],
@@ -199,9 +203,9 @@ def test_item_description():
     mock_item.description = ["a", "b"]
     expect(
         BehaveAgent._item_description(mock_item) == "Description:\na\nb",
-        "Description is incorrect:\nActual: {}\nExpected: {}".format(
-            BehaveAgent._item_description(mock_item), "Description:\na\nb"
-        ),
+        f"Description is incorrect:\n"
+        f"Actual: {BehaveAgent._item_description(mock_item)}\n"
+        f"Expected: Description:\na\nb",
     )
     assert_expectations()
 
@@ -209,7 +213,7 @@ def test_item_description():
 @mock.patch("behave_reportportal.behave_agent.timestamp")
 def test_start_launch(mock_timestamp, config):
     mock_timestamp.return_value = 123
-    mock_rps = mock.create_autospec(ReportPortalService)
+    mock_rps = mock.create_autospec(RPClient)
     mock_rps.launch_id = None
     mock_context = mock.Mock()
     ba = BehaveAgent(config, mock_rps)
@@ -229,7 +233,7 @@ def test_start_launch(mock_timestamp, config):
 @mock.patch("behave_reportportal.behave_agent.timestamp")
 def test_start_launch_with_rerun(mock_timestamp):
     mock_timestamp.return_value = 123
-    mock_rps = mock.create_autospec(ReportPortalService)
+    mock_rps = mock.create_autospec(RPClient)
     mock_rps.launch_id = None
     mock_context = mock.Mock()
     cfg = Config(
@@ -258,7 +262,7 @@ def test_start_launch_with_rerun(mock_timestamp):
 @mock.patch("behave_reportportal.behave_agent.timestamp")
 def test_finish_launch(mock_timestamp, config):
     mock_timestamp.return_value = 123
-    mock_rps = mock.create_autospec(ReportPortalService)
+    mock_rps = mock.create_autospec(RPClient)
     mock_context = mock.Mock()
     ba = BehaveAgent(config, mock_rps)
     ba.finish_launch(mock_context, some_key="some_value")
@@ -286,7 +290,7 @@ def test_start_feature(mock_timestamp, config):
 
 
 def verify_start_feature(mock_feature, config):
-    mock_rps = mock.create_autospec(ReportPortalService)
+    mock_rps = mock.create_autospec(RPClient)
     mock_rps.start_test_item.return_value = "feature_id"
     mock_context = mock.Mock()
     mock_feature.name = "feature_name"
@@ -302,10 +306,11 @@ def verify_start_feature(mock_feature, config):
         attributes=ba._attributes(mock_feature),
         some_key="some_value",
     )
-    assert (
-        ba._feature_id == "feature_id"
-    ), "Invalid feature_id:\nActual: {}\nExpected: {}\n".format(
-        ba._feature_id, "feature_id"
+
+    # noinspection PyProtectedMember
+    assert ba._feature_id == "feature_id", (
+        f"Invalid feature_id:\nActual: {ba._feature_id}\n"
+        f"Expected: {'feature_id'}\n"
     )
 
 
@@ -318,7 +323,7 @@ def test_finish_feature(mock_timestamp, config, tags, expected_status):
     mock_feature.tags = tags
     mock_feature.status.name = "passed"
     mock_timestamp.return_value = 123
-    mock_rps = mock.create_autospec(ReportPortalService)
+    mock_rps = mock.create_autospec(RPClient)
     mock_context = mock.Mock()
     mock_context._stack = []
     ba = BehaveAgent(config, mock_rps)
@@ -350,7 +355,7 @@ def test_start_scenario(mock_timestamp, config):
 
 
 def verify_start_scenario(mock_scenario, config):
-    mock_rps = mock.create_autospec(ReportPortalService)
+    mock_rps = mock.create_autospec(RPClient)
     mock_rps.start_test_item.return_value = "scenario_id"
     mock_context = mock.Mock()
     mock_scenario.name = "scenario_name"
@@ -371,10 +376,9 @@ def verify_start_scenario(mock_scenario, config):
         test_case_id=ba._test_case_id(mock_scenario),
         some_key="some_value",
     )
-    assert (
-        ba._scenario_id == "scenario_id"
-    ), "Invalid scenario_id:\nActual: {}\nExpected: {}\n".format(
-        ba._scenario_id, "scenario_id"
+    assert ba._scenario_id == "scenario_id", (
+        f"Invalid scenario_id:\nActual: {ba._scenario_id}\n"
+        f"Expected: {'scenario_id'}\n"
     )
 
 
@@ -387,7 +391,7 @@ def test_finish_scenario(mock_timestamp, config, tags, expected_status):
     mock_scenario.tags = tags
     mock_scenario.status.name = "passed"
     mock_timestamp.return_value = 123
-    mock_rps = mock.create_autospec(ReportPortalService)
+    mock_rps = mock.create_autospec(RPClient)
     mock_context = mock.Mock()
     mock_context._stack = []
     ba = BehaveAgent(config, mock_rps)
@@ -402,11 +406,11 @@ def test_finish_scenario(mock_timestamp, config, tags, expected_status):
 
 
 @mock.patch.object(BehaveAgent, "_log_scenario_exception")
-def test_finish_failed_scenario(mock_log, config):
+def test_finish_failed_scenario_scenario_based(mock_log, config):
     mock_scenario = mock.Mock()
     mock_scenario.tags = []
     mock_scenario.status.name = "failed"
-    mock_rps = mock.create_autospec(ReportPortalService)
+    mock_rps = mock.create_autospec(RPClient)
     mock_context = mock.Mock()
     mock_context._stack = []
     ba = BehaveAgent(config, mock_rps)
@@ -414,16 +418,45 @@ def test_finish_failed_scenario(mock_log, config):
     mock_log.assert_called_once_with(mock_scenario)
 
 
+@mock.patch.object(BehaveAgent, "finish_step")
+@mock.patch.object(BehaveAgent, "start_step")
+@mock.patch.object(BehaveAgent, "_log_scenario_exception")
+def test_finish_failed_scenario_step_based(
+    mock_log, mock_start_step, mock_finish_step, config
+):
+    config.log_layout = LogLayout.STEP
+    mock_scenario = mock.Mock()
+    mock_scenario.tags = []
+    mock_scenario.status.name = "failed"
+    mock_skipped_step = mock.Mock()
+    mock_skipped_step.status = Status.skipped
+    mock_skipped_step.keyword = "Then"
+    mock_skipped_step.name = "step name"
+    mock_skipped_step.text = "step text"
+    mock_skipped_step.table = None
+    mock_failed_step = mock.Mock()
+    mock_failed_step.status = Status.failed
+    mock_scenario.steps = [mock_failed_step, mock_skipped_step]
+    mock_rps = mock.create_autospec(RPClient)
+    mock_context = mock.Mock()
+    mock_context._stack = []
+    ba = BehaveAgent(config, mock_rps)
+    ba.finish_scenario(mock_context, mock_scenario)
+    mock_log.assert_called_once_with(mock_scenario)
+    mock_start_step.assert_called_once_with(mock_context, mock_skipped_step)
+    mock_finish_step.assert_called_once_with(mock_context, mock_skipped_step)
+
+
 @mock.patch("behave_reportportal.behave_agent.timestamp")
 def test_start_step_step_based(mock_timestamp, config):
-    config.step_based = True
+    config.log_layout = LogLayout.STEP
     mock_step = mock.Mock()
     mock_step.keyword = "keyword"
     mock_step.name = "name"
     mock_step.text = None
     mock_step.table = None
     mock_timestamp.return_value = 123
-    mock_rps = mock.create_autospec(ReportPortalService)
+    mock_rps = mock.create_autospec(RPClient)
     mock_rps.start_test_item.return_value = "step_id"
     mock_context = mock.Mock()
     ba = BehaveAgent(config, mock_rps)
@@ -434,6 +467,7 @@ def test_start_step_step_based(mock_timestamp, config):
         start_time=123,
         item_type="STEP",
         parent_item_id="scenario_id",
+        has_stats=True,
         description="",
         code_ref=BehaveAgent._code_ref(mock_step),
         some_key="some_value",
@@ -441,10 +475,44 @@ def test_start_step_step_based(mock_timestamp, config):
     ba._step_id = "step_id"
 
 
-def test_start_step_scenario_based(config):
-    config.step_based = False
+@mock.patch("behave_reportportal.behave_agent.timestamp")
+def test_start_step_nested_based(mock_timestamp, config):
+    config.log_layout = LogLayout.NESTED
     mock_step = mock.Mock()
-    mock_rps = mock.create_autospec(ReportPortalService)
+    mock_step.keyword = "keyword"
+    mock_step.name = "name"
+    mock_step.text = "step text"
+    mock_step.table = None
+    mock_timestamp.return_value = 123
+    mock_rps = mock.create_autospec(RPClient)
+    mock_rps.start_test_item.return_value = "step_id"
+    mock_context = mock.Mock()
+    ba = BehaveAgent(config, mock_rps)
+    ba._scenario_id = "scenario_id"
+    ba.start_step(mock_context, mock_step, some_key="some_value")
+    mock_rps.start_test_item.assert_called_once_with(
+        name="[keyword]: name",
+        start_time=123,
+        item_type="STEP",
+        parent_item_id="scenario_id",
+        code_ref=BehaveAgent._code_ref(mock_step),
+        description="```\nstep text\n```\n",
+        has_stats=False,
+        some_key="some_value",
+    )
+    mock_rps.log.assert_called_once_with(
+        time=123,
+        message="```\nstep text\n```\n",
+        level="INFO",
+        attachment=None,
+        item_id="step_id",
+    )
+
+
+def test_start_step_scenario_based(config):
+    config.log_layout = LogLayout.SCENARIO
+    mock_step = mock.Mock()
+    mock_rps = mock.create_autospec(RPClient)
     mock_context = mock.Mock()
     ba = BehaveAgent(config, mock_rps)
     ba.start_step(mock_context, mock_step, some_key="some_value")
@@ -453,11 +521,11 @@ def test_start_step_scenario_based(config):
 
 @mock.patch("behave_reportportal.behave_agent.timestamp")
 def test_finish_passed_step_step_based(mock_timestamp, config):
-    config.step_based = True
+    config.log_layout = LogLayout.STEP
     mock_step = mock.Mock()
     mock_step.status.name = "passed"
     mock_timestamp.return_value = 123
-    mock_rps = mock.create_autospec(ReportPortalService)
+    mock_rps = mock.create_autospec(RPClient)
     mock_context = mock.Mock()
     ba = BehaveAgent(config, mock_rps)
     ba._step_id = "step_id"
@@ -469,69 +537,88 @@ def test_finish_passed_step_step_based(mock_timestamp, config):
 
 @mock.patch("behave_reportportal.behave_agent.timestamp")
 def test_finish_failed_step_step_based(mock_timestamp, config):
-    config.step_based = True
-    mock_step = mock.Mock()
-    mock_step.keyword = "keyword"
-    mock_step.name = "name"
-    mock_step.status.name = "failed"
-    mock_step.exception.args = ["Exception message"]
-    mock_step.error_message = "Error massage"
-    mock_timestamp.return_value = 123
-    mock_rps = mock.create_autospec(ReportPortalService)
-    mock_context = mock.Mock()
-    ba = BehaveAgent(config, mock_rps)
-    ba._step_id = "step_id"
-    ba._scenario_id = "step_id"
-    ba.finish_step(mock_context, mock_step, some_key="some_value")
-    mock_rps.finish_test_item.assert_called_once_with(
-        item_id="step_id", end_time=123, status="FAILED", some_key="some_value"
-    )
-    mock_rps.log.assert_has_calls(
-        [
-            mock.call(
-                item_id="step_id",
-                time=123,
-                level="ERROR",
-                message="Step [keyword]: name was finished with exception.\n"
-                "Exception message\nError massage",
-            )
-        ]
-    )
+    try:
+        raise AssertionError("error!")
+    except AssertionError as e:
+        e_traceback = sys.exc_info()[2]
+        config.log_layout = LogLayout.STEP
+        mock_step = mock.Mock()
+        mock_step.keyword = "keyword"
+        mock_step.name = "name"
+        mock_step.status.name = "failed"
+        mock_step.exception = e
+        mock_step.exc_traceback = e_traceback
+        mock_step.error_message = "Error massage"
+        mock_timestamp.return_value = 123
+        mock_rps = mock.create_autospec(RPClient)
+        mock_context = mock.Mock()
+        ba = BehaveAgent(config, mock_rps)
+        ba._step_id = "step_id"
+        ba._scenario_id = "step_id"
+        ba.finish_step(mock_context, mock_step, some_key="some_value")
+        mock_rps.finish_test_item.assert_called_once_with(
+            item_id="step_id",
+            end_time=123,
+            status="FAILED",
+            some_key="some_value",
+        )
+        mock_rps.log.assert_has_calls(
+            [
+                mock.call(
+                    item_id="step_id",
+                    time=123,
+                    level="ERROR",
+                    message="Step [keyword]: "
+                    "name was finished with exception.\n"
+                    + "".join(
+                        traceback.format_exception(type(e), e, e_traceback)
+                    )
+                    + "\nError massage",
+                )
+            ]
+        )
 
 
 @mock.patch("behave_reportportal.behave_agent.timestamp")
 def test_finish_failed_step_scenario_based(mock_timestamp, config):
-    config.step_based = False
-    mock_step = mock.Mock()
-    mock_step.keyword = "keyword"
-    mock_step.name = "name"
-    mock_step.status.name = "failed"
-    mock_step.text = None
-    mock_step.table = None
-    mock_step.exception.args = ["Exception message"]
-    mock_step.error_message = "Error message"
-    mock_timestamp.return_value = 123
-    mock_rps = mock.create_autospec(ReportPortalService)
-    mock_context = mock.Mock()
-    ba = BehaveAgent(config, mock_rps)
-    ba._scenario_id = "scenario_id"
-    ba.finish_step(mock_context, mock_step)
-    calls = [
-        mock.call(
-            item_id="scenario_id",
-            time=123,
-            level="ERROR",
-            message="Step [keyword]: name was finished with exception.\n"
-            "Exception message\nError message",
-        ),
-        mock.call(
-            item_id="scenario_id",
-            time=123,
-            level="INFO",
-            message="[keyword]: name. ",
-        ),
-    ]
-    mock_rps.log.assert_has_calls(calls, any_order=True)
+    try:
+        raise AssertionError("error!")
+    except AssertionError as e:
+        e_traceback = sys.exc_info()[2]
+        config.log_layout = LogLayout.SCENARIO
+        mock_step = mock.Mock()
+        mock_step.keyword = "keyword"
+        mock_step.name = "name"
+        mock_step.status.name = "failed"
+        mock_step.text = None
+        mock_step.table = None
+        mock_step.exception = e
+        mock_step.exception.args = ["Exception message"]
+        mock_step.exc_traceback = e_traceback
+        mock_step.error_message = "Error message"
+        mock_timestamp.return_value = 123
+        mock_rps = mock.create_autospec(RPClient)
+        mock_context = mock.Mock()
+        ba = BehaveAgent(config, mock_rps)
+        ba._scenario_id = "scenario_id"
+        ba.finish_step(mock_context, mock_step)
+        calls = [
+            mock.call(
+                item_id="scenario_id",
+                time=123,
+                level="ERROR",
+                message="Step [keyword]: name was finished with exception.\n"
+                + "".join(traceback.format_exception(type(e), e, e_traceback))
+                + "\nError message",
+            ),
+            mock.call(
+                item_id="scenario_id",
+                time=123,
+                level="INFO",
+                message="[keyword]: name.\n",
+            ),
+        ]
+        mock_rps.log.assert_has_calls(calls, any_order=True)
 
 
 @mock.patch("behave_reportportal.behave_agent.timestamp")
@@ -542,7 +629,7 @@ def test_log_exception_without_message(mock_timestamp):
     mock_step.error_message = None
     mock_step.keyword = "keyword"
     mock_step.name = "name"
-    mock_rps = mock.create_autospec(ReportPortalService)
+    mock_rps = mock.create_autospec(RPClient)
     ba = BehaveAgent(config, mock_rps)
     ba._log_step_exception(mock_step, "step_id")
     mock_rps.log.assert_called_once_with(
@@ -556,7 +643,7 @@ def test_log_exception_without_message(mock_timestamp):
 @mock.patch.dict(os.environ, {"AGENT_NO_ANALYTICS": "1"})
 @mock.patch("behave_reportportal.behave_agent.send_event")
 def test_skip_analytics(mock_send_event, config):
-    mock_rps = mock.create_autospec(ReportPortalService)
+    mock_rps = mock.create_autospec(RPClient)
     mock_rps.launch_id = None
     mock_context = mock.Mock()
     ba = BehaveAgent(config, mock_rps)
@@ -564,9 +651,10 @@ def test_skip_analytics(mock_send_event, config):
     mock_send_event.assert_not_called()
 
 
+@mock.patch.dict(os.environ, {"AGENT_NO_ANALYTICS": ""})
 @mock.patch("behave_reportportal.behave_agent.send_event")
 def test_analytics(mock_send_event, config):
-    mock_rps = mock.create_autospec(ReportPortalService)
+    mock_rps = mock.create_autospec(RPClient)
     mock_rps.launch_id = None
     mock_context = mock.Mock()
     ba = BehaveAgent(config, mock_rps)
@@ -582,7 +670,7 @@ def test_rp_is_none():
 
 @mock.patch.object(BehaveAgent, "_log")
 def test_post_log(mock_log, config):
-    mock_rps = mock.create_autospec(ReportPortalService)
+    mock_rps = mock.create_autospec(RPClient)
     ba = BehaveAgent(config, mock_rps)
     ba._log_item_id = "log_item_id"
     ba.post_log("message", file_to_attach="filepath")
@@ -593,7 +681,7 @@ def test_post_log(mock_log, config):
 
 @mock.patch.object(BehaveAgent, "_log")
 def test_post_launch_log(mock_log, config):
-    mock_rps = mock.create_autospec(ReportPortalService)
+    mock_rps = mock.create_autospec(RPClient)
     ba = BehaveAgent(config, mock_rps)
     ba._log_item_id = "log_item_id"
     ba.post_launch_log("message", file_to_attach="filepath")
@@ -606,7 +694,7 @@ def test_post_launch_log(mock_log, config):
 @mock.patch("behave_reportportal.behave_agent.timestamp")
 def test_post__log(mock_timestamp, mock_mime, config):
     mock_timestamp.return_value = 123
-    mock_rps = mock.create_autospec(ReportPortalService)
+    mock_rps = mock.create_autospec(RPClient)
     ba = BehaveAgent(config, mock_rps)
     mock_mime.guess_type.return_value = ("mime_type", None)
     with mock.patch("builtins.open", mock.mock_open(read_data="data")):
@@ -631,14 +719,26 @@ def test_post__log(mock_timestamp, mock_mime, config):
 @mock.patch.object(PrettyTable, "get_string")
 def test_build_table_content(mock_get_string, mock_add_row, mock_init):
     mock_init.return_value = None
-    mock_table, mock_rows = mock.Mock(), mock.Mock()
+    mock_step, mock_table, mock_rows = mock.Mock(), mock.Mock(), mock.Mock()
     mock_table.headings = ["A", "B"]
     mock_rows.cells = ["c", "d"]
     mock_table.rows = [mock_rows]
-    BehaveAgent._build_table_content(mock_table)
+    mock_step.table = mock_table
+    mock_step.text = None
+    BehaveAgent._build_step_content(mock_step)
     mock_init.assert_called_once_with(field_names=["A", "B"])
     mock_add_row.assert_called_once_with(["c", "d"])
     mock_get_string.assert_called_once()
+
+
+@mock.patch.object(PrettyTable, "__init__")
+def test_build_text_content(mock_init):
+    mock_step = mock.Mock()
+    mock_step.table = None
+    mock_step.text = "Step text"
+    text = BehaveAgent._build_step_content(mock_step)
+    mock_init.assert_not_called()
+    assert text == "```\nStep text\n```\n"
 
 
 @mock.patch("behave_reportportal.behave_agent.timestamp")
@@ -648,7 +748,7 @@ def test_log_scenario_exception_default_message(mock_timestamp, config):
     mock_scenario.exception = None
     mock_scenario.error_message = None
     mock_scenario.name = "scenario_name"
-    mock_rps = mock.create_autospec(ReportPortalService)
+    mock_rps = mock.create_autospec(RPClient)
     ba = BehaveAgent(config, mock_rps)
     ba._scenario_id = "scenario_id"
     ba._log_scenario_exception(mock_scenario)
@@ -662,27 +762,33 @@ def test_log_scenario_exception_default_message(mock_timestamp, config):
 
 @mock.patch("behave_reportportal.behave_agent.timestamp")
 def test_log_scenario_exception(mock_timestamp, config):
-    mock_timestamp.return_value = 123
-    mock_scenario = mock.Mock()
-    mock_scenario.exception.args = ["Exception arg1", "Exception arg2"]
-    mock_scenario.error_message = "Error message"
-    mock_scenario.name = "scenario_name"
-    mock_rps = mock.create_autospec(ReportPortalService)
-    ba = BehaveAgent(config, mock_rps)
-    ba._scenario_id = "scenario_id"
-    ba._log_scenario_exception(mock_scenario)
-    mock_rps.log.assert_called_once_with(
-        item_id="scenario_id",
-        time=123,
-        level="ERROR",
-        message="Scenario 'scenario_name' finished with error.\n"
-        "Exception arg1, Exception arg2\nError message",
-    )
+    try:
+        raise ValueError("error!")
+    except ValueError as e:
+        e_traceback = sys.exc_info()[2]
+        mock_timestamp.return_value = 123
+        mock_scenario = mock.Mock()
+        mock_scenario.exception = e
+        mock_scenario.exc_traceback = e_traceback
+        mock_scenario.error_message = "Error message"
+        mock_scenario.name = "scenario_name"
+        mock_rps = mock.create_autospec(RPClient)
+        ba = BehaveAgent(config, mock_rps)
+        ba._scenario_id = "scenario_id"
+        ba._log_scenario_exception(mock_scenario)
+        mock_rps.log.assert_called_once_with(
+            item_id="scenario_id",
+            time=123,
+            level="ERROR",
+            message="Scenario 'scenario_name' finished with error.\n"
+            + "".join(traceback.format_exception(type(e), e, e_traceback))
+            + "\nError message",
+        )
 
 
 @pytest.mark.parametrize("tags", [None, ["A", "B"]])
 def test_log_fixtures_without_fixture_tags(tags, config):
-    mock_rps = mock.create_autospec(ReportPortalService)
+    mock_rps = mock.create_autospec(RPClient)
     mock_item = mock.Mock()
     mock_item.tags = tags
     BehaveAgent(config, mock_rps)._log_fixtures(mock_item, "type", "item_id")
@@ -697,9 +803,9 @@ def test_log_fixtures(mock_timestamp):
         endpoint="endpoint",
         token="token",
         project="project",
-        step_based="False",
+        log_layout=LogLayout.SCENARIO,
     )
-    mock_rps = mock.create_autospec(ReportPortalService)
+    mock_rps = mock.create_autospec(RPClient)
     mock_item = mock.Mock()
     mock_item.tags = ["fixture.A", "fixture.B"]
     BehaveAgent(cfg, mock_rps)._log_fixtures(mock_item, "type", "item_id")
@@ -707,7 +813,7 @@ def test_log_fixtures(mock_timestamp):
         [
             mock.call(
                 123,
-                "Using of '{}' fixture".format(t),
+                f"Using of '{t}' fixture",
                 level="INFO",
                 item_id="item_id",
             )
@@ -715,15 +821,16 @@ def test_log_fixtures(mock_timestamp):
         ],
         any_order=True,
     )
-    cfg.step_based = True
+    cfg.log_layout = LogLayout.STEP
     BehaveAgent(cfg, mock_rps)._log_fixtures(mock_item, "type", "item_id")
     mock_rps.start_test_item.assert_has_calls(
         [
             mock.call(
                 start_time=123,
-                name="Using of '{}' fixture".format(t),
+                name=f"Using of '{t}' fixture",
                 item_type="type",
                 parent_item_id="item_id",
+                has_stats=True,
             )
             for t in ("A", "B")
         ],
@@ -733,7 +840,7 @@ def test_log_fixtures(mock_timestamp):
 
 
 def test_log_cleanup_no_layer(config):
-    mock_rps = mock.create_autospec(ReportPortalService)
+    mock_rps = mock.create_autospec(RPClient)
     mock_context, mock_func = mock.Mock(), mock.Mock()
     mock_func.__name__ = "cleanup_func"
     mock_context._stack = [{"@layer": "scenario", "@cleanups": [mock_func]}]
@@ -745,7 +852,7 @@ def test_log_cleanup_no_layer(config):
 
 
 def test_log_cleanup_no_cleanups(config):
-    mock_rps = mock.create_autospec(ReportPortalService)
+    mock_rps = mock.create_autospec(RPClient)
     mock_context = mock.Mock()
     mock_context._stack = [{"@layer": "feature"}]
     BehaveAgent(config, mock_rps)._log_cleanups(mock_context, "feature")
@@ -761,9 +868,11 @@ def test_log_cleanup_no_cleanups(config):
 )
 @mock.patch("behave_reportportal.behave_agent.timestamp")
 def test_log_cleanup_step_based(mock_timestamp, scope, item_type, item_id):
-    cfg = Config(endpoint="E", token="T", project="P", step_based=True)
+    cfg = Config(
+        endpoint="E", token="T", project="P", log_layout=LogLayout.STEP
+    )
     mock_timestamp.return_value = 123
-    mock_rps = mock.create_autospec(ReportPortalService)
+    mock_rps = mock.create_autospec(RPClient)
     mock_context, mock_func1, mock_func2 = mock.Mock(), mock.Mock, mock.Mock()
     mock_func1.__name__ = "cleanup_func1"
     mock_func2.__name__ = "cleanup_func2"
@@ -776,10 +885,11 @@ def test_log_cleanup_step_based(mock_timestamp, scope, item_type, item_id):
     ba._log_cleanups(mock_context, scope)
     calls = [
         mock.call(
-            name="Execution of '{}' cleanup function".format(f_name),
+            name=f"Execution of '{f_name}' cleanup function",
             start_time=123,
             item_type=item_type,
             parent_item_id=item_id,
+            has_stats=True,
         )
         for f_name in ("cleanup_func1", "cleanup_func2")
     ]
@@ -793,7 +903,7 @@ def test_log_cleanup_step_based(mock_timestamp, scope, item_type, item_id):
 @mock.patch("behave_reportportal.behave_agent.timestamp")
 def test_log_cleanup_scenario_based(mock_timestamp, config, scope, item_id):
     mock_timestamp.return_value = 123
-    mock_rps = mock.create_autospec(ReportPortalService)
+    mock_rps = mock.create_autospec(RPClient)
     mock_context, mock_func1, mock_func2 = mock.Mock(), mock.Mock, mock.Mock()
     mock_func1.__name__ = "cleanup_func1"
     mock_func2.__name__ = "cleanup_func2"
@@ -807,29 +917,10 @@ def test_log_cleanup_scenario_based(mock_timestamp, config, scope, item_id):
     calls = [
         mock.call(
             123,
-            "Execution of '{}' cleanup function".format(f_name),
+            f"Execution of '{f_name}' cleanup function",
             level="INFO",
             item_id=item_id,
         )
         for f_name in ("cleanup_func1", "cleanup_func2")
     ]
     mock_rps.log.assert_has_calls(calls)
-
-
-@pytest.mark.parametrize(
-    "args, exp",
-    [
-        (("A", "B"), ["A", "B"]),
-        (("",), None),
-        (("", ""), None),
-        ((None,), None),
-        ((None, None), None),
-        (("", None), None),
-        (("A", "", None), ["A"]),
-        (("A", ["A", "B", "C"]), ["A", "['A', 'B', 'C']"]),
-    ],
-)
-def test_fetch_valuable_args(args, exp):
-    exception = mock.Mock()
-    exception.args = args
-    assert BehaveAgent.fetch_valuable_args(exception) == exp
