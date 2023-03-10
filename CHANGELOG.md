@@ -1,6 +1,11 @@
 # Changelog
 
 ## [Unreleased]
+### Fixed
+- Invalid rerun parameter on Launch start, by @HardNorth
+- Logging part at README.rst, by @HardNorth
+
+## [2.0.0]
 ### Changed
 - `step_based` config parameter deprecated in favor of `log_layout` parameter, by @nicke46
 - The Agent now uses `RPClient` class instead of `ReportPortalService`, by @HardNorth
