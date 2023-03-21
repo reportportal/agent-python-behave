@@ -242,7 +242,7 @@ def test_start_launch_with_rerun(mock_timestamp):
         project="project",
         launch_name="launch_name",
         launch_description="launch_description",
-        retun=True,
+        rerun=True,
         rerun_of="launch_id",
     )
     ba = BehaveAgent(cfg, mock_rps)
@@ -269,6 +269,19 @@ def test_finish_launch(mock_timestamp, config):
         end_time=123, some_key="some_value"
     )
     mock_rps.terminate.assert_called_once()
+
+
+@mock.patch("behave_reportportal.behave_agent.timestamp")
+def test_skip_finish_launch(mock_timestamp, config):
+    mock_timestamp.return_value = 123
+    mock_rps = mock.create_autospec(RPClient)
+    mock_rps.launch_id = "abc"
+    mock_context = mock.Mock()
+    ba = BehaveAgent(config, mock_rps)
+    ba.start_launch(mock_context, some_key="some_value")
+    ba.finish_launch(mock_context)
+    mock_rps.start_launch.assert_not_called()
+    mock_rps.finish_launch.assert_not_called()
 
 
 @mock.patch("behave_reportportal.behave_agent.timestamp")

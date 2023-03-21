@@ -8,12 +8,8 @@ from os import getenv
 from prettytable import MARKDOWN, PrettyTable
 from reportportal_client.client import RPClient
 from reportportal_client.external.google_analytics import send_event
-from reportportal_client.helpers import (
-    gen_attributes,
-    get_launch_sys_attrs,
-    get_package_version,
-    timestamp,
-)
+from reportportal_client.helpers import (gen_attributes, get_launch_sys_attrs,
+                                         get_package_version, timestamp)
 from reportportal_client.service import _dict_to_payload
 
 from behave_reportportal.config import LogLayout
@@ -55,6 +51,7 @@ class BehaveAgent(metaclass=Singleton):
         """Initialize instance attributes."""
         self._rp = rp_service
         self._cfg = cfg
+        self._handle_lifecycle = True
         self._launch_id = None
         self._feature_id = None
         self._scenario_id = None
@@ -70,6 +67,7 @@ class BehaveAgent(metaclass=Singleton):
     @check_rp_enabled
     def start_launch(self, context, **kwargs):
         """Start launch in Report Portal."""
+        self._handle_lifecycle = False if self._rp.launch_id else True
         self._launch_id = self._rp.launch_id or self._rp.start_launch(
             name=self._cfg.launch_name,
             start_time=timestamp(),
@@ -85,7 +83,8 @@ class BehaveAgent(metaclass=Singleton):
     @check_rp_enabled
     def finish_launch(self, context, **kwargs):
         """Finish launch in Report Portal."""
-        self._rp.finish_launch(end_time=timestamp(), **kwargs)
+        if self._handle_lifecycle:
+            self._rp.finish_launch(end_time=timestamp(), **kwargs)
         self._rp.terminate()
 
     @check_rp_enabled
