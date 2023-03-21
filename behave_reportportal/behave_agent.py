@@ -44,6 +44,7 @@ def create_rp_service(cfg):
             is_skipped_an_issue=cfg.is_skipped_an_issue,
             launch_id=cfg.launch_id,
             retries=cfg.retries,
+            mode="DEBUG" if cfg.debug_mode else "DEFAULT",
         )
 
 
@@ -76,7 +77,6 @@ class BehaveAgent(metaclass=Singleton):
             description=self._cfg.launch_description,
             rerun=self._cfg.rerun,
             rerun_of=self._cfg.rerun_of,
-            mode="DEBUG" if self._cfg.debug_mode else "DEFAULT",
             **kwargs,
         )
         if not self._skip_analytics:
@@ -421,7 +421,7 @@ class BehaveAgent(metaclass=Singleton):
             end = attr_tag.find(")")
             if start == -1 or end == -1:
                 continue
-            attr_str = attr_tag[start + 1: end]
+            attr_str = attr_tag[start + 1 : end]
             if not attr_str:
                 continue
             result.extend([a.strip() for a in attr_str.split(",")])
@@ -442,7 +442,7 @@ class BehaveAgent(metaclass=Singleton):
             start, end = tc_tag.find("("), tc_tag.find(")")
             if start == -1 or end == -1:
                 return
-            tc_id = tc_tag[start + 1: end]
+            tc_id = tc_tag[start + 1 : end]
             if not tc_id:
                 return
             return tc_id

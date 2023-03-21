@@ -1,8 +1,8 @@
 import os
 import sys
 import traceback
-
 from unittest import mock
+
 # noinspection PyPackageRequirements
 import pytest
 from behave.model_core import Status
@@ -175,6 +175,7 @@ def test_create_rp_service_init(mock_rps):
                 is_skipped_an_issue=False,
                 launch_id=None,
                 retries=None,
+                mode="DEFAULT",
             )
         ],
         any_order=True,
@@ -226,7 +227,6 @@ def test_start_launch(mock_timestamp, config):
         some_key="some_value",
         rerun=False,
         rerun_of=None,
-        mode="DEFAULT",
     )
 
 
@@ -255,7 +255,6 @@ def test_start_launch_with_rerun(mock_timestamp):
         some_key="some_value",
         rerun=cfg.rerun,
         rerun_of=cfg.rerun_of,
-        mode="DEFAULT",
     )
 
 

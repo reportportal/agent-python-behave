@@ -1,4 +1,5 @@
 from unittest import mock
+
 # noinspection PyPackageRequirements
 import pytest
 from behave.userdata import UserData
