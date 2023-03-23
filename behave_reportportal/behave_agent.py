@@ -420,7 +420,7 @@ class BehaveAgent(metaclass=Singleton):
             end = attr_tag.find(")")
             if start == -1 or end == -1:
                 continue
-            attr_str = attr_tag[start + 1 : end]
+            attr_str = attr_tag[start + 1: end]
             if not attr_str:
                 continue
             result.extend([a.strip() for a in attr_str.split(",")])
@@ -441,7 +441,7 @@ class BehaveAgent(metaclass=Singleton):
             start, end = tc_tag.find("("), tc_tag.find(")")
             if start == -1 or end == -1:
                 return
-            tc_id = tc_tag[start + 1 : end]
+            tc_id = tc_tag[start + 1: end]
             if not tc_id:
                 return
             return tc_id
