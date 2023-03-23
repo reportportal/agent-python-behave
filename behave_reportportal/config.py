@@ -3,7 +3,6 @@ from configparser import ConfigParser
 from enum import Enum
 from warnings import simplefilter, warn
 
-
 RP_CFG_SECTION = "report_portal"
 DEFAULT_LAUNCH_NAME = "Python Behave Launch"
 DEFAULT_CFG_FILE = "behave.ini"
