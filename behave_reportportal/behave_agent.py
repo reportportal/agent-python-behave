@@ -1,20 +1,32 @@
 """Functionality for integration of Behave tests with Report Portal."""
+
+#  Copyright (c) 2023 EPAM Systems
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#  https://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License
+
 import mimetypes
 import os
 import traceback
 from functools import wraps
-from os import getenv
 
 from prettytable import MARKDOWN, PrettyTable
 from reportportal_client.client import RPClient
-from reportportal_client.external.google_analytics import send_event
 from reportportal_client.helpers import (
     gen_attributes,
     get_launch_sys_attrs,
     get_package_version,
     timestamp,
+    dict_to_payload
 )
-from reportportal_client.service import _dict_to_payload
 
 from behave_reportportal.config import LogLayout
 from behave_reportportal.utils import Singleton
@@ -44,6 +56,7 @@ def create_rp_service(cfg):
             is_skipped_an_issue=cfg.is_skipped_an_issue,
             launch_id=cfg.launch_id,
             retries=cfg.retries,
+            mode="DEBUG" if cfg.debug_mode else "DEFAULT",
         )
 
 
@@ -54,12 +67,12 @@ class BehaveAgent(metaclass=Singleton):
         """Initialize instance attributes."""
         self._rp = rp_service
         self._cfg = cfg
+        self._handle_lifecycle = True
         self._launch_id = None
         self._feature_id = None
         self._scenario_id = None
         self._step_id = None
         self._log_item_id = None
-        self._skip_analytics = getenv("AGENT_NO_ANALYTICS")
         self.agent_name = "behave-reportportal"
         self.agent_version = get_package_version(self.agent_name)
         # these tags are ignored during collection of test attributes
@@ -69,6 +82,7 @@ class BehaveAgent(metaclass=Singleton):
     @check_rp_enabled
     def start_launch(self, context, **kwargs):
         """Start launch in Report Portal."""
+        self._handle_lifecycle = False if self._rp.launch_id else True
         self._launch_id = self._rp.launch_id or self._rp.start_launch(
             name=self._cfg.launch_name,
             start_time=timestamp(),
@@ -76,16 +90,14 @@ class BehaveAgent(metaclass=Singleton):
             description=self._cfg.launch_description,
             rerun=self._cfg.rerun,
             rerun_of=self._cfg.rerun_of,
-            mode="DEBUG" if self._cfg.debug_mode else "DEFAULT",
             **kwargs,
         )
-        if not self._skip_analytics:
-            send_event(self.agent_name, self.agent_version)
 
     @check_rp_enabled
     def finish_launch(self, context, **kwargs):
         """Finish launch in Report Portal."""
-        self._rp.finish_launch(end_time=timestamp(), **kwargs)
+        if self._handle_lifecycle:
+            self._rp.finish_launch(end_time=timestamp(), **kwargs)
         self._rp.terminate()
 
     @check_rp_enabled
@@ -234,8 +246,8 @@ class BehaveAgent(metaclass=Singleton):
         """Return launch attributes in the format supported by the rp."""
         attributes = self._cfg.launch_attributes or []
         system_attributes = get_launch_sys_attrs()
-        system_attributes["agent"] = f"{self.agent_name}-{self.agent_version}"
-        return attributes + _dict_to_payload(system_attributes)
+        system_attributes["agent"] = f"{self.agent_name}|{self.agent_version}"
+        return attributes + dict_to_payload(system_attributes)
 
     @staticmethod
     def _build_step_content(step):

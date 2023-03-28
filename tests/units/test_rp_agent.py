@@ -1,8 +1,7 @@
-import os
 import sys
 import traceback
-
 from unittest import mock
+
 # noinspection PyPackageRequirements
 import pytest
 from behave.model_core import Status
@@ -175,6 +174,7 @@ def test_create_rp_service_init(mock_rps):
                 is_skipped_an_issue=False,
                 launch_id=None,
                 retries=None,
+                mode="DEFAULT",
             )
         ],
         any_order=True,
@@ -226,7 +226,6 @@ def test_start_launch(mock_timestamp, config):
         some_key="some_value",
         rerun=False,
         rerun_of=None,
-        mode="DEFAULT",
     )
 
 
@@ -242,7 +241,7 @@ def test_start_launch_with_rerun(mock_timestamp):
         project="project",
         launch_name="launch_name",
         launch_description="launch_description",
-        retun=True,
+        rerun=True,
         rerun_of="launch_id",
     )
     ba = BehaveAgent(cfg, mock_rps)
@@ -255,7 +254,6 @@ def test_start_launch_with_rerun(mock_timestamp):
         some_key="some_value",
         rerun=cfg.rerun,
         rerun_of=cfg.rerun_of,
-        mode="DEFAULT",
     )
 
 
@@ -270,6 +268,19 @@ def test_finish_launch(mock_timestamp, config):
         end_time=123, some_key="some_value"
     )
     mock_rps.terminate.assert_called_once()
+
+
+@mock.patch("behave_reportportal.behave_agent.timestamp")
+def test_skip_finish_launch(mock_timestamp, config):
+    mock_timestamp.return_value = 123
+    mock_rps = mock.create_autospec(RPClient)
+    mock_rps.launch_id = "abc"
+    mock_context = mock.Mock()
+    ba = BehaveAgent(config, mock_rps)
+    ba.start_launch(mock_context, some_key="some_value")
+    ba.finish_launch(mock_context)
+    mock_rps.start_launch.assert_not_called()
+    mock_rps.finish_launch.assert_not_called()
 
 
 @mock.patch("behave_reportportal.behave_agent.timestamp")
@@ -638,28 +649,6 @@ def test_log_exception_without_message(mock_timestamp):
         level="ERROR",
         message="Step [keyword]: name was finished with exception.",
     )
-
-
-@mock.patch.dict(os.environ, {"AGENT_NO_ANALYTICS": "1"})
-@mock.patch("behave_reportportal.behave_agent.send_event")
-def test_skip_analytics(mock_send_event, config):
-    mock_rps = mock.create_autospec(RPClient)
-    mock_rps.launch_id = None
-    mock_context = mock.Mock()
-    ba = BehaveAgent(config, mock_rps)
-    ba.start_launch(mock_context)
-    mock_send_event.assert_not_called()
-
-
-@mock.patch.dict(os.environ, {"AGENT_NO_ANALYTICS": ""})
-@mock.patch("behave_reportportal.behave_agent.send_event")
-def test_analytics(mock_send_event, config):
-    mock_rps = mock.create_autospec(RPClient)
-    mock_rps.launch_id = None
-    mock_context = mock.Mock()
-    ba = BehaveAgent(config, mock_rps)
-    ba.start_launch(mock_context)
-    mock_send_event.assert_called_once_with(ba.agent_name, ba.agent_version)
 
 
 def test_rp_is_none():

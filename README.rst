@@ -6,10 +6,16 @@ agent-python-behave
     :target: https://pypi.python.org/pypi/behave-reportportal
 .. image:: https://img.shields.io/pypi/pyversions/behave-reportportal.svg
     :target: https://pypi.org/project/behave-reportportal
-.. image:: https://codecov.io/gh/reportportal/agent-python-behave/branch/master/graph/badge.svg
-    :target: https://codecov.io/gh/reportportal/agent-python-behave
 .. image:: https://github.com/reportportal/agent-python-behave/actions/workflows/tests.yml/badge.svg
     :target: https://github.com/reportportal/agent-python-behave
+.. image:: https://codecov.io/gh/reportportal/agent-python-behave/branch/master/graph/badge.svg
+    :target: https://codecov.io/gh/reportportal/agent-python-behave
+.. image:: https://slack.epmrpp.reportportal.io/badge.svg
+    :target: https://slack.epmrpp.reportportal.io/
+    :alt: Join Slack chat!
+.. image:: https://img.shields.io/badge/reportportal-stackoverflow-orange.svg?style=flat
+    :target: http://stackoverflow.com/questions/tagged/reportportal
+    :alt: stackoverflow
 
 Behave extension for reporting test results of Behave to the Reportal Portal.
 

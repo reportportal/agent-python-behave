@@ -1,17 +1,13 @@
 from unittest import mock
+
 # noinspection PyPackageRequirements
 import pytest
 from behave.userdata import UserData
 from delayed_assert import assert_expectations, expect
 
-from behave_reportportal.config import (
-    DEFAULT_CFG_FILE,
-    DEFAULT_LAUNCH_NAME,
-    RP_CFG_SECTION,
-    LogLayout,
-    get_bool,
-    read_config,
-)
+from behave_reportportal.config import (DEFAULT_CFG_FILE, DEFAULT_LAUNCH_NAME,
+                                        RP_CFG_SECTION, LogLayout, get_bool,
+                                        read_config)
 
 
 @pytest.mark.parametrize(
