@@ -1,16 +1,32 @@
 """Functionality for integration of Behave tests with Report Portal."""
+
+#  Copyright (c) 2023 EPAM Systems
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#  https://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License
+
 import mimetypes
 import os
 import traceback
 from functools import wraps
-from os import getenv
 
 from prettytable import MARKDOWN, PrettyTable
 from reportportal_client.client import RPClient
-from reportportal_client.external.google_analytics import send_event
-from reportportal_client.helpers import (gen_attributes, get_launch_sys_attrs,
-                                         get_package_version, timestamp)
-from reportportal_client.service import _dict_to_payload
+from reportportal_client.helpers import (
+    gen_attributes,
+    get_launch_sys_attrs,
+    get_package_version,
+    timestamp,
+    dict_to_payload
+)
 
 from behave_reportportal.config import LogLayout
 from behave_reportportal.utils import Singleton
@@ -57,7 +73,6 @@ class BehaveAgent(metaclass=Singleton):
         self._scenario_id = None
         self._step_id = None
         self._log_item_id = None
-        self._skip_analytics = getenv("AGENT_NO_ANALYTICS")
         self.agent_name = "behave-reportportal"
         self.agent_version = get_package_version(self.agent_name)
         # these tags are ignored during collection of test attributes
@@ -77,8 +92,6 @@ class BehaveAgent(metaclass=Singleton):
             rerun_of=self._cfg.rerun_of,
             **kwargs,
         )
-        if not self._skip_analytics:
-            send_event(self.agent_name, self.agent_version)
 
     @check_rp_enabled
     def finish_launch(self, context, **kwargs):
@@ -233,8 +246,8 @@ class BehaveAgent(metaclass=Singleton):
         """Return launch attributes in the format supported by the rp."""
         attributes = self._cfg.launch_attributes or []
         system_attributes = get_launch_sys_attrs()
-        system_attributes["agent"] = f"{self.agent_name}-{self.agent_version}"
-        return attributes + _dict_to_payload(system_attributes)
+        system_attributes["agent"] = f"{self.agent_name}|{self.agent_version}"
+        return attributes + dict_to_payload(system_attributes)
 
     @staticmethod
     def _build_step_content(step):
