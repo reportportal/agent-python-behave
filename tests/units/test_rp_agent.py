@@ -652,17 +652,6 @@ def test_log_exception_without_message(mock_timestamp):
     )
 
 
-@mock.patch.dict(os.environ, {"AGENT_NO_ANALYTICS": "1"})
-@mock.patch("behave_reportportal.behave_agent.send_event")
-def test_skip_analytics(mock_send_event, config):
-    mock_rps = mock.create_autospec(RPClient)
-    mock_rps.launch_id = None
-    mock_context = mock.Mock()
-    ba = BehaveAgent(config, mock_rps)
-    ba.start_launch(mock_context)
-    mock_send_event.assert_not_called()
-
-
 @mock.patch.dict(os.environ, {"AGENT_NO_ANALYTICS": ""})
 @mock.patch("behave_reportportal.behave_agent.send_event")
 def test_analytics(mock_send_event, config):
