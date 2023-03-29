@@ -82,7 +82,6 @@ The following parameters are optional:
 - :code:`retries = 3` - amount of retries for performing REST calls to RP server
 - :code:`rerun = True` - marks the launch as the rerun
 - :code:`rerun_of = xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`` - launch id to rerun
-- :code:`rerun = True` - marks the launch as the rerun
 - :code:`log_batch_size = 20` - maximum number of log entries which will be sent by the agent at once
 - :code:`log_batch_payload_size = 65000000` - maximum payload size of a log batch which will be sent by the agent at once
 
