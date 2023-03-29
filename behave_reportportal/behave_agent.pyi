@@ -1,7 +1,8 @@
-from typing import Optional, Text, Dict, Any
+from typing import Optional, Text, Dict, Any, List, Union
 
 from behave.model import Scenario
-from behave.model_core import BasicStatement
+from behave.model_core import BasicStatement, TagAndStatusStatement, \
+    TagStatement
 from behave.runner import Context
 from reportportal_client import RPClient
 
@@ -21,6 +22,15 @@ class BehaveAgent:
                  rp_service: Optional[RPClient] = ...) -> None: ...
 
     def start_launch(self, context: Context, **kwargs: Any) -> None: ...
+
+    def _attributes(self, item: Union[TagAndStatusStatement,
+    TagStatement]) -> List[Dict[Text, Text]]: ...
+
+    @staticmethod
+    def _get_attributes_from_tags(tags: List[Text]) -> List[Text]: ...
+
+    @staticmethod
+    def _test_case_id(scenario: Scenario) -> Text: ...
 
     @staticmethod
     def convert_to_rp_status(behave_status: Text) -> Text: ...
