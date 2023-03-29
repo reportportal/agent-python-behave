@@ -176,14 +176,14 @@ def test_read_config_default_values(mock_cp):
 @pytest.mark.parametrize(
     "val,exp",
     [
-        ("True", True),
-        ("true", True),
-        ("False", False),
-        ("false", False),
+        ('True', True),
+        ('true', True),
+        ('False', False),
+        ('false', False),
         (True, True),
         (False, False),
         (None, None),
-        ("other_value", None),
+        ('other_value', None),
     ],
 )
 def test_get_bool(val, exp):

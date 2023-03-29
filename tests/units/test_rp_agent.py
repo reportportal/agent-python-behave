@@ -8,6 +8,7 @@ from behave.model_core import Status
 from delayed_assert import assert_expectations, expect
 from prettytable import PrettyTable
 from reportportal_client.client import RPClient
+from reportportal_client.logs.log_manager import MAX_LOG_BATCH_PAYLOAD_SIZE
 
 from behave_reportportal.behave_agent import BehaveAgent, create_rp_service
 from behave_reportportal.config import Config, LogLayout
@@ -175,6 +176,8 @@ def test_create_rp_service_init(mock_rps):
                 launch_id=None,
                 retries=None,
                 mode="DEFAULT",
+                log_batch_size=20,
+                log_batch_payload_size=MAX_LOG_BATCH_PAYLOAD_SIZE
             )
         ],
         any_order=True,
