@@ -19,7 +19,7 @@ import traceback
 from functools import wraps
 
 from prettytable import MARKDOWN, PrettyTable
-from reportportal_client.client import RPClient
+from reportportal_client import RPClient
 from reportportal_client.helpers import (
     gen_attributes,
     get_launch_sys_attrs,
@@ -57,6 +57,8 @@ def create_rp_service(cfg):
             launch_id=cfg.launch_id,
             retries=cfg.retries,
             mode="DEBUG" if cfg.debug_mode else "DEFAULT",
+            log_batch_size=cfg.log_batch_size,
+            log_batch_payload_size=cfg.log_batch_payload_size
         )
 
 
@@ -244,7 +246,8 @@ class BehaveAgent(metaclass=Singleton):
 
     def _get_launch_attributes(self):
         """Return launch attributes in the format supported by the rp."""
-        attributes = self._cfg.launch_attributes or []
+        attributes = gen_attributes(self._cfg.launch_attributes) \
+            if self._cfg.launch_attributes else []
         system_attributes = get_launch_sys_attrs()
         system_attributes["agent"] = f"{self.agent_name}|{self.agent_version}"
         return attributes + dict_to_payload(system_attributes)

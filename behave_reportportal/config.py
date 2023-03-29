@@ -17,6 +17,8 @@ from configparser import ConfigParser
 from enum import Enum
 from warnings import simplefilter, warn
 
+from reportportal_client.logs.log_manager import MAX_LOG_BATCH_PAYLOAD_SIZE
+
 RP_CFG_SECTION = "report_portal"
 DEFAULT_LAUNCH_NAME = "Python Behave Launch"
 DEFAULT_CFG_FILE = "behave.ini"
@@ -43,22 +45,24 @@ class Config(object):
     """Class for configuration of behave Report Portal agent."""
 
     def __init__(
-        self,
-        endpoint=None,
-        project=None,
-        token=None,
-        launch_id=None,
-        launch_name=None,
-        launch_description=None,
-        launch_attributes=None,
-        debug_mode=None,
-        log_layout=None,
-        step_based=None,
-        is_skipped_an_issue=None,
-        retries=None,
-        rerun=None,
-        rerun_of=None,
-        **kwargs
+            self,
+            endpoint=None,
+            project=None,
+            token=None,
+            launch_id=None,
+            launch_name=None,
+            launch_description=None,
+            launch_attributes=None,
+            debug_mode=None,
+            log_layout=None,
+            step_based=None,
+            is_skipped_an_issue=None,
+            retries=None,
+            rerun=None,
+            rerun_of=None,
+            log_batch_size=None,
+            log_batch_payload_size=None,
+            **kwargs
     ):
         """Initialize instance attributes."""
         self.endpoint = endpoint
@@ -76,6 +80,10 @@ class Config(object):
         self.retries = retries and int(retries)
         self.rerun = get_bool(rerun) or False
         self.rerun_of = rerun_of
+        self.log_batch_size = (log_batch_size and int(
+            log_batch_size)) or 20
+        self.log_batch_payload_size = (log_batch_payload_size and int(
+            log_batch_payload_size)) or MAX_LOG_BATCH_PAYLOAD_SIZE
 
         if step_based and not log_layout:
             simplefilter("default")
@@ -108,11 +116,11 @@ def read_config(context):
 
 def get_bool(value):
     """Convert string value to bool."""
-    if value is None:
+    if not value:
         return
     if isinstance(value, bool):
         return value
-    if value.lower() == "true":
+    if str(value).lower() in ('true', '1'):
         return True
-    if value.lower() == "false":
+    if str(value).lower() == ('false', '0'):
         return False
