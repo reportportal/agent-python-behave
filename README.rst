@@ -67,8 +67,8 @@ Example of :code:`behave.ini`:
     endpoint = http://192.168.1.10:8080
     project = user_personal
     launch_name = AnyLaunchName
-    launch_attributes = 'Slow Smoke'
-    launch_description = 'Smoke test'
+    launch_attributes = Slow Smoke
+    launch_description = Smoke test
 
 The following parameters are optional:
 
@@ -82,7 +82,9 @@ The following parameters are optional:
 - :code:`retries = 3` - amount of retries for performing REST calls to RP server
 - :code:`rerun = True` - marks the launch as the rerun
 - :code:`rerun_of = xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`` - launch id to rerun
-
+- :code:`rerun = True` - marks the launch as the rerun
+- :code:`log_batch_size = 20` - maximum number of log entries which will be sent by the agent at once
+- :code:`log_batch_payload_size = 65000000` - maximum payload size of a log batch which will be sent by the agent at once
 
 If you like to override the above parameters from command line, or from CI environment based on your build, then pass
 - :code:`-D parameter=value` during invocation.
