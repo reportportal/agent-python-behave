@@ -38,6 +38,7 @@ def check_rp_enabled(func):
     @wraps(func)
     def wrap(*args, **kwargs):
         if args and isinstance(args[0], BehaveAgent):
+            # noinspection PyProtectedMember
             if not args[0]._rp:
                 return
 

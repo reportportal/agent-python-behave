@@ -116,11 +116,11 @@ def read_config(context):
 
 def get_bool(value):
     """Convert string value to bool."""
-    if not value:
+    if value is None or value == '':
         return
     if isinstance(value, bool):
         return value
     if str(value).lower() in ('true', '1'):
         return True
-    if str(value).lower() == ('false', '0'):
+    if str(value).lower() in ('false', '0'):
         return False

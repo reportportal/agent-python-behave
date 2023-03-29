@@ -42,23 +42,23 @@ class Config(object):
 
     def __init__(
             self,
-            endpoint: Optional[Text],
-            project: Optional[Text],
-            token: Optional[Text],
-            launch_id: Optional[Text],
-            launch_name: Optional[Text],
-            launch_description: Optional[Text],
-            launch_attributes: Optional[Text],
-            debug_mode: Optional[Text],
-            log_layout: Optional[Text],
-            step_based: Optional[Text],
-            is_skipped_an_issue: Optional[Text],
-            retries: Optional[Text],
-            rerun: Optional[Text],
-            rerun_of: Optional[Text],
-            log_batch_size: Optional[Text],
-            log_batch_payload_size: Optional[Text],
-            **kwargs: Dict[Any, Any]
+            endpoint: Optional[Text]=...,
+            project: Optional[Text]=...,
+            token: Optional[Text]=...,
+            launch_id: Optional[Text]=...,
+            launch_name: Optional[Text]=...,
+            launch_description: Optional[Text]=...,
+            launch_attributes: Optional[Text]=...,
+            debug_mode: Optional[Text]=...,
+            log_layout: Optional[Text]=...,
+            step_based: Optional[Text]=...,
+            is_skipped_an_issue: Optional[Text]=...,
+            retries: Optional[Text]=...,
+            rerun: Optional[Text]=...,
+            rerun_of: Optional[Text]=...,
+            log_batch_size: Optional[Text]=...,
+            log_batch_payload_size: Optional[Text]=...,
+            **kwargs: Any
     ) -> None: ...
 
 
