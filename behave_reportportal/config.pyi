@@ -11,7 +11,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License
 from enum import Enum
-from typing import Any, Optional, Text, List, Dict
+from typing import Any, Optional, Text, List, Dict, Union
 
 from behave.runner import Context
 
@@ -49,12 +49,12 @@ class Config(object):
             launch_name: Optional[Text]=...,
             launch_description: Optional[Text]=...,
             launch_attributes: Optional[Text]=...,
-            debug_mode: Optional[Text]=...,
+            debug_mode: Optional[Union[Text, bool]]=...,
             log_layout: Optional[Text]=...,
             step_based: Optional[Text]=...,
-            is_skipped_an_issue: Optional[Text]=...,
+            is_skipped_an_issue: Optional[Union[Text, bool]]=...,
             retries: Optional[Text]=...,
-            rerun: Optional[Text]=...,
+            rerun: Optional[Union[Text, bool]]=...,
             rerun_of: Optional[Text]=...,
             log_batch_size: Optional[Text]=...,
             log_batch_payload_size: Optional[Text]=...,

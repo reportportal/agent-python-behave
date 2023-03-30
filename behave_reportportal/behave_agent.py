@@ -83,7 +83,7 @@ class BehaveAgent(metaclass=Singleton):
         self._ignore_tag_prefixes = ["attribute", "fixture", "test_case_id"]
 
     @check_rp_enabled
-    def start_launch(self, context, **kwargs):
+    def start_launch(self, _, **kwargs):
         """Start launch in Report Portal."""
         self._handle_lifecycle = False if self._rp.launch_id else True
         self._launch_id = self._rp.launch_id or self._rp.start_launch(
@@ -97,14 +97,14 @@ class BehaveAgent(metaclass=Singleton):
         )
 
     @check_rp_enabled
-    def finish_launch(self, context, **kwargs):
+    def finish_launch(self, _, **kwargs):
         """Finish launch in Report Portal."""
         if self._handle_lifecycle:
             self._rp.finish_launch(end_time=timestamp(), **kwargs)
         self._rp.terminate()
 
     @check_rp_enabled
-    def start_feature(self, context, feature, **kwargs):
+    def start_feature(self, _, feature, **kwargs):
         """Start feature in Report Portal."""
         if feature.tags and "skip" in feature.tags:
             feature.skip("Marked with @skip")
@@ -134,7 +134,7 @@ class BehaveAgent(metaclass=Singleton):
         )
 
     @check_rp_enabled
-    def start_scenario(self, context, scenario, **kwargs):
+    def start_scenario(self, _, scenario, **kwargs):
         """Start scenario in Report Portal."""
         if scenario.tags and "skip" in scenario.tags:
             scenario.skip("Marked with @skip")
@@ -182,7 +182,7 @@ class BehaveAgent(metaclass=Singleton):
                 self.finish_step(context, step)
 
     @check_rp_enabled
-    def start_step(self, context, step, **kwargs):
+    def start_step(self, _, step, **kwargs):
         """Start test in Report Portal."""
         if self._cfg.log_layout is not LogLayout.SCENARIO:
             step_content = self._build_step_content(step)
@@ -203,7 +203,7 @@ class BehaveAgent(metaclass=Singleton):
                 self.post_log(step_content)
 
     @check_rp_enabled
-    def finish_step(self, context, step, **kwargs):
+    def finish_step(self, _, step, **kwargs):
         """Finish test in Report Portal."""
         if self._cfg.log_layout is not LogLayout.SCENARIO:
             self._finish_step_step_based(step, **kwargs)
