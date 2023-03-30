@@ -19,7 +19,7 @@ import traceback
 from functools import wraps
 
 from prettytable import MARKDOWN, PrettyTable
-from reportportal_client.client import RPClient
+from reportportal_client import RPClient
 from reportportal_client.helpers import (
     gen_attributes,
     get_launch_sys_attrs,
@@ -38,6 +38,7 @@ def check_rp_enabled(func):
     @wraps(func)
     def wrap(*args, **kwargs):
         if args and isinstance(args[0], BehaveAgent):
+            # noinspection PyProtectedMember
             if not args[0]._rp:
                 return
 
@@ -57,6 +58,8 @@ def create_rp_service(cfg):
             launch_id=cfg.launch_id,
             retries=cfg.retries,
             mode="DEBUG" if cfg.debug_mode else "DEFAULT",
+            log_batch_size=cfg.log_batch_size,
+            log_batch_payload_size=cfg.log_batch_payload_size
         )
 
 
@@ -80,7 +83,7 @@ class BehaveAgent(metaclass=Singleton):
         self._ignore_tag_prefixes = ["attribute", "fixture", "test_case_id"]
 
     @check_rp_enabled
-    def start_launch(self, context, **kwargs):
+    def start_launch(self, _, **kwargs):
         """Start launch in Report Portal."""
         self._handle_lifecycle = False if self._rp.launch_id else True
         self._launch_id = self._rp.launch_id or self._rp.start_launch(
@@ -94,14 +97,14 @@ class BehaveAgent(metaclass=Singleton):
         )
 
     @check_rp_enabled
-    def finish_launch(self, context, **kwargs):
+    def finish_launch(self, _, **kwargs):
         """Finish launch in Report Portal."""
         if self._handle_lifecycle:
             self._rp.finish_launch(end_time=timestamp(), **kwargs)
         self._rp.terminate()
 
     @check_rp_enabled
-    def start_feature(self, context, feature, **kwargs):
+    def start_feature(self, _, feature, **kwargs):
         """Start feature in Report Portal."""
         if feature.tags and "skip" in feature.tags:
             feature.skip("Marked with @skip")
@@ -131,7 +134,7 @@ class BehaveAgent(metaclass=Singleton):
         )
 
     @check_rp_enabled
-    def start_scenario(self, context, scenario, **kwargs):
+    def start_scenario(self, _, scenario, **kwargs):
         """Start scenario in Report Portal."""
         if scenario.tags and "skip" in scenario.tags:
             scenario.skip("Marked with @skip")
@@ -179,7 +182,7 @@ class BehaveAgent(metaclass=Singleton):
                 self.finish_step(context, step)
 
     @check_rp_enabled
-    def start_step(self, context, step, **kwargs):
+    def start_step(self, _, step, **kwargs):
         """Start test in Report Portal."""
         if self._cfg.log_layout is not LogLayout.SCENARIO:
             step_content = self._build_step_content(step)
@@ -200,7 +203,7 @@ class BehaveAgent(metaclass=Singleton):
                 self.post_log(step_content)
 
     @check_rp_enabled
-    def finish_step(self, context, step, **kwargs):
+    def finish_step(self, _, step, **kwargs):
         """Finish test in Report Portal."""
         if self._cfg.log_layout is not LogLayout.SCENARIO:
             self._finish_step_step_based(step, **kwargs)
@@ -244,7 +247,8 @@ class BehaveAgent(metaclass=Singleton):
 
     def _get_launch_attributes(self):
         """Return launch attributes in the format supported by the rp."""
-        attributes = self._cfg.launch_attributes or []
+        attributes = gen_attributes(self._cfg.launch_attributes) \
+            if self._cfg.launch_attributes else []
         system_attributes = get_launch_sys_attrs()
         system_attributes["agent"] = f"{self.agent_name}|{self.agent_version}"
         return attributes + dict_to_payload(system_attributes)
@@ -353,6 +357,7 @@ class BehaveAgent(metaclass=Singleton):
             )
 
     def _log_cleanups(self, context, scope):
+        # noinspection PyProtectedMember
         layer = next(
             iter(
                 [
@@ -396,6 +401,7 @@ class BehaveAgent(metaclass=Singleton):
 
     @staticmethod
     def _get_parameters(scenario):
+        # noinspection PyProtectedMember
         return (
             scenario._row
             and {

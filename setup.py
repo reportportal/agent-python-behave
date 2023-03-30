@@ -4,7 +4,7 @@ import os
 
 from setuptools import setup
 
-__version__ = '2.0.2'
+__version__ = '2.0.3'
 
 
 def read_file(fname):
@@ -23,14 +23,17 @@ setup(
     description='Agent for reporting Behave results to the Report Portal',
     long_description=read_file('README.rst'),
     long_description_content_type='text/x-rst',
-    author_email='SupportEPMC-TSTReportPortal@epam.com',
+    author='Report Portal Team',
+    author_email='support@reportportal.io',
     url='https://github.com/reportportal/agent-python-behave',
     packages=['behave_reportportal'],
+    package_data={'behave_reportportal': ['*.pyi']},
     python_requires='>=3.6',
     install_requires=read_file('requirements.txt').splitlines(),
     license='Apache 2.0',
     keywords=['testing', 'reporting', 'reportportal', 'behave'],
     classifiers=[
+        'Framework :: behave',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
