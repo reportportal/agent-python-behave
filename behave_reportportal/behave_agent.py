@@ -357,6 +357,7 @@ class BehaveAgent(metaclass=Singleton):
             )
 
     def _log_cleanups(self, context, scope):
+        # noinspection PyProtectedMember
         layer = next(
             iter(
                 [
@@ -400,6 +401,7 @@ class BehaveAgent(metaclass=Singleton):
 
     @staticmethod
     def _get_parameters(scenario):
+        # noinspection PyProtectedMember
         return (
             scenario._row
             and {

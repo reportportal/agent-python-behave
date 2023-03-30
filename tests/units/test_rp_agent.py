@@ -311,6 +311,7 @@ def verify_start_feature(mock_feature, config):
     mock_feature.description = ["A", "B"]
     ba = BehaveAgent(config, mock_rps)
     ba.start_feature(mock_context, mock_feature, some_key="some_value")
+    # noinspection PyProtectedMember
     mock_rps.start_test_item.assert_called_once_with(
         name="feature_name",
         start_time=123,
@@ -378,6 +379,7 @@ def verify_start_scenario(mock_scenario, config):
     ba = BehaveAgent(config, mock_rps)
     ba._feature_id = "feature_id"
     ba.start_scenario(mock_context, mock_scenario, some_key="some_value")
+    # noinspection PyProtectedMember
     mock_rps.start_test_item.assert_called_once_with(
         name="scenario_name",
         start_time=123,
@@ -390,6 +392,7 @@ def verify_start_scenario(mock_scenario, config):
         test_case_id=ba._test_case_id(mock_scenario),
         some_key="some_value",
     )
+    # noinspection PyProtectedMember
     assert ba._scenario_id == "scenario_id", (
         f"Invalid scenario_id:\nActual: {ba._scenario_id}\n"
         f"Expected: {'scenario_id'}\n"
@@ -636,7 +639,7 @@ def test_finish_failed_step_scenario_based(mock_timestamp, config):
 
 
 @mock.patch("behave_reportportal.behave_agent.timestamp")
-def test_log_exception_without_message(mock_timestamp):
+def test_log_exception_without_message(mock_timestamp, config):
     mock_timestamp.return_value = 123
     mock_step = mock.Mock()
     mock_step.exception = None
@@ -656,7 +659,7 @@ def test_log_exception_without_message(mock_timestamp):
 
 def test_rp_is_none():
     ba = BehaveAgent(Config(), None)
-    ba.start_step(mock.Mock(), mock.Mock)
+    ba.start_step(mock.Mock(), mock.Mock())
     assert ba._step_id is None
 
 

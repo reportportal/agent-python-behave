@@ -11,9 +11,13 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License
 from enum import Enum
-from typing import Any, Optional, Text, List, Dict, Union
+from typing import Any, Optional, List, Union
 
 from behave.runner import Context
+
+RP_CFG_SECTION: str
+DEFAULT_LAUNCH_NAME: str
+DEFAULT_CFG_FILE: str
 
 
 class LogLayout(Enum):
@@ -23,41 +27,41 @@ class LogLayout(Enum):
 
 
 class Config(object):
-    endpoint: Optional[Text]
-    project: Optional[Text]
-    token: Optional[Text]
+    endpoint: Optional[str]
+    project: Optional[str]
+    token: Optional[str]
     enabled: bool
-    launch_id: Optional[Text]
-    launch_name: Text
-    launch_description: Optional[Text]
-    launch_attributes: Optional[List[Text]]
+    launch_id: Optional[str]
+    launch_name: str
+    launch_description: Optional[str]
+    launch_attributes: Optional[List[str]]
     debug_mode: bool
     is_skipped_an_issue: bool
     retries: Optional[int]
     rerun: bool
-    rerun_of: Optional[Text]
+    rerun_of: Optional[str]
     log_batch_size: int
     log_batch_payload_size: int
     log_layout: LogLayout
 
     def __init__(
             self,
-            endpoint: Optional[Text]=...,
-            project: Optional[Text]=...,
-            token: Optional[Text]=...,
-            launch_id: Optional[Text]=...,
-            launch_name: Optional[Text]=...,
-            launch_description: Optional[Text]=...,
-            launch_attributes: Optional[Text]=...,
-            debug_mode: Optional[Union[Text, bool]]=...,
-            log_layout: Optional[Text]=...,
-            step_based: Optional[Text]=...,
-            is_skipped_an_issue: Optional[Union[Text, bool]]=...,
-            retries: Optional[Text]=...,
-            rerun: Optional[Union[Text, bool]]=...,
-            rerun_of: Optional[Text]=...,
-            log_batch_size: Optional[Text]=...,
-            log_batch_payload_size: Optional[Text]=...,
+            endpoint: Optional[str] = ...,
+            project: Optional[str] = ...,
+            token: Optional[str] = ...,
+            launch_id: Optional[str] = ...,
+            launch_name: Optional[str] = ...,
+            launch_description: Optional[str] = ...,
+            launch_attributes: Optional[str] = ...,
+            debug_mode: Optional[Union[str, bool]] = ...,
+            log_layout: Optional[Union[str, LogLayout]] = ...,
+            step_based: Optional[str] = ...,
+            is_skipped_an_issue: Optional[Union[str, bool]] = ...,
+            retries: Optional[str] = ...,
+            rerun: Optional[Union[str, bool]] = ...,
+            rerun_of: Optional[str] = ...,
+            log_batch_size: Optional[str] = ...,
+            log_batch_payload_size: Optional[str] = ...,
             **kwargs: Any
     ) -> None: ...
 
