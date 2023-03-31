@@ -605,21 +605,20 @@ def test_finish_failed_step_step_based(mock_timestamp, config):
             status="FAILED",
             some_key="some_value",
         )
-        mock_rps.log.assert_has_calls(
-            [
-                mock.call(
-                    item_id="step_id",
-                    time=123,
-                    level="ERROR",
-                    message="Step [keyword]: "
-                            "name was finished with exception.\n"
-                            + "".join(
-                        traceback.format_exception(type(e), e, e_traceback)
-                    )
-                            + "\nError massage",
-                )
-            ]
+        formatted_exception = "".join(
+            traceback.format_exception(type(e), e, e_traceback)
         )
+        expected_msg = "Step [keyword]: name was finished with exception.\n" \
+                       f"{formatted_exception}\nError massage"
+        expected_calls = [
+            mock.call(
+                item_id="step_id",
+                time=123,
+                level="ERROR",
+                message=expected_msg
+            )
+        ]
+        mock_rps.log.assert_has_calls(expected_calls)
 
 
 @mock.patch("behave_reportportal.behave_agent.timestamp")
