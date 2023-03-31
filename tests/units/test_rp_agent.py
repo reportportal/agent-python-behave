@@ -45,7 +45,7 @@ def clean_instances():
 def test_convert_to_rp_status(status, expected):
     actual = BehaveAgent.convert_to_rp_status(status)
     assert (
-        actual == expected
+            actual == expected
     ), f"Incorrect status:\nActual: {actual}\nExpected:{expected}"
 
 
@@ -152,7 +152,7 @@ def test_get_parameters():
 
 def test_create_rp_service_disabled_rp():
     assert (
-        create_rp_service(Config()) is None
+            create_rp_service(Config()) is None
     ), "Service is not None for disabled integration with RP in config"
 
 
@@ -257,6 +257,32 @@ def test_start_launch_with_rerun(mock_timestamp):
         some_key="some_value",
         rerun=cfg.rerun,
         rerun_of=cfg.rerun_of,
+    )
+
+
+@mock.patch("behave_reportportal.behave_agent.timestamp")
+def test_start_launch_attributes(mock_timestamp, config):
+    config.launch_attributes = ['one', 'two', 'key:value']
+    mock_timestamp.return_value = 123
+    mock_rps = mock.create_autospec(RPClient)
+    mock_rps.launch_id = None
+    ba = BehaveAgent(config, mock_rps)
+    ba.start_launch(mock.Mock())
+    call_args_list = mock_rps.start_launch.call_args_list
+    assert len(call_args_list) == 1
+    call_attributes = call_args_list[0][1]['attributes']
+    assert all([isinstance(a, dict) for a in call_attributes])
+    visible_attributes = [a for a in call_attributes if
+                          not a.get('system', False)]
+    assert len(visible_attributes) == 3
+    attribute_tuples = [(a.get('key', None), a.get('value', None)) for a in
+                        visible_attributes]
+    assert all(
+        [
+            (None, 'one') in attribute_tuples,
+            (None, 'two') in attribute_tuples,
+            ('key', 'value') in attribute_tuples
+        ]
     )
 
 
@@ -439,7 +465,7 @@ def test_finish_failed_scenario_scenario_based(mock_log, config):
 @mock.patch.object(BehaveAgent, "start_step")
 @mock.patch.object(BehaveAgent, "_log_scenario_exception")
 def test_finish_failed_scenario_step_based(
-    mock_log, mock_start_step, mock_finish_step, config
+        mock_log, mock_start_step, mock_finish_step, config
 ):
     config.log_layout = LogLayout.STEP
     mock_scenario = mock.Mock()
@@ -586,11 +612,11 @@ def test_finish_failed_step_step_based(mock_timestamp, config):
                     time=123,
                     level="ERROR",
                     message="Step [keyword]: "
-                    "name was finished with exception.\n"
-                    + "".join(
+                            "name was finished with exception.\n"
+                            + "".join(
                         traceback.format_exception(type(e), e, e_traceback)
                     )
-                    + "\nError massage",
+                            + "\nError massage",
                 )
             ]
         )
@@ -625,8 +651,9 @@ def test_finish_failed_step_scenario_based(mock_timestamp, config):
                 time=123,
                 level="ERROR",
                 message="Step [keyword]: name was finished with exception.\n"
-                + "".join(traceback.format_exception(type(e), e, e_traceback))
-                + "\nError message",
+                        + "".join(
+                    traceback.format_exception(type(e), e, e_traceback))
+                        + "\nError message",
             ),
             mock.call(
                 item_id="scenario_id",
@@ -776,8 +803,9 @@ def test_log_scenario_exception(mock_timestamp, config):
             time=123,
             level="ERROR",
             message="Scenario 'scenario_name' finished with error.\n"
-            + "".join(traceback.format_exception(type(e), e, e_traceback))
-            + "\nError message",
+                    + "".join(
+                traceback.format_exception(type(e), e, e_traceback))
+                    + "\nError message",
         )
 
 

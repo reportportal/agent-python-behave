@@ -247,8 +247,9 @@ class BehaveAgent(metaclass=Singleton):
 
     def _get_launch_attributes(self):
         """Return launch attributes in the format supported by the rp."""
-        attributes = gen_attributes(self._cfg.launch_attributes) \
-            if self._cfg.launch_attributes else []
+        launch_attributes = self._cfg.launch_attributes
+        attributes = gen_attributes(
+            launch_attributes) if launch_attributes else []
         system_attributes = get_launch_sys_attrs()
         system_attributes["agent"] = f"{self.agent_name}|{self.agent_version}"
         return attributes + dict_to_payload(system_attributes)
