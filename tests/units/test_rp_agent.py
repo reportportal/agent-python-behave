@@ -591,7 +591,7 @@ def test_finish_failed_step_step_based(mock_timestamp, config):
         mock_step.status.name = "failed"
         mock_step.exception = e
         mock_step.exc_traceback = e_traceback
-        mock_step.error_message = "Error massage"
+        mock_step.error_message = "Error message"
         mock_timestamp.return_value = 123
         mock_rps = mock.create_autospec(RPClient)
         mock_context = mock.Mock()
@@ -609,7 +609,7 @@ def test_finish_failed_step_step_based(mock_timestamp, config):
             traceback.format_exception(type(e), e, e_traceback)
         )
         expected_msg = "Step [keyword]: name was finished with exception.\n" \
-                       f"{formatted_exception}\nError massage"
+                       f"{formatted_exception}\nError message"
         expected_calls = [
             mock.call(
                 item_id="step_id",
@@ -648,7 +648,7 @@ def test_finish_failed_step_scenario_based(mock_timestamp, config):
             traceback.format_exception(type(e), e, e_traceback)
         )
         expected_msg = "Step [keyword]: name was finished with exception.\n" \
-                       f"{formatted_exception}\nError massage"
+                       f"{formatted_exception}\nError message"
         calls = [
             mock.call(
                 item_id="scenario_id",
@@ -803,7 +803,7 @@ def test_log_scenario_exception(mock_timestamp, config):
             traceback.format_exception(type(e), e, e_traceback)
         )
         expected_msg = "Scenario 'scenario_name' finished with error.\n" \
-                       f"{formatted_exception}\nError massage"
+                       f"{formatted_exception}\nError message"
         mock_rps.log.assert_called_once_with(
             item_id="scenario_id",
             time=123,
