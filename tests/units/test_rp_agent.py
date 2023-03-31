@@ -644,15 +644,17 @@ def test_finish_failed_step_scenario_based(mock_timestamp, config):
         ba = BehaveAgent(config, mock_rps)
         ba._scenario_id = "scenario_id"
         ba.finish_step(mock_context, mock_step)
+        formatted_exception = "".join(
+            traceback.format_exception(type(e), e, e_traceback)
+        )
+        expected_msg = "Step [keyword]: name was finished with exception.\n" \
+                       f"{formatted_exception}\nError massage"
         calls = [
             mock.call(
                 item_id="scenario_id",
                 time=123,
                 level="ERROR",
-                message="Step [keyword]: name was finished with exception.\n"
-                        + "".join(
-                    traceback.format_exception(type(e), e, e_traceback))
-                        + "\nError message",
+                message=expected_msg,
             ),
             mock.call(
                 item_id="scenario_id",
@@ -797,14 +799,16 @@ def test_log_scenario_exception(mock_timestamp, config):
         ba = BehaveAgent(config, mock_rps)
         ba._scenario_id = "scenario_id"
         ba._log_scenario_exception(mock_scenario)
+        formatted_exception = "".join(
+            traceback.format_exception(type(e), e, e_traceback)
+        )
+        expected_msg = "Scenario 'scenario_name' finished with error.\n" \
+                       f"{formatted_exception}\nError massage"
         mock_rps.log.assert_called_once_with(
             item_id="scenario_id",
             time=123,
             level="ERROR",
-            message="Scenario 'scenario_name' finished with error.\n"
-                    + "".join(
-                traceback.format_exception(type(e), e, e_traceback))
-                    + "\nError message",
+            message=expected_msg,
         )
 
 
