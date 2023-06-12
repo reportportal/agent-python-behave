@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+
+## [2.0.4]
 ### Changed
 - Client version updated on [5.3.5](https://github.com/reportportal/client-Python/releases/tag/5.3.5), by @HardNorth
 - `token` configuration parameter was renamed to `api_key` to maintain common convention, by @HardNorth
