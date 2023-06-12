@@ -53,7 +53,7 @@ def create_rp_service(cfg):
         return RPClient(
             endpoint=cfg.endpoint,
             project=cfg.project,
-            token=cfg.token,
+            api_key=cfg.api_key,
             is_skipped_an_issue=cfg.is_skipped_an_issue,
             launch_id=cfg.launch_id,
             retries=cfg.retries,

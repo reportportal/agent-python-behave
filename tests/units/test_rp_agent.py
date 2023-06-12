@@ -19,7 +19,7 @@ from behave_reportportal.utils import Singleton
 def config():
     return Config(
         endpoint="endpoint",
-        token="token",
+        api_key="api_key",
         project="project",
         launch_id=None,
         launch_name="launch_name",
@@ -165,13 +165,13 @@ def test_create_rp_service_enabled_rp(config):
 
 @mock.patch("behave_reportportal.behave_agent.RPClient")
 def test_create_rp_service_init(mock_rps):
-    create_rp_service(Config(endpoint="A", token="B", project="C"))
+    create_rp_service(Config(endpoint="A", api_key="B", project="C"))
     mock_rps.assert_has_calls(
         [
             mock.call(
                 endpoint="A",
                 project="C",
-                token="B",
+                api_key="B",
                 is_skipped_an_issue=False,
                 launch_id=None,
                 retries=None,

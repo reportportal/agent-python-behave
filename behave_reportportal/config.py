@@ -15,7 +15,7 @@
 
 from configparser import ConfigParser
 from enum import Enum
-from warnings import simplefilter, warn
+from warnings import warn
 
 from reportportal_client.logs.log_manager import MAX_LOG_BATCH_PAYLOAD_SIZE
 
@@ -48,7 +48,7 @@ class Config(object):
             self,
             endpoint=None,
             project=None,
-            token=None,
+            api_key=None,
             launch_id=None,
             launch_name=None,
             launch_description=None,
@@ -67,8 +67,6 @@ class Config(object):
         """Initialize instance attributes."""
         self.endpoint = endpoint
         self.project = project
-        self.token = token
-        self.enabled = all([self.endpoint, self.project, self.token])
         self.launch_id = launch_id
         self.launch_name = launch_name or DEFAULT_LAUNCH_NAME
         self.launch_description = launch_description
@@ -86,7 +84,6 @@ class Config(object):
             log_batch_payload_size)) or MAX_LOG_BATCH_PAYLOAD_SIZE
 
         if step_based and not log_layout:
-            simplefilter("default")
             warn(
                 "'step_based' config setting has been deprecated"
                 "in favor of the new log_layout configuration.",
@@ -99,6 +96,29 @@ class Config(object):
         else:
             self.log_layout = LogLayout(log_layout)
 
+        self.api_key = api_key
+        if not self.api_key:
+            if 'token' in kwargs:
+                warn(
+                    message="Argument `token` is deprecated since 2.0.4 and "
+                            "will be subject for removing in the next major "
+                            "version. Use `api_key` argument instead.",
+                    category=DeprecationWarning,
+                    stacklevel=2
+                )
+                self.api_key = kwargs['token']
+
+            if not self.api_key:
+                warn(
+                    message="Argument `api_key` is `None` or empty string, "
+                            "that's not supposed to happen because Report "
+                            "Portal is usually requires an authorization key. "
+                            "Please check your code.",
+                    category=RuntimeWarning,
+                    stacklevel=2
+                )
+        self.enabled = all([self.endpoint, self.project, self.api_key])
+
 
 def read_config(context):
     """Read config from file and return instance of Config."""
@@ -108,7 +128,7 @@ def read_config(context):
     cp.read(path or DEFAULT_CFG_FILE)
     rp_cfg = {}
     if cp.has_section(RP_CFG_SECTION):
-        rp_cfg = cp[RP_CFG_SECTION]
+        rp_cfg.update(cp[RP_CFG_SECTION])
     rp_cfg.update(cmd_data)
 
     return Config(**rp_cfg)
