@@ -1,6 +1,11 @@
 # Changelog
 
 ## [Unreleased]
+### Changed
+- Client version updated on [5.3.5](https://github.com/reportportal/client-Python/releases/tag/5.3.5), by @HardNorth
+- `token` configuration parameter was renamed to `api_key` to maintain common convention, by @HardNorth
+
+## [2.0.3]
 ### Added
 - Stub files for `config` and `behave_agent` modules, by @HardNorth
 - `log_batch_size` and `log_batch_payload_size` config parameters, by @HardNorth

@@ -54,7 +54,7 @@ any one using behave command line option:
 
 The :code:`behave.ini` file should have next mandatory fields under [report_portal] section:
 
-- :code:`token` - value could be found in the User Profile section
+- :code:`api_key` - value could be found in the User Profile section
 - :code:`project` - name of project in Report Portal
 - :code:`endpoint` - address of Report Portal Server
 
@@ -63,7 +63,7 @@ Example of :code:`behave.ini`:
 .. code-block:: text
 
     [report_portal]
-    token = fb586627-32be-47dd-93c1-678873458a5f
+    api_key = fb586627-32be-47dd-93c1-678873458a5f
     endpoint = http://192.168.1.10:8080
     project = user_personal
     launch_name = AnyLaunchName

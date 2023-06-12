@@ -29,7 +29,7 @@ class LogLayout(Enum):
 class Config(object):
     endpoint: Optional[str]
     project: Optional[str]
-    token: Optional[str]
+    api_key: Optional[str]
     enabled: bool
     launch_id: Optional[str]
     launch_name: str
@@ -48,7 +48,7 @@ class Config(object):
             self,
             endpoint: Optional[str] = ...,
             project: Optional[str] = ...,
-            token: Optional[str] = ...,
+            api_key: Optional[str] = ...,
             launch_id: Optional[str] = ...,
             launch_name: Optional[str] = ...,
             launch_description: Optional[str] = ...,
