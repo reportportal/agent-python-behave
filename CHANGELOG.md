@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+### Removed
+- Python 3.6 support, by @HardNorth
 
 ## [2.0.4]
 ### Changed
