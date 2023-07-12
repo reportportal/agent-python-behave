@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+
+## [3.0.0]
 ### Added
 - `launch_uuid_print` and `launch_uuid_print_output` configuration parameters, by @HardNorth
 ### Changed
