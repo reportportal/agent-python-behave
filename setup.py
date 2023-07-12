@@ -4,7 +4,7 @@ import os
 
 from setuptools import setup
 
-__version__ = '2.0.4'
+__version__ = '3.0.0'
 
 
 def read_file(fname):
@@ -33,10 +33,10 @@ setup(
     license='Apache 2.0',
     keywords=['testing', 'reporting', 'reportportal', 'behave'],
     classifiers=[
-        'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
-        'Programming Language :: Python :: 3.10'
+        'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3.11'
     ]
 )

@@ -1,6 +1,14 @@
 # Changelog
 
 ## [Unreleased]
+### Added
+- `launch_uuid_print` and `launch_uuid_print_output` configuration parameters, by @HardNorth
+### Changed
+- Client version updated on [5.4.0](https://github.com/reportportal/client-Python/releases/tag/5.4.0), by @HardNorth
+### Removed
+- Python 3.6 support, by @HardNorth
+
+## [2.0.4]
 ### Changed
 - Client version updated on [5.3.5](https://github.com/reportportal/client-Python/releases/tag/5.3.5), by @HardNorth
 - `token` configuration parameter was renamed to `api_key` to maintain common convention, by @HardNorth

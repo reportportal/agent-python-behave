@@ -59,7 +59,9 @@ def create_rp_service(cfg):
             retries=cfg.retries,
             mode="DEBUG" if cfg.debug_mode else "DEFAULT",
             log_batch_size=cfg.log_batch_size,
-            log_batch_payload_size=cfg.log_batch_payload_size
+            log_batch_payload_size=cfg.log_batch_payload_size,
+            launch_uuid_print=cfg.launch_uuid_print,
+            print_output=cfg.launch_uuid_print_output
         )
 
 
