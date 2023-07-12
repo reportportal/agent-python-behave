@@ -13,15 +13,23 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License
 
+import sys
 from configparser import ConfigParser
+from distutils.util import strtobool
 from enum import Enum
+from typing import Dict, TextIO, Optional, List, Union
 from warnings import warn
 
+from behave.runner import Context
 from reportportal_client.logs.log_manager import MAX_LOG_BATCH_PAYLOAD_SIZE
 
 RP_CFG_SECTION = "report_portal"
 DEFAULT_LAUNCH_NAME = "Python Behave Launch"
 DEFAULT_CFG_FILE = "behave.ini"
+OUTPUT_TYPES: Dict[str, TextIO] = {
+    'stdout': sys.stdout,
+    'stderr': sys.stderr
+}
 
 
 class LogLayout(Enum):
@@ -44,24 +52,45 @@ class LogLayout(Enum):
 class Config(object):
     """Class for configuration of behave Report Portal agent."""
 
+    endpoint: Optional[str]
+    project: Optional[str]
+    api_key: Optional[str]
+    enabled: bool
+    launch_id: Optional[str]
+    launch_name: str
+    launch_description: Optional[str]
+    launch_attributes: Optional[List[str]]
+    debug_mode: bool
+    is_skipped_an_issue: bool
+    retries: Optional[int]
+    rerun: bool
+    rerun_of: Optional[str]
+    log_batch_size: int
+    log_batch_payload_size: int
+    log_layout: LogLayout
+    launch_uuid_print: bool
+    launch_uuid_print_output: TextIO
+
     def __init__(
             self,
-            endpoint=None,
-            project=None,
-            api_key=None,
-            launch_id=None,
-            launch_name=None,
-            launch_description=None,
-            launch_attributes=None,
-            debug_mode=None,
-            log_layout=None,
-            step_based=None,
-            is_skipped_an_issue=None,
-            retries=None,
-            rerun=None,
-            rerun_of=None,
-            log_batch_size=None,
-            log_batch_payload_size=None,
+            endpoint: Optional[str] = None,
+            project: Optional[str] = None,
+            api_key: Optional[str] = None,
+            launch_id: Optional[str] = None,
+            launch_name: Optional[str] = None,
+            launch_description: Optional[str] = None,
+            launch_attributes: Optional[str] = None,
+            debug_mode: Optional[Union[str, bool]] = None,
+            log_layout: Optional[Union[str, LogLayout]] = None,
+            step_based: Optional[str] = None,
+            is_skipped_an_issue: Optional[Union[str, bool]] = None,
+            retries: Optional[str] = None,
+            rerun: Optional[Union[str, bool]] = None,
+            rerun_of: Optional[str] = None,
+            log_batch_size: Optional[str] = None,
+            log_batch_payload_size: Optional[str] = None,
+            launch_uuid_print: Optional[str] = None,
+            launch_uuid_print_output: Optional[str] = None,
             **kwargs
     ):
         """Initialize instance attributes."""
@@ -73,10 +102,10 @@ class Config(object):
         self.launch_attributes = launch_attributes and launch_attributes.split(
             " "
         )
-        self.debug_mode = get_bool(debug_mode) or False
-        self.is_skipped_an_issue = get_bool(is_skipped_an_issue) or False
+        self.debug_mode = bool(strtobool(str(debug_mode or 'False')))
+        self.is_skipped_an_issue = bool(strtobool(str(is_skipped_an_issue or 'False')))
         self.retries = retries and int(retries)
-        self.rerun = get_bool(rerun) or False
+        self.rerun = bool(strtobool(str(rerun or 'False')))
         self.rerun_of = rerun_of
         self.log_batch_size = (log_batch_size and int(
             log_batch_size)) or 20
@@ -91,7 +120,7 @@ class Config(object):
                 stacklevel=2,
             )
             self.log_layout = (
-                LogLayout.STEP if get_bool(step_based) else LogLayout.SCENARIO
+                LogLayout.STEP if strtobool(step_based) else LogLayout.SCENARIO
             )
         else:
             self.log_layout = LogLayout(log_layout)
@@ -118,9 +147,12 @@ class Config(object):
                     stacklevel=2
                 )
         self.enabled = all([self.endpoint, self.project, self.api_key])
+        self.launch_uuid_print = bool(strtobool(launch_uuid_print or 'False'))
+        print_output = launch_uuid_print_output or 'stdout'
+        self.launch_uuid_print_output = OUTPUT_TYPES.get(print_output.lower(), OUTPUT_TYPES['stdout'])
 
 
-def read_config(context):
+def read_config(context: Context) -> Config:
     """Read config from file and return instance of Config."""
     cp = ConfigParser()
     cmd_data = context._config.userdata
@@ -132,15 +164,3 @@ def read_config(context):
     rp_cfg.update(cmd_data)
 
     return Config(**rp_cfg)
-
-
-def get_bool(value):
-    """Convert string value to bool."""
-    if value is None or value == '':
-        return
-    if isinstance(value, bool):
-        return value
-    if str(value).lower() in ('true', '1'):
-        return True
-    if str(value).lower() in ('false', '0'):
-        return False

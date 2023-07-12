@@ -1,4 +1,6 @@
+import sys
 import warnings
+from io import StringIO
 from unittest import mock
 
 # noinspection PyPackageRequirements
@@ -7,7 +9,7 @@ from behave.userdata import UserData
 from delayed_assert import assert_expectations, expect
 
 from behave_reportportal.config import (DEFAULT_CFG_FILE, DEFAULT_LAUNCH_NAME,
-                                        RP_CFG_SECTION, LogLayout, get_bool,
+                                        RP_CFG_SECTION, LogLayout,
                                         read_config)
 
 
@@ -171,25 +173,9 @@ def test_read_config_default_values(mock_cp):
     expect(cfg.rerun is False)
     expect(cfg.rerun_of is None)
     expect(cfg.enabled is False)
+    expect(cfg.launch_uuid_print is False)
+    expect(cfg.launch_uuid_print_output is sys.stdout)
     assert_expectations()
-
-
-@pytest.mark.parametrize(
-    "val,exp",
-    [
-        ('True', True),
-        ('true', True),
-        ('False', False),
-        ('false', False),
-        (True, True),
-        (False, False),
-        (None, None),
-        ('other_value', None),
-    ],
-)
-def test_get_bool(val, exp):
-    act = get_bool(val)
-    assert act == exp, f'Actual:{act}\nExpected: {exp}'
 
 
 @pytest.mark.parametrize(
@@ -273,3 +259,90 @@ def test_empty_api_key(mock_cp):
         assert cfg.api_key == ''
         assert cfg.enabled is False
         assert len(w) == 1
+
+
+@mock.patch('behave_reportportal.config.OUTPUT_TYPES', new_callable=dict)
+@mock.patch('behave_reportportal.config.ConfigParser', autospec=True)
+def test_launch_uuid_print(mock_cp, output_types):
+    mock_context = mock.Mock()
+    mock_context._config.userdata = UserData.make({'config_file': 'some_path'})
+    mock_cp().__getitem__.return_value = {
+        'api_key': 'api_key',
+        'endpoint': 'endpoint',
+        'project': 'project',
+        'launch_name': 'launch_name',
+        'launch_uuid_print': 'True'
+    }
+
+    str_io = StringIO()
+    output_types['stdout'] = str_io
+
+    cfg = read_config(mock_context)
+    assert cfg.launch_uuid_print
+    assert cfg.launch_uuid_print_output is str_io
+
+
+@mock.patch('behave_reportportal.config.OUTPUT_TYPES', new_callable=dict)
+@mock.patch('behave_reportportal.config.ConfigParser', autospec=True)
+def test_launch_uuid_print_stderr(mock_cp, output_types):
+    mock_context = mock.Mock()
+    mock_context._config.userdata = UserData.make({'config_file': 'some_path'})
+    mock_cp().__getitem__.return_value = {
+        'api_key': 'api_key',
+        'endpoint': 'endpoint',
+        'project': 'project',
+        'launch_name': 'launch_name',
+        'launch_uuid_print': 'True',
+        'launch_uuid_print_output': 'stderr'
+    }
+
+    str_io = StringIO()
+    output_types['stdout'] = sys.stdout
+    output_types['stderr'] = str_io
+
+    cfg = read_config(mock_context)
+    assert cfg.launch_uuid_print
+    assert cfg.launch_uuid_print_output is str_io
+
+
+@mock.patch('behave_reportportal.config.OUTPUT_TYPES', new_callable=dict)
+@mock.patch('behave_reportportal.config.ConfigParser', autospec=True)
+def test_launch_uuid_print_invalid_output(mock_cp, output_types):
+    mock_context = mock.Mock()
+    mock_context._config.userdata = UserData.make({'config_file': 'some_path'})
+    mock_cp().__getitem__.return_value = {
+        'api_key': 'api_key',
+        'endpoint': 'endpoint',
+        'project': 'project',
+        'launch_name': 'launch_name',
+        'launch_uuid_print': 'True',
+        'launch_uuid_print_output': 'something'
+    }
+
+    str_io = StringIO()
+    output_types['stdout'] = str_io
+    output_types['stderr'] = str_io
+
+    cfg = read_config(mock_context)
+    assert cfg.launch_uuid_print
+    assert cfg.launch_uuid_print_output is str_io
+
+
+@mock.patch('behave_reportportal.config.OUTPUT_TYPES', new_callable=dict)
+@mock.patch('behave_reportportal.config.ConfigParser', autospec=True)
+def test_no_launch_uuid_print(mock_cp, output_types):
+    mock_context = mock.Mock()
+    mock_context._config.userdata = UserData.make({'config_file': 'some_path'})
+    mock_cp().__getitem__.return_value = {
+        'api_key': 'api_key',
+        'endpoint': 'endpoint',
+        'project': 'project',
+        'launch_name': 'launch_name'
+    }
+
+    str_io = StringIO()
+    output_types['stdout'] = str_io
+
+    cfg = read_config(mock_context)
+    assert not cfg.launch_uuid_print
+    assert cfg.launch_uuid_print_output is str_io

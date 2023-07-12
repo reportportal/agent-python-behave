@@ -177,7 +177,9 @@ def test_create_rp_service_init(mock_rps):
                 retries=None,
                 mode="DEFAULT",
                 log_batch_size=20,
-                log_batch_payload_size=MAX_LOG_BATCH_PAYLOAD_SIZE
+                log_batch_payload_size=MAX_LOG_BATCH_PAYLOAD_SIZE,
+                launch_uuid_print=False,
+                print_output=sys.stdout
             )
         ],
         any_order=True,
