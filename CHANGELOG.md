@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+
+## [4.0.0]
 ### Added
 - `rp_client_type` configuration variable, by @HardNorth
 - `rp_connect_timeout` and `rp_read_timeout` configuration variables, by @HardNorth
