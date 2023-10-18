@@ -1,3 +1,16 @@
+#  Copyright (c) 2023 EPAM Systems
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#  https://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License
+
 from os import PathLike
 from typing import Optional, Dict, Any, List, Union, Callable
 
@@ -5,7 +18,7 @@ from behave.model import Scenario, Feature, Step
 from behave.model_core import BasicStatement, TagAndStatusStatement, \
     TagStatement
 from behave.runner import Context
-from reportportal_client import RPClient
+from reportportal_client import RP
 
 from .config import Config
 
@@ -13,11 +26,11 @@ from .config import Config
 def check_rp_enabled(func: Callable) -> Callable: ...
 
 
-def create_rp_service(cfg: Config) -> Optional[RPClient]: ...
+def create_rp_service(cfg: Config) -> Optional[RP]: ...
 
 
 class BehaveAgent:
-    _rp: Optional[RPClient]
+    _rp: Optional[RP]
     _cfg: Config
     _handle_lifecycle: bool
     agent_name: str
@@ -29,7 +42,7 @@ class BehaveAgent:
     _ignore_tag_prefixes: [List[str]]
 
     def __init__(self, cfg: Config,
-                 rp_service: Optional[RPClient] = ...) -> None: ...
+                 rp_service: Optional[RP] = ...) -> None: ...
 
     def start_launch(self, context: Context, **kwargs: Any) -> None: ...
 

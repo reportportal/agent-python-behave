@@ -1,5 +1,3 @@
-"""Functionality for integration of Behave tests with Report Portal."""
-
 #  Copyright (c) 2023 EPAM Systems
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -13,13 +11,15 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License
 
+"""Functionality for integration of Behave tests with ReportPortal."""
+
 import mimetypes
 import os
 import traceback
 from functools import wraps
 
 from prettytable import MARKDOWN, PrettyTable
-from reportportal_client import RPClient
+from reportportal_client import create_client
 from reportportal_client.helpers import (
     gen_attributes,
     get_launch_sys_attrs,
@@ -50,7 +50,8 @@ def check_rp_enabled(func):
 def create_rp_service(cfg):
     """Create instance of ReportPortalService."""
     if cfg.enabled:
-        return RPClient(
+        return create_client(
+            client_type=cfg.client_type,
             endpoint=cfg.endpoint,
             project=cfg.project,
             api_key=cfg.api_key,
@@ -61,12 +62,13 @@ def create_rp_service(cfg):
             log_batch_size=cfg.log_batch_size,
             log_batch_payload_size=cfg.log_batch_payload_size,
             launch_uuid_print=cfg.launch_uuid_print,
-            print_output=cfg.launch_uuid_print_output
+            print_output=cfg.launch_uuid_print_output,
+            http_timeout=cfg.http_timeout
         )
 
 
 class BehaveAgent(metaclass=Singleton):
-    """Functionality for integration of Behave tests with Report Portal."""
+    """Functionality for integration of Behave tests with ReportPortal."""
 
     def __init__(self, cfg, rp_service=None):
         """Initialize instance attributes."""
@@ -86,9 +88,9 @@ class BehaveAgent(metaclass=Singleton):
 
     @check_rp_enabled
     def start_launch(self, _, **kwargs):
-        """Start launch in Report Portal."""
-        self._handle_lifecycle = False if self._rp.launch_id else True
-        self._launch_id = self._rp.launch_id or self._rp.start_launch(
+        """Start launch in ReportPortal."""
+        self._handle_lifecycle = False if self._rp.launch_uuid else True
+        self._launch_id = self._rp.launch_uuid or self._rp.start_launch(
             name=self._cfg.launch_name,
             start_time=timestamp(),
             attributes=self._get_launch_attributes(),
@@ -100,14 +102,14 @@ class BehaveAgent(metaclass=Singleton):
 
     @check_rp_enabled
     def finish_launch(self, _, **kwargs):
-        """Finish launch in Report Portal."""
+        """Finish launch in ReportPortal."""
         if self._handle_lifecycle:
             self._rp.finish_launch(end_time=timestamp(), **kwargs)
-        self._rp.terminate()
+        self._rp.close()
 
     @check_rp_enabled
     def start_feature(self, _, feature, **kwargs):
-        """Start feature in Report Portal."""
+        """Start feature in ReportPortal."""
         if feature.tags and "skip" in feature.tags:
             feature.skip("Marked with @skip")
         self._feature_id = self._rp.start_test_item(
@@ -124,7 +126,7 @@ class BehaveAgent(metaclass=Singleton):
 
     @check_rp_enabled
     def finish_feature(self, context, feature, status=None, **kwargs):
-        """Finish feature in Report Portal."""
+        """Finish feature in ReportPortal."""
         if feature.tags and "skip" in feature.tags:
             status = "SKIPPED"
         self._log_cleanups(context, "feature")
@@ -137,7 +139,7 @@ class BehaveAgent(metaclass=Singleton):
 
     @check_rp_enabled
     def start_scenario(self, _, scenario, **kwargs):
-        """Start scenario in Report Portal."""
+        """Start scenario in ReportPortal."""
         if scenario.tags and "skip" in scenario.tags:
             scenario.skip("Marked with @skip")
         self._scenario_id = self._rp.start_test_item(
@@ -157,7 +159,7 @@ class BehaveAgent(metaclass=Singleton):
 
     @check_rp_enabled
     def finish_scenario(self, context, scenario, status=None, **kwargs):
-        """Finish scenario in Report Portal."""
+        """Finish scenario in ReportPortal."""
         if scenario.tags and "skip" in scenario.tags:
             status = "SKIPPED"
         if scenario.status.name == "failed":
@@ -185,7 +187,7 @@ class BehaveAgent(metaclass=Singleton):
 
     @check_rp_enabled
     def start_step(self, _, step, **kwargs):
-        """Start test in Report Portal."""
+        """Start test in ReportPortal."""
         if self._cfg.log_layout is not LogLayout.SCENARIO:
             step_content = self._build_step_content(step)
             self._step_id = self._rp.start_test_item(
@@ -206,7 +208,7 @@ class BehaveAgent(metaclass=Singleton):
 
     @check_rp_enabled
     def finish_step(self, _, step, **kwargs):
-        """Finish test in Report Portal."""
+        """Finish test in ReportPortal."""
         if self._cfg.log_layout is not LogLayout.SCENARIO:
             self._finish_step_step_based(step, **kwargs)
             return
@@ -471,10 +473,10 @@ class BehaveAgent(metaclass=Singleton):
     @staticmethod
     def convert_to_rp_status(behave_status):
         """
-        Convert behave test result status to Report Portal status.
+        Convert behave test result status to ReportPortal status.
 
         :param behave_status: behave test result status
-        :return: report portal test result status
+        :return: ReportPortal test result status
         """
         if behave_status == "passed":
             return "PASSED"
