@@ -55,8 +55,8 @@ any one using behave command line option:
 The :code:`behave.ini` file should have next mandatory fields under [report_portal] section:
 
 - :code:`api_key` - value could be found in the User Profile section
-- :code:`project` - name of project in Report Portal
-- :code:`endpoint` - address of Report Portal Server
+- :code:`project` - name of project in ReportPortal
+- :code:`endpoint` - address of ReportPortal Server
 
 Example of :code:`behave.ini`:
 
@@ -72,6 +72,7 @@ Example of :code:`behave.ini`:
 
 The following parameters are optional:
 
+- :code:`client_type = SYNC` - Type of the under-the-hood ReportPortal client implementation. Possible values: [SYNC, ASYNC_THREAD, ASYNC_BATCHED].
 - :code:`launch_name = AnyLaunchName` - launch name (default value is 'Python Behave Launch')
 - :code:`launch_id = xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx` - id of the existing launch (the session will not handle the lifecycle of the given launch)
 - :code:`launch_attributes = Smoke Env:Python3` - list of attributes for launch
@@ -82,6 +83,10 @@ The following parameters are optional:
 - :code:`retries = 3` - amount of retries for performing REST calls to RP server
 - :code:`rerun = True` - marks the launch as the rerun
 - :code:`rerun_of = xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`` - launch id to rerun
+- :code:`launch_uuid_print = True` - Enables printing Launch UUID on test run start. Default `False`.
+- :code:`launch_uuid_print_output = stderr` - Launch UUID print output. Default `stdout`. Possible values: [stderr, stdout].
+- :code:`connect_timeout = 15` - Connection timeout to ReportPortal server. Default value is "10.0".
+- :code:`read_timeout = 15` - Response read timeout for ReportPortal connection. Default value is "10.0".
 - :code:`log_batch_size = 20` - maximum number of log entries which will be sent by the agent at once
 - :code:`log_batch_payload_size = 65000000` - maximum payload size of a log batch which will be sent by the agent at once
 
@@ -91,7 +96,7 @@ If you like to override the above parameters from command line, or from CI envir
 
 Launching
 ~~~~~~~~~
-To execute tests with Report Portal you should run `behave` command and specify path to feature files:
+To execute tests with ReportPortal you should run `behave` command and specify path to feature files:
 
 .. code-block:: bash
 
@@ -119,7 +124,7 @@ Example:
 Logging
 ~~~~~~~
 
-For logging of the test item flow to Report Portal, please, use the python
+For logging of the test item flow to ReportPortal, please, use the python
 logging handler and logger class provided by extension like bellow:
 in environment.py:
 

@@ -4,6 +4,14 @@
 ### Added 
 - Scenario Outline scenarios will add markdown table with active params to scenario description, by @nicke46
 
+## [4.0.0]
+### Added
+- `rp_client_type` configuration variable, by @HardNorth
+- `rp_connect_timeout` and `rp_read_timeout` configuration variables, by @HardNorth
+### Changed
+- Client version updated on [5.5.3](https://github.com/reportportal/client-Python/releases/tag/5.5.3), by @HardNorth
+- Unified ReportPortal product spelling, by @HardNorth
+
 ## [3.0.0]
 ### Added
 - `launch_uuid_print` and `launch_uuid_print_output` configuration parameters, by @HardNorth
@@ -42,7 +50,7 @@
 - `step_based` config parameter deprecated in favor of `log_layout` parameter, by @nicke46
 - The Agent now uses `RPClient` class instead of `ReportPortalService`, by @HardNorth
 ### Added
-- RPHandler support for all Report Portal log levels, by @nicke46
+- RPHandler support for all ReportPortal log levels, by @nicke46
 - Logged exceptions now include traceback, by @nicke46
 - Skipped steps after failures will be logged for `STEP` and `NESTED` log_layout, by @nicke46
 ### Removed
