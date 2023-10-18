@@ -19,7 +19,7 @@ from unittest import mock
 import pytest
 from behave.model_core import Status
 from delayed_assert import assert_expectations, expect
-from prettytable import PrettyTable
+from prettytable import MARKDOWN, PrettyTable
 from reportportal_client import RPClient, BatchedRPClient, ThreadedRPClient
 from reportportal_client.logs import MAX_LOG_BATCH_PAYLOAD_SIZE
 
@@ -247,6 +247,21 @@ def test_item_description():
         f"Actual: {BehaveAgent._item_description(mock_context, mock_item)}\n"
         f"Expected: Description:\na\nb",
     )
+    mock_context.active_outline = mock.Mock()
+    mock_context.active_outline.headings = ["number_a", "number_b"]
+    mock_context.active_outline.cells = ["1", "2"]
+
+    pt = PrettyTable(field_names=mock_context.active_outline.headings)
+    pt.add_row(mock_context.active_outline.cells)
+    pt.set_style(MARKDOWN)
+    table = pt.get_string()
+    expect(
+        BehaveAgent._item_description(mock_context, mock_item) == f"Description:\na\nb\n\n{table}",
+        f"Description is incorrect:\n"
+        f"Actual: {BehaveAgent._item_description(mock_context, mock_item)}\n"
+        f"Expected: Description:\na\nb\n\n{table}",
+    )
+
     assert_expectations()
 
 
