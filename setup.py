@@ -33,10 +33,10 @@ def read_file(fname):
 setup(
     name='behave-reportportal',
     version=__version__,
-    description='Agent for reporting Behave results to the Report Portal',
+    description='Agent for reporting Behave results to the ReportPortal',
     long_description=read_file('README.rst'),
     long_description_content_type='text/x-rst',
-    author='Report Portal Team',
+    author='ReportPortal Team',
     author_email='support@reportportal.io',
     url='https://github.com/reportportal/agent-python-behave',
     packages=['behave_reportportal'],

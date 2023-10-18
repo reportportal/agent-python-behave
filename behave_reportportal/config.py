@@ -11,7 +11,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License
 
-"""Config is structure for configuration of behave Report Portal agent."""
+"""Config is structure for configuration of behave ReportPortal agent."""
 
 from configparser import ConfigParser
 from distutils.util import strtobool
@@ -46,7 +46,7 @@ class LogLayout(Enum):
 
 
 class Config(object):
-    """Class for configuration of behave Report Portal agent."""
+    """Class for configuration of behave ReportPortal agent."""
 
     endpoint: Optional[str]
     project: Optional[str]

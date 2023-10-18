@@ -55,8 +55,8 @@ any one using behave command line option:
 The :code:`behave.ini` file should have next mandatory fields under [report_portal] section:
 
 - :code:`api_key` - value could be found in the User Profile section
-- :code:`project` - name of project in Report Portal
-- :code:`endpoint` - address of Report Portal Server
+- :code:`project` - name of project in ReportPortal
+- :code:`endpoint` - address of ReportPortal Server
 
 Example of :code:`behave.ini`:
 
@@ -96,7 +96,7 @@ If you like to override the above parameters from command line, or from CI envir
 
 Launching
 ~~~~~~~~~
-To execute tests with Report Portal you should run `behave` command and specify path to feature files:
+To execute tests with ReportPortal you should run `behave` command and specify path to feature files:
 
 .. code-block:: bash
 
@@ -124,7 +124,7 @@ Example:
 Logging
 ~~~~~~~
 
-For logging of the test item flow to Report Portal, please, use the python
+For logging of the test item flow to ReportPortal, please, use the python
 logging handler and logger class provided by extension like bellow:
 in environment.py:
 

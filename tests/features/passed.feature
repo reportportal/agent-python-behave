@@ -14,7 +14,7 @@ Feature: Calculator functionality
   @second_scenario_tag
   Scenario: Scenario with tags, scenario and step descriptions
     Sending of feature and scenario tags, feature and scenario description
-    to report portal is covered by this scenario
+    to ReportPortal is covered by this scenario
     Given I want to calculate 2 and 3
     When Use addition operation
     """
