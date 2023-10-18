@@ -33,6 +33,7 @@ Feature: Calculator functionality
     Then Result should be correct
 
   Scenario Outline: Scenario with examples
+    Description for Scenario with examples
     Given I want to calculate <number_a> and <number_b>
     When Use addition operation
     Then Result is <expected>
