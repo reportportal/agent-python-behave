@@ -201,15 +201,17 @@ def test_init_valid_config(config):
 def test_item_description():
     mock_item = mock.Mock()
     mock_item.description = None
+    mock_context = mock.Mock()
+    mock_context.active_outline = None
     expect(
-        BehaveAgent._item_description(mock_item) is None,
-        "Description is not None",
+        BehaveAgent._item_description(mock_context, mock_item) == "",
+        "Description is not \"\"",
     )
     mock_item.description = ["a", "b"]
     expect(
-        BehaveAgent._item_description(mock_item) == "Description:\na\nb",
+        BehaveAgent._item_description(mock_context, mock_item) == "Description:\na\nb",
         f"Description is incorrect:\n"
-        f"Actual: {BehaveAgent._item_description(mock_item)}\n"
+        f"Actual: {BehaveAgent._item_description(mock_context, mock_item)}\n"
         f"Expected: Description:\na\nb",
     )
     assert_expectations()
@@ -335,6 +337,7 @@ def verify_start_feature(mock_feature, config):
     mock_rps = mock.create_autospec(RPClient)
     mock_rps.start_test_item.return_value = "feature_id"
     mock_context = mock.Mock()
+    mock_context.active_outline = None
     mock_feature.name = "feature_name"
     mock_feature.description = ["A", "B"]
     ba = BehaveAgent(config, mock_rps)
@@ -344,7 +347,7 @@ def verify_start_feature(mock_feature, config):
         name="feature_name",
         start_time=123,
         item_type="SUITE",
-        description=BehaveAgent._item_description(mock_feature),
+        description=BehaveAgent._item_description(mock_context, mock_feature),
         code_ref=BehaveAgent._code_ref(mock_feature),
         attributes=ba._attributes(mock_feature),
         some_key="some_value",
@@ -401,6 +404,7 @@ def verify_start_scenario(mock_scenario, config):
     mock_rps = mock.create_autospec(RPClient)
     mock_rps.start_test_item.return_value = "scenario_id"
     mock_context = mock.Mock()
+    mock_context.active_outline = None
     mock_scenario.name = "scenario_name"
     mock_scenario._row = None
     mock_scenario.description = ["A", "B"]
@@ -413,7 +417,7 @@ def verify_start_scenario(mock_scenario, config):
         start_time=123,
         item_type="STEP",
         parent_item_id="feature_id",
-        description=BehaveAgent._item_description(mock_scenario),
+        description=BehaveAgent._item_description(mock_context, mock_scenario),
         code_ref=BehaveAgent._code_ref(mock_scenario),
         parameters=BehaveAgent._get_parameters(mock_scenario),
         attributes=ba._attributes(mock_scenario),
