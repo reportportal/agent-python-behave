@@ -1,12 +1,11 @@
-import sys
 import warnings
-from io import StringIO
 from unittest import mock
 
 # noinspection PyPackageRequirements
 import pytest
 from behave.userdata import UserData
 from delayed_assert import assert_expectations, expect
+from reportportal_client import ClientType, OutputType
 
 from behave_reportportal.config import (DEFAULT_CFG_FILE, DEFAULT_LAUNCH_NAME,
                                         RP_CFG_SECTION, LogLayout,
@@ -174,7 +173,8 @@ def test_read_config_default_values(mock_cp):
     expect(cfg.rerun_of is None)
     expect(cfg.enabled is False)
     expect(cfg.launch_uuid_print is False)
-    expect(cfg.launch_uuid_print_output is sys.stdout)
+    expect(cfg.launch_uuid_print_output is None)
+    expect(cfg.client_type is ClientType.SYNC)
     assert_expectations()
 
 
@@ -261,9 +261,8 @@ def test_empty_api_key(mock_cp):
         assert len(w) == 1
 
 
-@mock.patch('behave_reportportal.config.OUTPUT_TYPES', new_callable=dict)
 @mock.patch('behave_reportportal.config.ConfigParser', autospec=True)
-def test_launch_uuid_print(mock_cp, output_types):
+def test_launch_uuid_print(mock_cp):
     mock_context = mock.Mock()
     mock_context._config.userdata = UserData.make({'config_file': 'some_path'})
     mock_cp().__getitem__.return_value = {
@@ -274,17 +273,13 @@ def test_launch_uuid_print(mock_cp, output_types):
         'launch_uuid_print': 'True'
     }
 
-    str_io = StringIO()
-    output_types['stdout'] = str_io
-
     cfg = read_config(mock_context)
     assert cfg.launch_uuid_print
-    assert cfg.launch_uuid_print_output is str_io
+    assert cfg.launch_uuid_print_output is None
 
 
-@mock.patch('behave_reportportal.config.OUTPUT_TYPES', new_callable=dict)
 @mock.patch('behave_reportportal.config.ConfigParser', autospec=True)
-def test_launch_uuid_print_stderr(mock_cp, output_types):
+def test_launch_uuid_print_stderr(mock_cp):
     mock_context = mock.Mock()
     mock_context._config.userdata = UserData.make({'config_file': 'some_path'})
     mock_cp().__getitem__.return_value = {
@@ -296,18 +291,13 @@ def test_launch_uuid_print_stderr(mock_cp, output_types):
         'launch_uuid_print_output': 'stderr'
     }
 
-    str_io = StringIO()
-    output_types['stdout'] = sys.stdout
-    output_types['stderr'] = str_io
-
     cfg = read_config(mock_context)
     assert cfg.launch_uuid_print
-    assert cfg.launch_uuid_print_output is str_io
+    assert cfg.launch_uuid_print_output is OutputType.STDERR
 
 
-@mock.patch('behave_reportportal.config.OUTPUT_TYPES', new_callable=dict)
 @mock.patch('behave_reportportal.config.ConfigParser', autospec=True)
-def test_launch_uuid_print_invalid_output(mock_cp, output_types):
+def test_launch_uuid_print_invalid_output(mock_cp):
     mock_context = mock.Mock()
     mock_context._config.userdata = UserData.make({'config_file': 'some_path'})
     mock_cp().__getitem__.return_value = {
@@ -318,19 +308,12 @@ def test_launch_uuid_print_invalid_output(mock_cp, output_types):
         'launch_uuid_print': 'True',
         'launch_uuid_print_output': 'something'
     }
-
-    str_io = StringIO()
-    output_types['stdout'] = str_io
-    output_types['stderr'] = str_io
-
-    cfg = read_config(mock_context)
-    assert cfg.launch_uuid_print
-    assert cfg.launch_uuid_print_output is str_io
+    with pytest.raises(KeyError):
+        read_config(mock_context)
 
 
-@mock.patch('behave_reportportal.config.OUTPUT_TYPES', new_callable=dict)
 @mock.patch('behave_reportportal.config.ConfigParser', autospec=True)
-def test_no_launch_uuid_print(mock_cp, output_types):
+def test_no_launch_uuid_print(mock_cp):
     mock_context = mock.Mock()
     mock_context._config.userdata = UserData.make({'config_file': 'some_path'})
     mock_cp().__getitem__.return_value = {
@@ -340,9 +323,33 @@ def test_no_launch_uuid_print(mock_cp, output_types):
         'launch_name': 'launch_name'
     }
 
-    str_io = StringIO()
-    output_types['stdout'] = str_io
-
     cfg = read_config(mock_context)
     assert not cfg.launch_uuid_print
-    assert cfg.launch_uuid_print_output is str_io
+    assert cfg.launch_uuid_print_output is None
+
+
+@pytest.mark.parametrize(
+    'connect_value, read_value, expected_result',
+    [
+        ('5', '15', (5.0, 15.0)),
+        ('5.5', '15.5', (5.5, 15.5)),
+        (None, None, None),
+        (None, '5', 5),
+        ('5', None, 5)
+    ]
+)
+@mock.patch('behave_reportportal.config.ConfigParser', autospec=True)
+def test_client_timeouts(mock_cp, connect_value, read_value, expected_result):
+    mock_context = mock.Mock()
+    mock_context._config.userdata = UserData.make({'config_file': 'some_path'})
+    mock_cp().__getitem__.return_value = {
+        'api_key': 'api_key',
+        'endpoint': 'endpoint',
+        'project': 'project',
+        'launch_name': 'launch_name',
+        'connect_timeout': connect_value,
+        'read_timeout': read_value
+    }
+
+    cfg = read_config(mock_context)
+    assert cfg.http_timeout == expected_result

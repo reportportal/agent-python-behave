@@ -19,7 +19,7 @@ import traceback
 from functools import wraps
 
 from prettytable import MARKDOWN, PrettyTable
-from reportportal_client import RPClient
+from reportportal_client import create_client
 from reportportal_client.helpers import (
     gen_attributes,
     get_launch_sys_attrs,
@@ -50,7 +50,8 @@ def check_rp_enabled(func):
 def create_rp_service(cfg):
     """Create instance of ReportPortalService."""
     if cfg.enabled:
-        return RPClient(
+        return create_client(
+            client_type=cfg.client_type,
             endpoint=cfg.endpoint,
             project=cfg.project,
             api_key=cfg.api_key,
@@ -61,7 +62,8 @@ def create_rp_service(cfg):
             log_batch_size=cfg.log_batch_size,
             log_batch_payload_size=cfg.log_batch_payload_size,
             launch_uuid_print=cfg.launch_uuid_print,
-            print_output=cfg.launch_uuid_print_output
+            print_output=cfg.launch_uuid_print_output,
+            http_timeout=cfg.http_timeout
         )
 
 

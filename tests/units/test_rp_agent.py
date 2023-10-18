@@ -7,8 +7,8 @@ import pytest
 from behave.model_core import Status
 from delayed_assert import assert_expectations, expect
 from prettytable import PrettyTable
-from reportportal_client.client import RPClient
-from reportportal_client.logs.log_manager import MAX_LOG_BATCH_PAYLOAD_SIZE
+from reportportal_client import RPClient, BatchedRPClient, ThreadedRPClient
+from reportportal_client.logs import MAX_LOG_BATCH_PAYLOAD_SIZE
 
 from behave_reportportal.behave_agent import BehaveAgent, create_rp_service
 from behave_reportportal.config import Config, LogLayout
@@ -163,27 +163,47 @@ def test_create_rp_service_enabled_rp(config):
     ), "Invalid initialization of RP ReportPortalService"
 
 
-@mock.patch("behave_reportportal.behave_agent.RPClient")
+@mock.patch('reportportal_client.RPClient')
 def test_create_rp_service_init(mock_rps):
-    create_rp_service(Config(endpoint="A", api_key="B", project="C"))
+    create_rp_service(Config(endpoint='A', api_key='B', project='C'))
     mock_rps.assert_has_calls(
         [
             mock.call(
-                endpoint="A",
-                project="C",
-                api_key="B",
+                'A',
+                'C',
+                api_key='B',
                 is_skipped_an_issue=False,
                 launch_id=None,
                 retries=None,
-                mode="DEFAULT",
+                mode='DEFAULT',
                 log_batch_size=20,
                 log_batch_payload_size=MAX_LOG_BATCH_PAYLOAD_SIZE,
                 launch_uuid_print=False,
-                print_output=sys.stdout
+                print_output=None,
+                http_timeout=None
             )
         ],
         any_order=True,
     )
+
+
+@pytest.mark.parametrize(
+    'client_type, client_class',
+    [
+        ('SYNC', RPClient),
+        ('ASYNC_BATCHED', BatchedRPClient),
+        ('ASYNC_THREAD', ThreadedRPClient),
+        (None, RPClient),
+        ('CETA', KeyError)
+    ]
+)
+def test_create_rp_service_init_type(client_type, client_class):
+    try:
+        client = create_rp_service(Config(endpoint='A', api_key='B', project='C', client_type=client_type))
+    except client_class as exc:
+        client = exc
+    assert client is not None
+    assert isinstance(client, client_class)
 
 
 def test_init_invalid_config():

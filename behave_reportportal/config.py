@@ -13,23 +13,19 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License
 
-import sys
 from configparser import ConfigParser
 from distutils.util import strtobool
 from enum import Enum
-from typing import Dict, TextIO, Optional, List, Union
+from typing import Optional, List, Union, Tuple
 from warnings import warn
 
 from behave.runner import Context
-from reportportal_client.logs.log_manager import MAX_LOG_BATCH_PAYLOAD_SIZE
+from reportportal_client import OutputType, ClientType
+from reportportal_client.logs import MAX_LOG_BATCH_PAYLOAD_SIZE
 
 RP_CFG_SECTION = "report_portal"
 DEFAULT_LAUNCH_NAME = "Python Behave Launch"
 DEFAULT_CFG_FILE = "behave.ini"
-OUTPUT_TYPES: Dict[str, TextIO] = {
-    'stdout': sys.stdout,
-    'stderr': sys.stderr
-}
 
 
 class LogLayout(Enum):
@@ -69,7 +65,9 @@ class Config(object):
     log_batch_payload_size: int
     log_layout: LogLayout
     launch_uuid_print: bool
-    launch_uuid_print_output: TextIO
+    launch_uuid_print_output: Optional[OutputType]
+    client_type: ClientType
+    http_timeout: Optional[Union[Tuple[float, float], float]]
 
     def __init__(
             self,
@@ -91,6 +89,9 @@ class Config(object):
             log_batch_payload_size: Optional[str] = None,
             launch_uuid_print: Optional[str] = None,
             launch_uuid_print_output: Optional[str] = None,
+            client_type: Optional[str] = None,
+            connect_timeout: Optional[Union[str, float]] = None,
+            read_timeout: Optional[Union[str, float]] = None,
             **kwargs
     ):
         """Initialize instance attributes."""
@@ -148,8 +149,19 @@ class Config(object):
                 )
         self.enabled = all([self.endpoint, self.project, self.api_key])
         self.launch_uuid_print = bool(strtobool(launch_uuid_print or 'False'))
-        print_output = launch_uuid_print_output or 'stdout'
-        self.launch_uuid_print_output = OUTPUT_TYPES.get(print_output.lower(), OUTPUT_TYPES['stdout'])
+        self.launch_uuid_print_output = OutputType[launch_uuid_print_output.upper()] \
+            if launch_uuid_print_output else None
+        self.client_type = ClientType[client_type.upper()] if client_type else ClientType.SYNC
+
+        connect_timeout = float(connect_timeout) if connect_timeout else None
+        read_timeout = float(read_timeout) if read_timeout else None
+
+        if connect_timeout is None and read_timeout is None:
+            self.http_timeout = None
+        elif connect_timeout is not None and read_timeout is not None:
+            self.http_timeout = (connect_timeout, read_timeout)
+        else:
+            self.http_timeout = connect_timeout or read_timeout
 
 
 def read_config(context: Context) -> Config:

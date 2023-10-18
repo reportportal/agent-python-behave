@@ -5,7 +5,7 @@ from behave.model import Scenario, Feature, Step
 from behave.model_core import BasicStatement, TagAndStatusStatement, \
     TagStatement
 from behave.runner import Context
-from reportportal_client import RPClient
+from reportportal_client import RP
 
 from .config import Config
 
@@ -13,11 +13,11 @@ from .config import Config
 def check_rp_enabled(func: Callable) -> Callable: ...
 
 
-def create_rp_service(cfg: Config) -> Optional[RPClient]: ...
+def create_rp_service(cfg: Config) -> Optional[RP]: ...
 
 
 class BehaveAgent:
-    _rp: Optional[RPClient]
+    _rp: Optional[RP]
     _cfg: Config
     _handle_lifecycle: bool
     agent_name: str
@@ -29,7 +29,7 @@ class BehaveAgent:
     _ignore_tag_prefixes: [List[str]]
 
     def __init__(self, cfg: Config,
-                 rp_service: Optional[RPClient] = ...) -> None: ...
+                 rp_service: Optional[RP] = ...) -> None: ...
 
     def start_launch(self, context: Context, **kwargs: Any) -> None: ...
 
