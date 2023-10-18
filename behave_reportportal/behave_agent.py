@@ -89,8 +89,8 @@ class BehaveAgent(metaclass=Singleton):
     @check_rp_enabled
     def start_launch(self, _, **kwargs):
         """Start launch in ReportPortal."""
-        self._handle_lifecycle = False if self._rp.launch_id else True
-        self._launch_id = self._rp.launch_id or self._rp.start_launch(
+        self._handle_lifecycle = False if self._rp.launch_uuid else True
+        self._launch_id = self._rp.launch_uuid or self._rp.start_launch(
             name=self._cfg.launch_name,
             start_time=timestamp(),
             attributes=self._get_launch_attributes(),
@@ -105,7 +105,7 @@ class BehaveAgent(metaclass=Singleton):
         """Finish launch in ReportPortal."""
         if self._handle_lifecycle:
             self._rp.finish_launch(end_time=timestamp(), **kwargs)
-        self._rp.terminate()
+        self._rp.close()
 
     @check_rp_enabled
     def start_feature(self, _, feature, **kwargs):
