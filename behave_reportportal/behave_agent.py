@@ -282,11 +282,11 @@ class BehaveAgent(metaclass=Singleton):
         self._log_item_id = self._scenario_id
 
     def _finish_step_scenario_based(self, step, **kwargs):
+        step_content = self._build_step_content(step)
         self._rp.log(
             item_id=self._scenario_id,
             time=timestamp(),
-            message=f"[{step.keyword}]: {step.name}.\n\n"
-            f"{self._build_step_content(step)}",
+            message=f"[{step.keyword}]: {step.name}." + (f"\n\n{step_content}" if step_content else ""),
             level="INFO",
             **kwargs,
         )

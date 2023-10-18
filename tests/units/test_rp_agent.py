@@ -699,7 +699,7 @@ def test_finish_failed_step_scenario_based(mock_timestamp, config):
                 item_id="scenario_id",
                 time=123,
                 level="INFO",
-                message="[keyword]: name.\n",
+                message="[keyword]: name.",
             ),
         ]
         mock_rps.log.assert_has_calls(calls, any_order=True)
