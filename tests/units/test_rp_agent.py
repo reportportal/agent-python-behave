@@ -252,7 +252,7 @@ def test_item_description():
 def test_start_launch(mock_timestamp, config):
     mock_timestamp.return_value = 123
     mock_rps = mock.create_autospec(RPClient)
-    mock_rps.launch_id = None
+    mock_rps.launch_uuid = None
     mock_context = mock.Mock()
     ba = BehaveAgent(config, mock_rps)
     ba.start_launch(mock_context, some_key="some_value")
@@ -271,7 +271,7 @@ def test_start_launch(mock_timestamp, config):
 def test_start_launch_with_rerun(mock_timestamp):
     mock_timestamp.return_value = 123
     mock_rps = mock.create_autospec(RPClient)
-    mock_rps.launch_id = None
+    mock_rps.launch_uuid = None
     mock_context = mock.Mock()
     cfg = Config(
         endpoint="endpoint",
@@ -300,7 +300,7 @@ def test_start_launch_attributes(mock_timestamp, config):
     config.launch_attributes = ['one', 'two', 'key:value']
     mock_timestamp.return_value = 123
     mock_rps = mock.create_autospec(RPClient)
-    mock_rps.launch_id = None
+    mock_rps.launch_uuid = None
     ba = BehaveAgent(config, mock_rps)
     ba.start_launch(mock.Mock())
     call_args_list = mock_rps.start_launch.call_args_list
@@ -331,7 +331,7 @@ def test_finish_launch(mock_timestamp, config):
     mock_rps.finish_launch.assert_called_once_with(
         end_time=123, some_key="some_value"
     )
-    mock_rps.terminate.assert_called_once()
+    mock_rps.close.assert_called_once()
 
 
 @mock.patch("behave_reportportal.behave_agent.timestamp")
