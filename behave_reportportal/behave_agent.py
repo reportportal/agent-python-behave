@@ -139,7 +139,7 @@ class BehaveAgent(metaclass=Singleton):
 
     @check_rp_enabled
     def start_scenario(self, context, scenario, **kwargs):
-        """Start scenario inReportPortal."""
+        """Start scenario in ReportPortal."""
         if scenario.tags and "skip" in scenario.tags:
             scenario.skip("Marked with @skip")
         self._scenario_id = self._rp.start_test_item(
