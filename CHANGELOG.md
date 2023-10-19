@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 ### Added
+- Scenario Outline scenarios will add markdown table with active params to scenario description, by @nicke46
+
+## [4.0.0]
+### Added
 - `rp_client_type` configuration variable, by @HardNorth
 - `rp_connect_timeout` and `rp_read_timeout` configuration variables, by @HardNorth
 ### Changed

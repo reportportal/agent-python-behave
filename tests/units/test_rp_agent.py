@@ -19,7 +19,7 @@ from unittest import mock
 import pytest
 from behave.model_core import Status
 from delayed_assert import assert_expectations, expect
-from prettytable import PrettyTable
+from prettytable import MARKDOWN, PrettyTable
 from reportportal_client import RPClient, BatchedRPClient, ThreadedRPClient
 from reportportal_client.logs import MAX_LOG_BATCH_PAYLOAD_SIZE
 
@@ -234,17 +234,34 @@ def test_init_valid_config(config):
 def test_item_description():
     mock_item = mock.Mock()
     mock_item.description = None
+    mock_context = mock.Mock()
+    mock_context.active_outline = None
     expect(
-        BehaveAgent._item_description(mock_item) is None,
-        "Description is not None",
+        BehaveAgent._item_description(mock_context, mock_item) == "",
+        "Description is not \"\"",
     )
     mock_item.description = ["a", "b"]
     expect(
-        BehaveAgent._item_description(mock_item) == "Description:\na\nb",
+        BehaveAgent._item_description(mock_context, mock_item) == "Description:\na\nb",
         f"Description is incorrect:\n"
-        f"Actual: {BehaveAgent._item_description(mock_item)}\n"
+        f"Actual: {BehaveAgent._item_description(mock_context, mock_item)}\n"
         f"Expected: Description:\na\nb",
     )
+    mock_context.active_outline = mock.Mock()
+    mock_context.active_outline.headings = ["number_a", "number_b"]
+    mock_context.active_outline.cells = ["1", "2"]
+
+    pt = PrettyTable(field_names=mock_context.active_outline.headings)
+    pt.add_row(mock_context.active_outline.cells)
+    pt.set_style(MARKDOWN)
+    table = pt.get_string()
+    expect(
+        BehaveAgent._item_description(mock_context, mock_item) == f"Description:\na\nb\n\n{table}",
+        f"Description is incorrect:\n"
+        f"Actual: {BehaveAgent._item_description(mock_context, mock_item)}\n"
+        f"Expected: Description:\na\nb\n\n{table}",
+    )
+
     assert_expectations()
 
 
@@ -368,6 +385,7 @@ def verify_start_feature(mock_feature, config):
     mock_rps = mock.create_autospec(RPClient)
     mock_rps.start_test_item.return_value = "feature_id"
     mock_context = mock.Mock()
+    mock_context.active_outline = None
     mock_feature.name = "feature_name"
     mock_feature.description = ["A", "B"]
     ba = BehaveAgent(config, mock_rps)
@@ -377,7 +395,7 @@ def verify_start_feature(mock_feature, config):
         name="feature_name",
         start_time=123,
         item_type="SUITE",
-        description=BehaveAgent._item_description(mock_feature),
+        description=BehaveAgent._item_description(mock_context, mock_feature),
         code_ref=BehaveAgent._code_ref(mock_feature),
         attributes=ba._attributes(mock_feature),
         some_key="some_value",
@@ -434,6 +452,7 @@ def verify_start_scenario(mock_scenario, config):
     mock_rps = mock.create_autospec(RPClient)
     mock_rps.start_test_item.return_value = "scenario_id"
     mock_context = mock.Mock()
+    mock_context.active_outline = None
     mock_scenario.name = "scenario_name"
     mock_scenario._row = None
     mock_scenario.description = ["A", "B"]
@@ -446,7 +465,7 @@ def verify_start_scenario(mock_scenario, config):
         start_time=123,
         item_type="STEP",
         parent_item_id="feature_id",
-        description=BehaveAgent._item_description(mock_scenario),
+        description=BehaveAgent._item_description(mock_context, mock_scenario),
         code_ref=BehaveAgent._code_ref(mock_scenario),
         parameters=BehaveAgent._get_parameters(mock_scenario),
         attributes=ba._attributes(mock_scenario),
@@ -695,7 +714,7 @@ def test_finish_failed_step_scenario_based(mock_timestamp, config):
                 item_id="scenario_id",
                 time=123,
                 level="INFO",
-                message="[keyword]: name.\n",
+                message="[keyword]: name.",
             ),
         ]
         mock_rps.log.assert_has_calls(calls, any_order=True)

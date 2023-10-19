@@ -141,8 +141,8 @@ class Config(object):
             if not self.api_key:
                 warn(
                     message="Argument `api_key` is `None` or empty string, "
-                            "that's not supposed to happen because Report "
-                            "Portal is usually requires an authorization key. "
+                            "that's not supposed to happen because ReportPortal "
+                            "is usually requires an authorization key. "
                             "Please check your code.",
                     category=RuntimeWarning,
                     stacklevel=2
