@@ -108,7 +108,7 @@ class BehaveAgent(metaclass=Singleton):
         self._rp.close()
 
     @check_rp_enabled
-    def start_feature(self, _, feature, **kwargs):
+    def start_feature(self, context, feature, **kwargs):
         """Start feature in ReportPortal."""
         if feature.tags and "skip" in feature.tags:
             feature.skip("Marked with @skip")
@@ -116,7 +116,7 @@ class BehaveAgent(metaclass=Singleton):
             name=feature.name,
             start_time=timestamp(),
             item_type="SUITE",
-            description=self._item_description(feature),
+            description=self._item_description(context, feature),
             code_ref=self._code_ref(feature),
             attributes=self._attributes(feature),
             **kwargs,
@@ -138,7 +138,7 @@ class BehaveAgent(metaclass=Singleton):
         )
 
     @check_rp_enabled
-    def start_scenario(self, _, scenario, **kwargs):
+    def start_scenario(self, context, scenario, **kwargs):
         """Start scenario in ReportPortal."""
         if scenario.tags and "skip" in scenario.tags:
             scenario.skip("Marked with @skip")
@@ -150,7 +150,7 @@ class BehaveAgent(metaclass=Singleton):
             code_ref=self._code_ref(scenario),
             attributes=self._attributes(scenario),
             parameters=self._get_parameters(scenario),
-            description=self._item_description(scenario),
+            description=self._item_description(context, scenario),
             test_case_id=self._test_case_id(scenario),
             **kwargs,
         )
@@ -282,11 +282,11 @@ class BehaveAgent(metaclass=Singleton):
         self._log_item_id = self._scenario_id
 
     def _finish_step_scenario_based(self, step, **kwargs):
+        step_content = self._build_step_content(step)
         self._rp.log(
             item_id=self._scenario_id,
             time=timestamp(),
-            message=f"[{step.keyword}]: {step.name}.\n"
-            f"{self._build_step_content(step)}",
+            message=f"[{step.keyword}]: {step.name}." + (f"\n\n{step_content}" if step_content else ""),
             level="INFO",
             **kwargs,
         )
@@ -399,10 +399,18 @@ class BehaveAgent(metaclass=Singleton):
             )
 
     @staticmethod
-    def _item_description(item):
+    def _item_description(context, item):
+        desc = ""
         if item.description:
-            desc = "\n".join(item.description)
-            return f"Description:\n{desc}"
+            text_desc = "\n".join(item.description)
+            desc = f"Description:\n{text_desc}"
+        if context.active_outline:
+            pt = PrettyTable(field_names=context.active_outline.headings)
+            pt.add_row(context.active_outline.cells)
+            pt.set_style(MARKDOWN)
+            desc += ("\n\n" if desc else "")
+            desc += pt.get_string()
+        return desc
 
     @staticmethod
     def _get_parameters(scenario):
