@@ -144,20 +144,19 @@ def test_code_ref():
 
 
 def test_get_parameters():
-    mock_item = mock.Mock()
-    mock_item._row = None
+    mock_context = mock.Mock()
+    mock_context.active_outline = None
     expect(
-        BehaveAgent._get_parameters(mock_item) is None,
+        BehaveAgent._get_parameters(mock_context) is None,
         "parameters is not None",
     )
-    mock_row = mock.Mock()
-    mock_row.headings = ["A", "B"]
-    mock_row.cells = [1, 2]
-    mock_item._row = mock_row
+    mock_context.active_outline = mock.Mock()
+    mock_context.active_outline.headings = ["A", "B"]
+    mock_context.active_outline.cells = [1, 2]
     expect(
-        BehaveAgent._get_parameters(mock_item) == {"A": 1, "B": 2},
+        BehaveAgent._get_parameters(mock_context) == {"A": 1, "B": 2},
         f"parameters are incorrect:\n"
-        f"Actual: {BehaveAgent._get_parameters(mock_item)}\n"
+        f"Actual: {BehaveAgent._get_parameters(mock_context)}\n"
         f"Expected: {{'A': 1, 'B': 2}}",
     )
     assert_expectations()
@@ -467,7 +466,7 @@ def verify_start_scenario(mock_scenario, config):
         parent_item_id="feature_id",
         description=BehaveAgent._item_description(mock_context, mock_scenario),
         code_ref=BehaveAgent._code_ref(mock_scenario),
-        parameters=BehaveAgent._get_parameters(mock_scenario),
+        parameters=BehaveAgent._get_parameters(mock_context),
         attributes=ba._attributes(mock_scenario),
         test_case_id=ba._test_case_id(mock_scenario),
         some_key="some_value",
