@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+
+## [4.0.2]
 ### Changed
 - Improve Scenario Outline parameters reporting, by @nicke46
 
