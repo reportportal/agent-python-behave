@@ -129,5 +129,5 @@ class BehaveAgent:
     def _code_ref(item: BasicStatement) -> Optional[str]: ...
 
     @staticmethod
-    def _get_parameters(scenario: Scenario) -> Optional[
+    def _get_parameters(context: Context) -> Optional[
         Dict[str, Any]]: ...

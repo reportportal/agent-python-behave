@@ -149,7 +149,7 @@ class BehaveAgent(metaclass=Singleton):
             parent_item_id=self._feature_id,
             code_ref=self._code_ref(scenario),
             attributes=self._attributes(scenario),
-            parameters=self._get_parameters(scenario),
+            parameters=self._get_parameters(context),
             description=self._item_description(context, scenario),
             test_case_id=self._test_case_id(scenario),
             **kwargs,
@@ -413,16 +413,10 @@ class BehaveAgent(metaclass=Singleton):
         return desc
 
     @staticmethod
-    def _get_parameters(scenario):
-        # noinspection PyProtectedMember
-        return (
-            scenario._row
-            and {
-                r[0]: r[1]
-                for r in zip(scenario._row.headings, scenario._row.cells)
-            }
-            or None
-        )
+    def _get_parameters(context):
+        if context.active_outline:
+            return {r[0]: r[1] for r in zip(context.active_outline.headings, context.active_outline.cells)}
+        return None
 
     @staticmethod
     def _code_ref(item):

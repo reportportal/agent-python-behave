@@ -1,6 +1,10 @@
 # Changelog
 
 ## [Unreleased]
+### Changed
+- Improve Scenario Outline parameters reporting, by @nicke46
+
+## [4.0.1]
 ### Added
 - Scenario Outline scenarios will add markdown table with active params to scenario description, by @nicke46
 
