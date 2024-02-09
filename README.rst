@@ -10,7 +10,7 @@ agent-python-behave
     :target: https://github.com/reportportal/agent-python-behave
 .. image:: https://codecov.io/gh/reportportal/agent-python-behave/branch/master/graph/badge.svg
     :target: https://codecov.io/gh/reportportal/agent-python-behave
-.. image:: https://slack.epmrpp.reportportal.io/badge.svg
+.. image:: https://img.shields.io/badge/slack-join-brightgreen.svg
     :target: https://slack.epmrpp.reportportal.io/
     :alt: Join Slack chat!
 .. image:: https://img.shields.io/badge/reportportal-stackoverflow-orange.svg?style=flat
