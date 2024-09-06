@@ -14,13 +14,13 @@
 """Config is structure for configuration of behave ReportPortal agent."""
 
 from configparser import ConfigParser
-from distutils.util import strtobool
 from enum import Enum
 from typing import Optional, List, Union, Tuple
 from warnings import warn
 
 from behave.runner import Context
 from reportportal_client import OutputType, ClientType
+from reportportal_client.helpers import to_bool
 from reportportal_client.logs import MAX_LOG_BATCH_PAYLOAD_SIZE
 
 RP_CFG_SECTION = "report_portal"
@@ -103,10 +103,10 @@ class Config(object):
         self.launch_attributes = launch_attributes and launch_attributes.split(
             " "
         )
-        self.debug_mode = bool(strtobool(str(debug_mode or 'False')))
-        self.is_skipped_an_issue = bool(strtobool(str(is_skipped_an_issue or 'False')))
+        self.debug_mode = to_bool(debug_mode or 'False')
+        self.is_skipped_an_issue = to_bool(is_skipped_an_issue or 'False')
         self.retries = retries and int(retries)
-        self.rerun = bool(strtobool(str(rerun or 'False')))
+        self.rerun = to_bool(rerun or 'False')
         self.rerun_of = rerun_of
         self.log_batch_size = (log_batch_size and int(
             log_batch_size)) or 20
@@ -121,7 +121,7 @@ class Config(object):
                 stacklevel=2,
             )
             self.log_layout = (
-                LogLayout.STEP if strtobool(step_based) else LogLayout.SCENARIO
+                LogLayout.STEP if to_bool(step_based) else LogLayout.SCENARIO
             )
         else:
             self.log_layout = LogLayout(log_layout)
@@ -148,7 +148,7 @@ class Config(object):
                     stacklevel=2
                 )
         self.enabled = all([self.endpoint, self.project, self.api_key])
-        self.launch_uuid_print = bool(strtobool(launch_uuid_print or 'False'))
+        self.launch_uuid_print = to_bool(launch_uuid_print or 'False')
         self.launch_uuid_print_output = OutputType[launch_uuid_print_output.upper()] \
             if launch_uuid_print_output else None
         self.client_type = ClientType[client_type.upper()] if client_type else ClientType.SYNC

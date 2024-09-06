@@ -1,8 +1,13 @@
 # Changelog
 
 ## [Unreleased]
+### Added
+- Python 12 support, by @HardNorth
+
+## [4.0.2]
 ### Changed
 - Improve Scenario Outline parameters reporting, by @nicke46
+- Client version updated on [5.5.4](https://github.com/reportportal/client-Python/releases/tag/5.5.4), by @HardNorth
 
 ## [4.0.1]
 ### Added

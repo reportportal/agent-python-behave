@@ -17,7 +17,7 @@ import os
 
 from setuptools import setup
 
-__version__ = '4.0.2'
+__version__ = '4.0.3'
 
 
 def read_file(fname):
@@ -50,6 +50,7 @@ setup(
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',
-        'Programming Language :: Python :: 3.11'
+        'Programming Language :: Python :: 3.11',
+        'Programming Language :: Python :: 3.12',
     ]
 )
