@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+
+## [4.0.3]
 ### Added
 - Python 12 support, by @HardNorth
 
