@@ -41,7 +41,7 @@ setup(
     url="https://github.com/reportportal/agent-python-behave",
     packages=["behave_reportportal"],
     package_data={"behave_reportportal": ["*.pyi"]},
-    python_requires=">=3.6",
+    python_requires=">=3.8",
     install_requires=read_file("requirements.txt").splitlines(),
     license="Apache 2.0",
     keywords=["testing", "reporting", "reportportal", "behave"],
