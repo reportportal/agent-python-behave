@@ -15,11 +15,11 @@
 
 from configparser import ConfigParser
 from enum import Enum
-from typing import Optional, List, Union, Tuple
+from typing import List, Optional, Tuple, Union
 from warnings import warn
 
 from behave.runner import Context
-from reportportal_client import OutputType, ClientType
+from reportportal_client import ClientType, OutputType
 from reportportal_client.helpers import to_bool
 from reportportal_client.logs import MAX_LOG_BATCH_PAYLOAD_SIZE
 
@@ -70,29 +70,29 @@ class Config(object):
     http_timeout: Optional[Union[Tuple[float, float], float]]
 
     def __init__(
-            self,
-            endpoint: Optional[str] = None,
-            project: Optional[str] = None,
-            api_key: Optional[str] = None,
-            launch_id: Optional[str] = None,
-            launch_name: Optional[str] = None,
-            launch_description: Optional[str] = None,
-            launch_attributes: Optional[str] = None,
-            debug_mode: Optional[Union[str, bool]] = None,
-            log_layout: Optional[Union[str, LogLayout]] = None,
-            step_based: Optional[str] = None,
-            is_skipped_an_issue: Optional[Union[str, bool]] = None,
-            retries: Optional[str] = None,
-            rerun: Optional[Union[str, bool]] = None,
-            rerun_of: Optional[str] = None,
-            log_batch_size: Optional[str] = None,
-            log_batch_payload_size: Optional[str] = None,
-            launch_uuid_print: Optional[str] = None,
-            launch_uuid_print_output: Optional[str] = None,
-            client_type: Optional[str] = None,
-            connect_timeout: Optional[Union[str, float]] = None,
-            read_timeout: Optional[Union[str, float]] = None,
-            **kwargs
+        self,
+        endpoint: Optional[str] = None,
+        project: Optional[str] = None,
+        api_key: Optional[str] = None,
+        launch_id: Optional[str] = None,
+        launch_name: Optional[str] = None,
+        launch_description: Optional[str] = None,
+        launch_attributes: Optional[str] = None,
+        debug_mode: Optional[Union[str, bool]] = None,
+        log_layout: Optional[Union[str, LogLayout]] = None,
+        step_based: Optional[str] = None,
+        is_skipped_an_issue: Optional[Union[str, bool]] = None,
+        retries: Optional[str] = None,
+        rerun: Optional[Union[str, bool]] = None,
+        rerun_of: Optional[str] = None,
+        log_batch_size: Optional[str] = None,
+        log_batch_payload_size: Optional[str] = None,
+        launch_uuid_print: Optional[str] = None,
+        launch_uuid_print_output: Optional[str] = None,
+        client_type: Optional[str] = None,
+        connect_timeout: Optional[Union[str, float]] = None,
+        read_timeout: Optional[Union[str, float]] = None,
+        **kwargs,
     ):
         """Initialize instance attributes."""
         self.endpoint = endpoint
@@ -100,57 +100,53 @@ class Config(object):
         self.launch_id = launch_id
         self.launch_name = launch_name or DEFAULT_LAUNCH_NAME
         self.launch_description = launch_description
-        self.launch_attributes = launch_attributes and launch_attributes.split(
-            " "
-        )
-        self.debug_mode = to_bool(debug_mode or 'False')
-        self.is_skipped_an_issue = to_bool(is_skipped_an_issue or 'False')
+        self.launch_attributes = launch_attributes and launch_attributes.split(" ")
+        self.debug_mode = to_bool(debug_mode or "False")
+        self.is_skipped_an_issue = to_bool(is_skipped_an_issue or "False")
         self.retries = retries and int(retries)
-        self.rerun = to_bool(rerun or 'False')
+        self.rerun = to_bool(rerun or "False")
         self.rerun_of = rerun_of
-        self.log_batch_size = (log_batch_size and int(
-            log_batch_size)) or 20
-        self.log_batch_payload_size = (log_batch_payload_size and int(
-            log_batch_payload_size)) or MAX_LOG_BATCH_PAYLOAD_SIZE
+        self.log_batch_size = (log_batch_size and int(log_batch_size)) or 20
+        self.log_batch_payload_size = (
+            log_batch_payload_size and int(log_batch_payload_size)
+        ) or MAX_LOG_BATCH_PAYLOAD_SIZE
 
         if step_based and not log_layout:
             warn(
-                "'step_based' config setting has been deprecated"
-                "in favor of the new log_layout configuration.",
+                "'step_based' config setting has been deprecated" "in favor of the new log_layout configuration.",
                 DeprecationWarning,
                 stacklevel=2,
             )
-            self.log_layout = (
-                LogLayout.STEP if to_bool(step_based) else LogLayout.SCENARIO
-            )
+            self.log_layout = LogLayout.STEP if to_bool(step_based) else LogLayout.SCENARIO
         else:
             self.log_layout = LogLayout(log_layout)
 
         self.api_key = api_key
         if not self.api_key:
-            if 'token' in kwargs:
+            if "token" in kwargs:
                 warn(
                     message="Argument `token` is deprecated since 2.0.4 and "
-                            "will be subject for removing in the next major "
-                            "version. Use `api_key` argument instead.",
+                    "will be subject for removing in the next major "
+                    "version. Use `api_key` argument instead.",
                     category=DeprecationWarning,
-                    stacklevel=2
+                    stacklevel=2,
                 )
-                self.api_key = kwargs['token']
+                self.api_key = kwargs["token"]
 
             if not self.api_key:
                 warn(
                     message="Argument `api_key` is `None` or empty string, "
-                            "that's not supposed to happen because ReportPortal "
-                            "is usually requires an authorization key. "
-                            "Please check your code.",
+                    "that's not supposed to happen because ReportPortal "
+                    "is usually requires an authorization key. "
+                    "Please check your code.",
                     category=RuntimeWarning,
-                    stacklevel=2
+                    stacklevel=2,
                 )
         self.enabled = all([self.endpoint, self.project, self.api_key])
-        self.launch_uuid_print = to_bool(launch_uuid_print or 'False')
-        self.launch_uuid_print_output = OutputType[launch_uuid_print_output.upper()] \
-            if launch_uuid_print_output else None
+        self.launch_uuid_print = to_bool(launch_uuid_print or "False")
+        self.launch_uuid_print_output = (
+            OutputType[launch_uuid_print_output.upper()] if launch_uuid_print_output else None
+        )
         self.client_type = ClientType[client_type.upper()] if client_type else ClientType.SYNC
 
         connect_timeout = float(connect_timeout) if connect_timeout else None

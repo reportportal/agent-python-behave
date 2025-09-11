@@ -55,9 +55,7 @@ def use_division_operation(context):
 
 @then("Result is {result:d}")
 def result_is(context, result):
-    assert (
-        context.result == result
-    ), f"Incorrect result:\nActual: {context.result}\nExpected: {result}"
+    assert context.result == result, f"Incorrect result:\nActual: {context.result}\nExpected: {result}"
 
 
 @then("Result is {result:d} but without message")
@@ -69,7 +67,5 @@ def result_is_without_message(context, result):
 def result_should_be_correct(context):
     for row in context.test_data:
         assert row["actual"] == row["expected"], (
-            f"Incorrect result:\n"
-            f"Actual: {row['actual']}\n"
-            f"Expected: {row['expected']}"
+            f"Incorrect result:\n" f"Actual: {row['actual']}\n" f"Expected: {row['expected']}"
         )

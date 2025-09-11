@@ -20,9 +20,7 @@ from behave.userdata import UserData
 from delayed_assert import assert_expectations, expect
 from reportportal_client import ClientType, OutputType
 
-from behave_reportportal.config import (DEFAULT_CFG_FILE, DEFAULT_LAUNCH_NAME,
-                                        RP_CFG_SECTION, LogLayout,
-                                        read_config)
+from behave_reportportal.config import DEFAULT_CFG_FILE, DEFAULT_LAUNCH_NAME, RP_CFG_SECTION, LogLayout, read_config
 
 
 @pytest.mark.parametrize(
@@ -192,11 +190,11 @@ def test_read_config_default_values(mock_cp):
 
 
 @pytest.mark.parametrize(
-    'val,exp',
+    "val,exp",
     [
-        ('step', LogLayout.STEP),
-        ('STEP', LogLayout.STEP),
-        ('Step', LogLayout.STEP),
+        ("step", LogLayout.STEP),
+        ("STEP", LogLayout.STEP),
+        ("Step", LogLayout.STEP),
         (None, LogLayout.SCENARIO),
         (2, LogLayout.NESTED),
         (0, LogLayout.SCENARIO),
@@ -206,14 +204,11 @@ def test_log_layout_parse(val, exp):
     assert LogLayout(val) == exp
 
 
-@mock.patch('behave_reportportal.config.ConfigParser', autospec=True)
+@mock.patch("behave_reportportal.config.ConfigParser", autospec=True)
 def test_deprecated_step_based(mock_cp):
     mock_context = mock.Mock()
-    mock_context._config.userdata = UserData.make({'config_file': 'some_path'})
-    mock_cp().__getitem__.return_value = {
-        'step_based': 'True',
-        'api_key': 'api_key'
-    }
+    mock_context._config.userdata = UserData.make({"config_file": "some_path"})
+    mock_cp().__getitem__.return_value = {"step_based": "True", "api_key": "api_key"}
 
     with warnings.catch_warnings(record=True) as w:
         cfg = read_config(mock_context)
@@ -221,69 +216,69 @@ def test_deprecated_step_based(mock_cp):
         assert len(w) == 1
 
 
-@mock.patch('behave_reportportal.config.ConfigParser', autospec=True)
+@mock.patch("behave_reportportal.config.ConfigParser", autospec=True)
 def test_deprecated_token_param(mock_cp):
     mock_context = mock.Mock()
-    mock_context._config.userdata = UserData.make({'config_file': 'some_path'})
+    mock_context._config.userdata = UserData.make({"config_file": "some_path"})
     mock_cp().__getitem__.return_value = {
-        'token': 'api_key',
-        'endpoint': 'endpoint',
-        'project': 'project',
-        'launch_name': 'launch_name'
+        "token": "api_key",
+        "endpoint": "endpoint",
+        "project": "project",
+        "launch_name": "launch_name",
     }
 
     with warnings.catch_warnings(record=True) as w:
         cfg = read_config(mock_context)
-        assert cfg.api_key == 'api_key'
+        assert cfg.api_key == "api_key"
         assert len(w) == 1
 
 
-@mock.patch('behave_reportportal.config.ConfigParser', autospec=True)
+@mock.patch("behave_reportportal.config.ConfigParser", autospec=True)
 def test_api_key_token_param_priority(mock_cp):
     mock_context = mock.Mock()
-    mock_context._config.userdata = UserData.make({'config_file': 'some_path'})
+    mock_context._config.userdata = UserData.make({"config_file": "some_path"})
     mock_cp().__getitem__.return_value = {
-        'api_key': 'api_key',
-        'token': 'token',
-        'endpoint': 'endpoint',
-        'project': 'project',
-        'launch_name': 'launch_name'
+        "api_key": "api_key",
+        "token": "token",
+        "endpoint": "endpoint",
+        "project": "project",
+        "launch_name": "launch_name",
     }
 
     with warnings.catch_warnings(record=True) as w:
         cfg = read_config(mock_context)
-        assert cfg.api_key == 'api_key'
+        assert cfg.api_key == "api_key"
         assert len(w) == 0
 
 
-@mock.patch('behave_reportportal.config.ConfigParser', autospec=True)
+@mock.patch("behave_reportportal.config.ConfigParser", autospec=True)
 def test_empty_api_key(mock_cp):
     mock_context = mock.Mock()
-    mock_context._config.userdata = UserData.make({'config_file': 'some_path'})
+    mock_context._config.userdata = UserData.make({"config_file": "some_path"})
     mock_cp().__getitem__.return_value = {
-        'api_key': '',
-        'endpoint': 'endpoint',
-        'project': 'project',
-        'launch_name': 'launch_name'
+        "api_key": "",
+        "endpoint": "endpoint",
+        "project": "project",
+        "launch_name": "launch_name",
     }
 
     with warnings.catch_warnings(record=True) as w:
         cfg = read_config(mock_context)
-        assert cfg.api_key == ''
+        assert cfg.api_key == ""
         assert cfg.enabled is False
         assert len(w) == 1
 
 
-@mock.patch('behave_reportportal.config.ConfigParser', autospec=True)
+@mock.patch("behave_reportportal.config.ConfigParser", autospec=True)
 def test_launch_uuid_print(mock_cp):
     mock_context = mock.Mock()
-    mock_context._config.userdata = UserData.make({'config_file': 'some_path'})
+    mock_context._config.userdata = UserData.make({"config_file": "some_path"})
     mock_cp().__getitem__.return_value = {
-        'api_key': 'api_key',
-        'endpoint': 'endpoint',
-        'project': 'project',
-        'launch_name': 'launch_name',
-        'launch_uuid_print': 'True'
+        "api_key": "api_key",
+        "endpoint": "endpoint",
+        "project": "project",
+        "launch_name": "launch_name",
+        "launch_uuid_print": "True",
     }
 
     cfg = read_config(mock_context)
@@ -291,17 +286,17 @@ def test_launch_uuid_print(mock_cp):
     assert cfg.launch_uuid_print_output is None
 
 
-@mock.patch('behave_reportportal.config.ConfigParser', autospec=True)
+@mock.patch("behave_reportportal.config.ConfigParser", autospec=True)
 def test_launch_uuid_print_stderr(mock_cp):
     mock_context = mock.Mock()
-    mock_context._config.userdata = UserData.make({'config_file': 'some_path'})
+    mock_context._config.userdata = UserData.make({"config_file": "some_path"})
     mock_cp().__getitem__.return_value = {
-        'api_key': 'api_key',
-        'endpoint': 'endpoint',
-        'project': 'project',
-        'launch_name': 'launch_name',
-        'launch_uuid_print': 'True',
-        'launch_uuid_print_output': 'stderr'
+        "api_key": "api_key",
+        "endpoint": "endpoint",
+        "project": "project",
+        "launch_name": "launch_name",
+        "launch_uuid_print": "True",
+        "launch_uuid_print_output": "stderr",
     }
 
     cfg = read_config(mock_context)
@@ -309,31 +304,31 @@ def test_launch_uuid_print_stderr(mock_cp):
     assert cfg.launch_uuid_print_output is OutputType.STDERR
 
 
-@mock.patch('behave_reportportal.config.ConfigParser', autospec=True)
+@mock.patch("behave_reportportal.config.ConfigParser", autospec=True)
 def test_launch_uuid_print_invalid_output(mock_cp):
     mock_context = mock.Mock()
-    mock_context._config.userdata = UserData.make({'config_file': 'some_path'})
+    mock_context._config.userdata = UserData.make({"config_file": "some_path"})
     mock_cp().__getitem__.return_value = {
-        'api_key': 'api_key',
-        'endpoint': 'endpoint',
-        'project': 'project',
-        'launch_name': 'launch_name',
-        'launch_uuid_print': 'True',
-        'launch_uuid_print_output': 'something'
+        "api_key": "api_key",
+        "endpoint": "endpoint",
+        "project": "project",
+        "launch_name": "launch_name",
+        "launch_uuid_print": "True",
+        "launch_uuid_print_output": "something",
     }
     with pytest.raises(KeyError):
         read_config(mock_context)
 
 
-@mock.patch('behave_reportportal.config.ConfigParser', autospec=True)
+@mock.patch("behave_reportportal.config.ConfigParser", autospec=True)
 def test_no_launch_uuid_print(mock_cp):
     mock_context = mock.Mock()
-    mock_context._config.userdata = UserData.make({'config_file': 'some_path'})
+    mock_context._config.userdata = UserData.make({"config_file": "some_path"})
     mock_cp().__getitem__.return_value = {
-        'api_key': 'api_key',
-        'endpoint': 'endpoint',
-        'project': 'project',
-        'launch_name': 'launch_name'
+        "api_key": "api_key",
+        "endpoint": "endpoint",
+        "project": "project",
+        "launch_name": "launch_name",
     }
 
     cfg = read_config(mock_context)
@@ -342,26 +337,20 @@ def test_no_launch_uuid_print(mock_cp):
 
 
 @pytest.mark.parametrize(
-    'connect_value, read_value, expected_result',
-    [
-        ('5', '15', (5.0, 15.0)),
-        ('5.5', '15.5', (5.5, 15.5)),
-        (None, None, None),
-        (None, '5', 5),
-        ('5', None, 5)
-    ]
+    "connect_value, read_value, expected_result",
+    [("5", "15", (5.0, 15.0)), ("5.5", "15.5", (5.5, 15.5)), (None, None, None), (None, "5", 5), ("5", None, 5)],
 )
-@mock.patch('behave_reportportal.config.ConfigParser', autospec=True)
+@mock.patch("behave_reportportal.config.ConfigParser", autospec=True)
 def test_client_timeouts(mock_cp, connect_value, read_value, expected_result):
     mock_context = mock.Mock()
-    mock_context._config.userdata = UserData.make({'config_file': 'some_path'})
+    mock_context._config.userdata = UserData.make({"config_file": "some_path"})
     mock_cp().__getitem__.return_value = {
-        'api_key': 'api_key',
-        'endpoint': 'endpoint',
-        'project': 'project',
-        'launch_name': 'launch_name',
-        'connect_timeout': connect_value,
-        'read_timeout': read_value
+        "api_key": "api_key",
+        "endpoint": "endpoint",
+        "project": "project",
+        "launch_name": "launch_name",
+        "connect_timeout": connect_value,
+        "read_timeout": read_value,
     }
 
     cfg = read_config(mock_context)

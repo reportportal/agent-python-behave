@@ -21,11 +21,11 @@ from functools import wraps
 from prettytable import MARKDOWN, PrettyTable
 from reportportal_client import create_client
 from reportportal_client.helpers import (
+    dict_to_payload,
     gen_attributes,
     get_launch_sys_attrs,
     get_package_version,
     timestamp,
-    dict_to_payload
 )
 
 from behave_reportportal.config import LogLayout
@@ -63,7 +63,7 @@ def create_rp_service(cfg):
             log_batch_payload_size=cfg.log_batch_payload_size,
             launch_uuid_print=cfg.launch_uuid_print,
             print_output=cfg.launch_uuid_print_output,
-            http_timeout=cfg.http_timeout
+            http_timeout=cfg.http_timeout,
         )
 
 
@@ -176,11 +176,7 @@ class BehaveAgent(metaclass=Singleton):
 
     def _log_skipped_steps(self, context, scenario):
         if self._cfg.log_layout is not LogLayout.SCENARIO:
-            skipped_steps = [
-                step
-                for step in scenario.steps
-                if step.status.name == "skipped"
-            ]
+            skipped_steps = [step for step in scenario.steps if step.status.name == "skipped"]
             for step in skipped_steps:
                 self.start_step(context, step)
                 self.finish_step(context, step)
@@ -197,9 +193,7 @@ class BehaveAgent(metaclass=Singleton):
                 parent_item_id=self._scenario_id,
                 code_ref=self._code_ref(step),
                 description=step_content,
-                has_stats=False
-                if self._cfg.log_layout is LogLayout.NESTED
-                else True,
+                has_stats=False if self._cfg.log_layout is LogLayout.NESTED else True,
                 **kwargs,
             )
             self._log_item_id = self._step_id
@@ -215,9 +209,7 @@ class BehaveAgent(metaclass=Singleton):
         self._finish_step_scenario_based(step, **kwargs)
 
     @check_rp_enabled
-    def post_log(
-        self, message, level="INFO", item_id=None, file_to_attach=None
-    ):
+    def post_log(self, message, level="INFO", item_id=None, file_to_attach=None):
         """Post log message to current test item."""
         self._log(
             message,
@@ -238,8 +230,7 @@ class BehaveAgent(metaclass=Singleton):
                 attachment = {
                     "name": os.path.basename(file_to_attach),
                     "data": f.read(),
-                    "mime": mimetypes.guess_type(file_to_attach)[0]
-                    or "application/octet-stream",
+                    "mime": mimetypes.guess_type(file_to_attach)[0] or "application/octet-stream",
                 }
         self._rp.log(
             time=timestamp(),
@@ -252,8 +243,7 @@ class BehaveAgent(metaclass=Singleton):
     def _get_launch_attributes(self):
         """Return launch attributes in the format supported by the rp."""
         launch_attributes = self._cfg.launch_attributes
-        attributes = gen_attributes(
-            launch_attributes) if launch_attributes else []
+        attributes = gen_attributes(launch_attributes) if launch_attributes else []
         system_attributes = get_launch_sys_attrs()
         system_attributes["agent"] = f"{self.agent_name}|{self.agent_version}"
         return attributes + dict_to_payload(system_attributes)
@@ -348,9 +338,7 @@ class BehaveAgent(metaclass=Singleton):
                     start_time=timestamp(),
                     item_type=item_type,
                     parent_item_id=parent_item_id,
-                    has_stats=False
-                    if self._cfg.log_layout is LogLayout.NESTED
-                    else True,
+                    has_stats=False if self._cfg.log_layout is LogLayout.NESTED else True,
                 )
                 self._rp.finish_test_item(self._step_id, timestamp(), "PASSED")
                 continue
@@ -364,13 +352,7 @@ class BehaveAgent(metaclass=Singleton):
     def _log_cleanups(self, context, scope):
         # noinspection PyProtectedMember
         layer = next(
-            iter(
-                [
-                    level
-                    for level in context._stack
-                    if level.get("@layer") == scope
-                ]
-            ),
+            iter([level for level in context._stack if level.get("@layer") == scope]),
             None,
         )
         if not layer:
@@ -385,9 +367,7 @@ class BehaveAgent(metaclass=Singleton):
                     start_time=timestamp(),
                     item_type=item_type,
                     parent_item_id=item_id,
-                    has_stats=False
-                    if self._cfg.log_layout is LogLayout.NESTED
-                    else True,
+                    has_stats=False if self._cfg.log_layout is LogLayout.NESTED else True,
                 )
                 self._rp.finish_test_item(self._step_id, timestamp(), "PASSED")
                 continue
@@ -408,7 +388,7 @@ class BehaveAgent(metaclass=Singleton):
             pt = PrettyTable(field_names=context.active_outline.headings)
             pt.add_row(context.active_outline.cells)
             pt.set_style(MARKDOWN)
-            desc += ("\n\n" if desc else "")
+            desc += "\n\n" if desc else ""
             desc += pt.get_string()
         return desc
 
@@ -426,11 +406,7 @@ class BehaveAgent(metaclass=Singleton):
     def _attributes(self, item):
         attrs = []
         if item.tags:
-            significant_tags = [
-                t
-                for t in item.tags
-                if not any(t.startswith(p) for p in self._ignore_tag_prefixes)
-            ]
+            significant_tags = [t for t in item.tags if not any(t.startswith(p) for p in self._ignore_tag_prefixes)]
             attrs.extend(significant_tags)
             attrs.extend(self._get_attributes_from_tags(item.tags))
 
@@ -446,7 +422,7 @@ class BehaveAgent(metaclass=Singleton):
             end = attr_tag.find(")")
             if start == -1 or end == -1:
                 continue
-            attr_str = attr_tag[start + 1: end]
+            attr_str = attr_tag[start + 1 : end]
             if not attr_str:
                 continue
             result.extend([a.strip() for a in attr_str.split(",")])
@@ -457,9 +433,7 @@ class BehaveAgent(metaclass=Singleton):
     def _test_case_id(scenario):
         if scenario.tags:
             tc_tag = next(
-                iter(
-                    [t for t in scenario.tags if t.startswith("test_case_id(")]
-                ),
+                iter([t for t in scenario.tags if t.startswith("test_case_id(")]),
                 None,
             )
             if not tc_tag:
@@ -467,7 +441,7 @@ class BehaveAgent(metaclass=Singleton):
             start, end = tc_tag.find("("), tc_tag.find(")")
             if start == -1 or end == -1:
                 return
-            tc_id = tc_tag[start + 1: end]
+            tc_id = tc_tag[start + 1 : end]
             if not tc_id:
                 return
             return tc_id
