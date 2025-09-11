@@ -29,7 +29,8 @@ To install agent-python-behave run:
 pip install behave-reportportal
 ```
 
-You can find an example of integration with behave agent [here](https://github.com/reportportal/agent-python-behave/blob/master/tests/features/environment.py).
+You can find an example of integration with behave
+agent [here](https://github.com/reportportal/agent-python-behave/blob/master/tests/features/environment.py).
 You can just copy this file to your features folder.
 
 ## Configuration
@@ -61,13 +62,16 @@ launch_description = Smoke test
 
 The following parameters are optional:
 
-- `client_type = SYNC` - Type of the under-the-hood ReportPortal client implementation. Possible values: [SYNC, ASYNC_THREAD, ASYNC_BATCHED].
+- `client_type = SYNC` - Type of the under-the-hood ReportPortal client implementation. Possible
+  values: [SYNC, ASYNC_THREAD, ASYNC_BATCHED].
 - `launch_name = AnyLaunchName` - launch name (default value is 'Python Behave Launch')
-- `launch_id = xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx` - id of the existing launch (the session will not handle the lifecycle of the given launch)
+- `launch_id = xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx` - id of the existing launch (the session will not handle the
+  lifecycle of the given launch)
 - `launch_attributes = Smoke Env:Python3` - list of attributes for launch
 - `launch_description = Smoke test` - launch description
 - `debug_mode = True` - creates the launch either as debug or default mode (defaults to False)
-- `log_layout = Nested` - responsible for Scenario, Step or Nested based logging (Scenario based approach is used by default)
+- `log_layout = Nested` - responsible for Scenario, Step or Nested based logging (Scenario based approach is used by
+  default)
 - `is_skipped_an_issue = False` - option to mark skipped tests as not 'To Investigate' items on Server side.
 - `retries = 3` - amount of retries for performing REST calls to RP server
 - `rerun = True` - marks the launch as the rerun
@@ -79,7 +83,8 @@ The following parameters are optional:
 - `log_batch_size = 20` - maximum number of log entries which will be sent by the agent at once
 - `log_batch_payload_size = 65000000` - maximum payload size of a log batch which will be sent by the agent at once
 
-If you would like to override the above parameters from command line, or from CI environment based on your build, then pass:
+If you would like to override the above parameters from command line, or from CI environment based on your build, then
+pass:
 
 - `-D parameter=value` during invocation.
 
@@ -163,7 +168,8 @@ def calculate_two_numbers(context, number_a, number_b):
 
 ## Test case ID
 
-It's possible to mark some scenario with `test_case_id(<some_id>)` tag. ID specified in brackets will be sent to ReportPortal.
+It's possible to mark some scenario with `test_case_id(<some_id>)` tag. ID specified in brackets will be sent to
+ReportPortal.
 
 ## Integration with GA
 
