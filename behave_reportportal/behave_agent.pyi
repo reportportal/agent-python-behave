@@ -34,7 +34,7 @@ class BehaveAgent:
     _scenario_id: Optional[str]
     _step_id: Optional[str]
     _log_item_id: Optional[str]
-    _ignore_tag_prefixes: [List[str]]
+    _ignore_tag_prefixes: List[str]
 
     def __init__(self, cfg: Config, rp_service: Optional[RP] = ...) -> None: ...
     def start_launch(self, context: Context, **kwargs: Any) -> None: ...
