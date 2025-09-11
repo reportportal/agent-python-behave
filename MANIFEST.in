@@ -1,2 +1,1 @@
-include MANIFEST.in
-include README.md requirements.txt
+include LICENSE README.md CHANGELOG.md requirements.txt
