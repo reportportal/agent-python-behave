@@ -70,6 +70,7 @@ def create_rp_service(cfg: Config) -> Optional[RP]:
             print_output=cfg.launch_uuid_print_output,
             http_timeout=cfg.http_timeout,
         )
+    return None
 
 
 class BehaveAgent(metaclass=Singleton):
@@ -447,6 +448,7 @@ class BehaveAgent(metaclass=Singleton):
     def _code_ref(item: BasicStatement) -> Optional[str]:
         if item.location:
             return f"{item.location.filename}:{item.location.line}"
+        return None
 
     def _attributes(self, item: Union[TagAndStatusStatement, TagStatement]) -> List[Dict[str, str]]:
         attrs = []
@@ -475,21 +477,22 @@ class BehaveAgent(metaclass=Singleton):
         return result
 
     @staticmethod
-    def _test_case_id(scenario: Scenario) -> str:
+    def _test_case_id(scenario: Scenario) -> Optional[Any]:
         if scenario.tags:
             tc_tag = next(
                 iter([t for t in scenario.tags if t.startswith("test_case_id(")]),
                 None,
             )
             if not tc_tag:
-                return
+                return None
             start, end = tc_tag.find("("), tc_tag.find(")")
             if start == -1 or end == -1:
-                return
+                return None
             tc_id = tc_tag[start + 1 : end]
             if not tc_id:
-                return
+                return None
             return tc_id
+        return None
 
     @staticmethod
     def convert_to_rp_status(behave_status: str) -> str:
