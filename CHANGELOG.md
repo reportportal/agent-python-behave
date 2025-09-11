@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 ### Added
+- Support for `Python 3.13`, by @HardNorth
+### Changed
+- Client version updated to [5.6.5](https://github.com/reportportal/client-Python/releases/tag/5.6.5), by @HardNorth
+- Behave version updated to [1.3.3](https://github.com/behave/behave/releases/tag/v1.3.3), by @HardNorth
+### Removed
+- `Python 3.7` support, by @HardNorth
+
+## [4.0.3]
+### Added
 - Python 12 support, by @HardNorth
 
 ## [4.0.2]
