@@ -17,7 +17,7 @@ import os
 
 from setuptools import setup
 
-__version__ = '5.0.0'
+__version__ = "5.0.0"
 
 
 def read_file(fname):
@@ -31,26 +31,26 @@ def read_file(fname):
 
 
 setup(
-    name='behave-reportportal',
+    name="behave-reportportal",
     version=__version__,
-    description='Agent for reporting Behave results to the ReportPortal',
-    long_description=read_file('README.rst'),
-    long_description_content_type='text/x-rst',
-    author='ReportPortal Team',
-    author_email='support@reportportal.io',
-    url='https://github.com/reportportal/agent-python-behave',
-    packages=['behave_reportportal'],
-    package_data={'behave_reportportal': ['*.pyi']},
-    python_requires='>=3.6',
-    install_requires=read_file('requirements.txt').splitlines(),
-    license='Apache 2.0',
-    keywords=['testing', 'reporting', 'reportportal', 'behave'],
+    description="Agent for reporting Behave results to the ReportPortal",
+    long_description=read_file("README.rst"),
+    long_description_content_type="text/x-rst",
+    author="ReportPortal Team",
+    author_email="support@reportportal.io",
+    url="https://github.com/reportportal/agent-python-behave",
+    packages=["behave_reportportal"],
+    package_data={"behave_reportportal": ["*.pyi"]},
+    python_requires=">=3.6",
+    install_requires=read_file("requirements.txt").splitlines(),
+    license="Apache 2.0",
+    keywords=["testing", "reporting", "reportportal", "behave"],
     classifiers=[
-        'Programming Language :: Python :: 3.8',
-        'Programming Language :: Python :: 3.9',
-        'Programming Language :: Python :: 3.10',
-        'Programming Language :: Python :: 3.11',
-        'Programming Language :: Python :: 3.12',
-        'Programming Language :: Python :: 3.13',
-    ]
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
+    ],
 )
