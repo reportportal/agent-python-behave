@@ -654,7 +654,7 @@ def test_finish_failed_step_scenario_based(mock_timestamp, config):
         mock_step.text = None
         mock_step.table = None
         mock_step.exception = e
-        mock_step.exception.args = ["Exception message"]
+        mock_step.exception.args = tuple("Exception message")
         mock_step.exc_traceback = e_traceback
         mock_step.error_message = "Error message"
         mock_timestamp.return_value = 123
@@ -904,7 +904,7 @@ def test_log_cleanup_step_based(mock_timestamp, scope, item_type, item_id):
     cfg = Config(endpoint="E", token="T", project="P", log_layout=LogLayout.STEP)
     mock_timestamp.return_value = 123
     mock_rps = mock.create_autospec(RPClient)
-    mock_context, mock_func1, mock_func2 = mock.Mock(), mock.Mock, mock.Mock()
+    mock_context, mock_func1, mock_func2 = mock.Mock(), mock.Mock(), mock.Mock()
     mock_func1.__name__ = "cleanup_func1"
     mock_func2.__name__ = "cleanup_func2"
     mock_context._stack = [{"@layer": scope, "@cleanups": [mock_func1, mock_func2]}]
@@ -931,7 +931,7 @@ def test_log_cleanup_step_based(mock_timestamp, scope, item_type, item_id):
 def test_log_cleanup_scenario_based(mock_timestamp, config, scope, item_id):
     mock_timestamp.return_value = 123
     mock_rps = mock.create_autospec(RPClient)
-    mock_context, mock_func1, mock_func2 = mock.Mock(), mock.Mock, mock.Mock()
+    mock_context, mock_func1, mock_func2 = mock.Mock(), mock.Mock(), mock.Mock()
     mock_func1.__name__ = "cleanup_func1"
     mock_func2.__name__ = "cleanup_func2"
     mock_context._stack = [{"@layer": scope, "@cleanups": [mock_func1, mock_func2]}]
