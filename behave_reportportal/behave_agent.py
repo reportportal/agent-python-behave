@@ -45,9 +45,9 @@ def check_rp_enabled(func: Callable) -> Callable:
         if args and isinstance(args[0], BehaveAgent):
             # noinspection PyProtectedMember
             if not args[0]._rp:
-                return
+                return None
 
-        func(*args, **kwargs)
+        return func(*args, **kwargs)
 
     return wrap
 
@@ -189,7 +189,7 @@ class BehaveAgent(metaclass=Singleton):
         if scenario.status.name == "failed":
             self._log_skipped_steps(context, scenario)
             self._log_scenario_exception(scenario)
-        self._log_cleanups(context, "scenario"),
+        self._log_cleanups(context, "scenario")
         self._rp.finish_test_item(
             item_id=self._scenario_id,
             end_time=timestamp(),
@@ -267,12 +267,17 @@ class BehaveAgent(metaclass=Singleton):
     ) -> None:
         attachment = None
         if file_to_attach:
-            with open(file_to_attach, "rb") as f:
-                attachment = {
-                    "name": os.path.basename(file_to_attach),
-                    "data": f.read(),
-                    "mime": mimetypes.guess_type(file_to_attach)[0] or "application/octet-stream",
-                }
+            try:
+                with open(file_to_attach, "rb") as f:
+                    attachment = {
+                        "name": os.path.basename(file_to_attach),
+                        "data": f.read(),
+                        "mime": mimetypes.guess_type(file_to_attach)[0] or "application/octet-stream",
+                    }
+            except OSError:
+                self._rp.log(
+                    time=timestamp(), message=f"Attachment not found: {file_to_attach}", level="WARN", item_id=item_id
+                )
         self._rp.log(
             time=timestamp(),
             message=message,
@@ -296,7 +301,8 @@ class BehaveAgent(metaclass=Singleton):
             txt += f"```\n{step.text}\n```\n"
         if step.table:
             pt = PrettyTable(field_names=step.table.headings)
-            [pt.add_row(row.cells) for row in step.table.rows]
+            for row in step.table.rows:
+                pt.add_row(row.cells)
             pt.set_style(MARKDOWN)
             txt += pt.get_string()
         return txt
@@ -386,7 +392,7 @@ class BehaveAgent(metaclass=Singleton):
                     parent_item_id=parent_item_id,
                     has_stats=False if self._cfg.log_layout is LogLayout.NESTED else True,
                 )
-                self._rp.finish_test_item(self._step_id, timestamp(), "PASSED")
+                self._rp.finish_test_item(item_id=self._step_id, end_time=timestamp(), status="PASSED")
                 continue
             self._rp.log(
                 timestamp(),
@@ -397,10 +403,7 @@ class BehaveAgent(metaclass=Singleton):
 
     def _log_cleanups(self, context: Context, scope: str) -> None:
         # noinspection PyProtectedMember
-        layer = next(
-            iter([level for level in context._stack if level.get("@layer") == scope]),
-            None,
-        )
+        layer = next((level for level in context._stack if level.get("@layer") == scope), None)
         if not layer:
             return
         item_type = "AFTER_SUITE" if scope == "feature" else "AFTER_TEST"
@@ -408,14 +411,14 @@ class BehaveAgent(metaclass=Singleton):
         for cleanup in layer.get("@cleanups", []):
             msg = f"Execution of '{cleanup.__name__}' cleanup function"
             if self._cfg.log_layout is not LogLayout.SCENARIO:
-                self._step_id = self._step_id = self._rp.start_test_item(
+                self._step_id = self._rp.start_test_item(
                     name=msg,
                     start_time=timestamp(),
                     item_type=item_type,
                     parent_item_id=item_id,
                     has_stats=False if self._cfg.log_layout is LogLayout.NESTED else True,
                 )
-                self._rp.finish_test_item(self._step_id, timestamp(), "PASSED")
+                self._rp.finish_test_item(item_id=self._step_id, end_time=timestamp(), status="PASSED")
                 continue
             self._rp.log(
                 timestamp(),
@@ -479,10 +482,7 @@ class BehaveAgent(metaclass=Singleton):
     @staticmethod
     def _test_case_id(scenario: Scenario) -> Optional[Any]:
         if scenario.tags:
-            tc_tag = next(
-                iter([t for t in scenario.tags if t.startswith("test_case_id(")]),
-                None,
-            )
+            tc_tag = next((t for t in scenario.tags if t.startswith("test_case_id(")), None)
             if not tc_tag:
                 return None
             start, end = tc_tag.find("("), tc_tag.find(")")

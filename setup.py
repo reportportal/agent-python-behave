@@ -26,7 +26,7 @@ def read_file(fname):
     :param fname: Filename to be read
     :return: File content
     """
-    with open(os.path.join(os.path.dirname(__file__), fname)) as f:
+    with open(os.path.join(os.path.dirname(__file__), fname), encoding="utf-8") as f:
         return f.read()
 
 
@@ -40,7 +40,6 @@ setup(
     author_email="support@reportportal.io",
     url="https://github.com/reportportal/agent-python-behave",
     packages=["behave_reportportal"],
-    package_data={"behave_reportportal": ["*.pyi"]},
     python_requires=">=3.8",
     install_requires=read_file("requirements.txt").splitlines(),
     license="Apache 2.0",

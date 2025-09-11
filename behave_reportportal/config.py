@@ -82,7 +82,7 @@ class Config(object):
         log_layout: Optional[Union[str, LogLayout]] = None,
         step_based: Optional[str] = None,
         is_skipped_an_issue: Optional[Union[str, bool]] = None,
-        retries: Optional[str] = None,
+        retries: Optional[Union[str, int]] = None,
         rerun: Optional[Union[str, bool]] = None,
         rerun_of: Optional[str] = None,
         log_batch_size: Optional[str] = None,
@@ -100,10 +100,10 @@ class Config(object):
         self.launch_id = launch_id
         self.launch_name = launch_name or DEFAULT_LAUNCH_NAME
         self.launch_description = launch_description
-        self.launch_attributes = launch_attributes and launch_attributes.split(" ")
+        self.launch_attributes = launch_attributes and launch_attributes.split()
         self.debug_mode = to_bool(debug_mode or "False")
         self.is_skipped_an_issue = to_bool(is_skipped_an_issue or "False")
-        self.retries = retries and int(retries)
+        self.retries = int(retries) if retries is not None else None
         self.rerun = to_bool(rerun or "False")
         self.rerun_of = rerun_of
         self.log_batch_size = (log_batch_size and int(log_batch_size)) or 20
@@ -113,7 +113,7 @@ class Config(object):
 
         if step_based and not log_layout:
             warn(
-                "'step_based' config setting has been deprecated" "in favor of the new log_layout configuration.",
+                "'step_based' config setting has been deprecated in favor of the new log_layout configuration.",
                 DeprecationWarning,
                 stacklevel=2,
             )
@@ -136,18 +136,19 @@ class Config(object):
             if not self.api_key:
                 warn(
                     message="Argument `api_key` is `None` or empty string, "
-                    "that's not supposed to happen because ReportPortal "
-                    "is usually requires an authorization key. "
-                    "Please check your code.",
+                    "this is unexpected because ReportPortal usually requires an authorization key. "
+                    "Please check your configuration.",
                     category=RuntimeWarning,
                     stacklevel=2,
                 )
         self.enabled = all([self.endpoint, self.project, self.api_key])
         self.launch_uuid_print = to_bool(launch_uuid_print or "False")
+        launch_uuid_print_output_strip = launch_uuid_print_output.strip() if launch_uuid_print_output else ""
         self.launch_uuid_print_output = (
-            OutputType[launch_uuid_print_output.upper()] if launch_uuid_print_output else None
+            OutputType[launch_uuid_print_output_strip.upper()] if launch_uuid_print_output_strip else None
         )
-        self.client_type = ClientType[client_type.upper()] if client_type else ClientType.SYNC
+        client_type_strip = client_type.strip() if client_type else ""
+        self.client_type = ClientType[client_type_strip.upper()] if client_type_strip else ClientType.SYNC
 
         connect_timeout = float(connect_timeout) if connect_timeout else None
         read_timeout = float(read_timeout) if read_timeout else None

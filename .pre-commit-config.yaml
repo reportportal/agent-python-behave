@@ -21,7 +21,7 @@ repos:
     rev: 24.10.0
     hooks:
       - id: black
-        args: [ '--check', 'behave_reportportal', 'tests' ]
+        args: [ '--check' ]
   - repo: https://github.com/pycqa/isort
     rev: 6.0.0
     hooks:
