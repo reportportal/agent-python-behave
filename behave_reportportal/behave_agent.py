@@ -17,9 +17,14 @@ import mimetypes
 import os
 import traceback
 from functools import wraps
+from os import PathLike
+from typing import Any, Callable, Dict, List, Optional, Union
 
+from behave.model import Feature, Scenario, Step
+from behave.model_core import BasicStatement, TagAndStatusStatement, TagStatement
+from behave.runner import Context
 from prettytable import MARKDOWN, PrettyTable
-from reportportal_client import create_client
+from reportportal_client import RP, create_client
 from reportportal_client.helpers import (
     dict_to_payload,
     gen_attributes,
@@ -28,11 +33,11 @@ from reportportal_client.helpers import (
     timestamp,
 )
 
-from behave_reportportal.config import LogLayout
+from behave_reportportal.config import Config, LogLayout
 from behave_reportportal.utils import Singleton
 
 
-def check_rp_enabled(func):
+def check_rp_enabled(func: Callable) -> Callable:
     """Verify is RP is enabled in config."""
 
     @wraps(func)
@@ -47,7 +52,7 @@ def check_rp_enabled(func):
     return wrap
 
 
-def create_rp_service(cfg):
+def create_rp_service(cfg: Config) -> Optional[RP]:
     """Create instance of ReportPortalService."""
     if cfg.enabled:
         return create_client(
@@ -70,7 +75,19 @@ def create_rp_service(cfg):
 class BehaveAgent(metaclass=Singleton):
     """Functionality for integration of Behave tests with ReportPortal."""
 
-    def __init__(self, cfg, rp_service=None):
+    _rp: Optional[RP]
+    _cfg: Config
+    _handle_lifecycle: bool
+    agent_name: str
+    agent_version: str
+    _launch_id: Optional[str]
+    _feature_id: Optional[str]
+    _scenario_id: Optional[str]
+    _step_id: Optional[str]
+    _log_item_id: Optional[str]
+    _ignore_tag_prefixes: List[str]
+
+    def __init__(self, cfg: Config, rp_service: Optional[RP] = None) -> None:
         """Initialize instance attributes."""
         self._rp = rp_service
         self._cfg = cfg
@@ -87,7 +104,7 @@ class BehaveAgent(metaclass=Singleton):
         self._ignore_tag_prefixes = ["attribute", "fixture", "test_case_id"]
 
     @check_rp_enabled
-    def start_launch(self, _, **kwargs):
+    def start_launch(self, _: Context, **kwargs: Any) -> None:
         """Start launch in ReportPortal."""
         self._handle_lifecycle = False if self._rp.launch_uuid else True
         self._launch_id = self._rp.launch_uuid or self._rp.start_launch(
@@ -101,14 +118,14 @@ class BehaveAgent(metaclass=Singleton):
         )
 
     @check_rp_enabled
-    def finish_launch(self, _, **kwargs):
+    def finish_launch(self, _: Context, **kwargs: Any) -> None:
         """Finish launch in ReportPortal."""
         if self._handle_lifecycle:
             self._rp.finish_launch(end_time=timestamp(), **kwargs)
         self._rp.close()
 
     @check_rp_enabled
-    def start_feature(self, context, feature, **kwargs):
+    def start_feature(self, context: Context, feature: Feature, **kwargs: Any) -> None:
         """Start feature in ReportPortal."""
         if feature.tags and "skip" in feature.tags:
             feature.skip("Marked with @skip")
@@ -125,7 +142,7 @@ class BehaveAgent(metaclass=Singleton):
         self._log_item_id = self._feature_id
 
     @check_rp_enabled
-    def finish_feature(self, context, feature, status=None, **kwargs):
+    def finish_feature(self, context: Context, feature: Feature, status: Optional[str] = None, **kwargs: Any) -> None:
         """Finish feature in ReportPortal."""
         if feature.tags and "skip" in feature.tags:
             status = "SKIPPED"
@@ -138,7 +155,7 @@ class BehaveAgent(metaclass=Singleton):
         )
 
     @check_rp_enabled
-    def start_scenario(self, context, scenario, **kwargs):
+    def start_scenario(self, context: Context, scenario: Scenario, **kwargs: Any) -> None:
         """Start scenario in ReportPortal."""
         if scenario.tags and "skip" in scenario.tags:
             scenario.skip("Marked with @skip")
@@ -158,7 +175,13 @@ class BehaveAgent(metaclass=Singleton):
         self._log_item_id = self._scenario_id
 
     @check_rp_enabled
-    def finish_scenario(self, context, scenario, status=None, **kwargs):
+    def finish_scenario(
+        self,
+        context: Context,
+        scenario: Scenario,
+        status: Optional[str] = None,
+        **kwargs: Any,
+    ) -> None:
         """Finish scenario in ReportPortal."""
         if scenario.tags and "skip" in scenario.tags:
             status = "SKIPPED"
@@ -174,7 +197,7 @@ class BehaveAgent(metaclass=Singleton):
         )
         self._log_item_id = self._feature_id
 
-    def _log_skipped_steps(self, context, scenario):
+    def _log_skipped_steps(self, context: Context, scenario: Scenario) -> None:
         if self._cfg.log_layout is not LogLayout.SCENARIO:
             skipped_steps = [step for step in scenario.steps if step.status.name == "skipped"]
             for step in skipped_steps:
@@ -182,7 +205,7 @@ class BehaveAgent(metaclass=Singleton):
                 self.finish_step(context, step)
 
     @check_rp_enabled
-    def start_step(self, _, step, **kwargs):
+    def start_step(self, _: Context, step: Step, **kwargs: Any) -> None:
         """Start test in ReportPortal."""
         if self._cfg.log_layout is not LogLayout.SCENARIO:
             step_content = self._build_step_content(step)
@@ -201,7 +224,7 @@ class BehaveAgent(metaclass=Singleton):
                 self.post_log(step_content)
 
     @check_rp_enabled
-    def finish_step(self, _, step, **kwargs):
+    def finish_step(self, _: Context, step: Step, **kwargs: Any) -> None:
         """Finish test in ReportPortal."""
         if self._cfg.log_layout is not LogLayout.SCENARIO:
             self._finish_step_step_based(step, **kwargs)
@@ -209,7 +232,13 @@ class BehaveAgent(metaclass=Singleton):
         self._finish_step_scenario_based(step, **kwargs)
 
     @check_rp_enabled
-    def post_log(self, message, level="INFO", item_id=None, file_to_attach=None):
+    def post_log(
+        self,
+        message: str,
+        level: Optional[Union[int, str]] = "INFO",
+        item_id: Optional[str] = None,
+        file_to_attach: Optional[Union[PathLike, str]] = None,
+    ) -> None:
         """Post log message to current test item."""
         self._log(
             message,
@@ -219,11 +248,22 @@ class BehaveAgent(metaclass=Singleton):
         )
 
     @check_rp_enabled
-    def post_launch_log(self, message, level="INFO", file_to_attach=None):
+    def post_launch_log(
+        self,
+        message: str,
+        level: Optional[Union[int, str]] = "INFO",
+        file_to_attach: Optional[Union[PathLike, str]] = None,
+    ) -> None:
         """Post log message to launch."""
         self._log(message, level, file_to_attach=file_to_attach)
 
-    def _log(self, message, level, file_to_attach=None, item_id=None):
+    def _log(
+        self,
+        message: str,
+        level: Optional[Union[int, str]],
+        file_to_attach: Optional[Union[PathLike, str]] = None,
+        item_id: Optional[str] = None,
+    ) -> None:
         attachment = None
         if file_to_attach:
             with open(file_to_attach, "rb") as f:
@@ -240,7 +280,7 @@ class BehaveAgent(metaclass=Singleton):
             item_id=item_id,
         )
 
-    def _get_launch_attributes(self):
+    def _get_launch_attributes(self) -> List[Dict[str, str]]:
         """Return launch attributes in the format supported by the rp."""
         launch_attributes = self._cfg.launch_attributes
         attributes = gen_attributes(launch_attributes) if launch_attributes else []
@@ -249,7 +289,7 @@ class BehaveAgent(metaclass=Singleton):
         return attributes + dict_to_payload(system_attributes)
 
     @staticmethod
-    def _build_step_content(step):
+    def _build_step_content(step: Step) -> str:
         txt = ""
         if step.text:
             txt += f"```\n{step.text}\n```\n"
@@ -260,7 +300,7 @@ class BehaveAgent(metaclass=Singleton):
             txt += pt.get_string()
         return txt
 
-    def _finish_step_step_based(self, step, status=None, **kwargs):
+    def _finish_step_step_based(self, step: Step, status: Optional[str] = None, **kwargs: Any) -> None:
         if step.status.name == "failed":
             self._log_step_exception(step, self._step_id)
         self._rp.finish_test_item(
@@ -271,7 +311,7 @@ class BehaveAgent(metaclass=Singleton):
         )
         self._log_item_id = self._scenario_id
 
-    def _finish_step_scenario_based(self, step, **kwargs):
+    def _finish_step_scenario_based(self, step: Step, **kwargs: Any) -> None:
         step_content = self._build_step_content(step)
         self._rp.log(
             item_id=self._scenario_id,
@@ -283,21 +323,21 @@ class BehaveAgent(metaclass=Singleton):
         if step.status.name == "failed":
             self._log_step_exception(step, self._scenario_id)
 
-    def _log_step_exception(self, step, item_id):
+    def _log_step_exception(self, step: Step, item_id: Optional[str]) -> None:
         self._log_exception(
             f"Step [{step.keyword}]: {step.name} was finished with exception.",
             step,
             item_id,
         )
 
-    def _log_scenario_exception(self, scenario):
+    def _log_scenario_exception(self, scenario: Scenario) -> None:
         self._log_exception(
             f"Scenario '{scenario.name}' finished with error.",
             scenario,
             self._scenario_id,
         )
 
-    def _log_exception(self, initial_msg, exc_holder, item_id):
+    def _log_exception(self, initial_msg: str, exc_holder: BasicStatement, item_id: Optional[str]) -> None:
         message = [initial_msg]
         if exc_holder.exception and exc_holder.exc_traceback:
             message.append(
@@ -319,7 +359,12 @@ class BehaveAgent(metaclass=Singleton):
             message="\n".join(message),
         )
 
-    def _log_fixtures(self, item, item_type, parent_item_id):
+    def _log_fixtures(
+        self,
+        item: Union[TagAndStatusStatement, TagStatement],
+        item_type: str,
+        parent_item_id: str,
+    ) -> None:
         """
         Log used fixtures for item.
 
@@ -349,7 +394,7 @@ class BehaveAgent(metaclass=Singleton):
                 item_id=parent_item_id,
             )
 
-    def _log_cleanups(self, context, scope):
+    def _log_cleanups(self, context: Context, scope: str) -> None:
         # noinspection PyProtectedMember
         layer = next(
             iter([level for level in context._stack if level.get("@layer") == scope]),
@@ -379,7 +424,7 @@ class BehaveAgent(metaclass=Singleton):
             )
 
     @staticmethod
-    def _item_description(context, item):
+    def _item_description(context: Context, item: Union[Scenario, Feature]) -> str:
         desc = ""
         if item.description:
             text_desc = "\n".join(item.description)
@@ -393,17 +438,17 @@ class BehaveAgent(metaclass=Singleton):
         return desc
 
     @staticmethod
-    def _get_parameters(context):
+    def _get_parameters(context: Context) -> Optional[Dict[str, Any]]:
         if context.active_outline:
             return {r[0]: r[1] for r in zip(context.active_outline.headings, context.active_outline.cells)}
         return None
 
     @staticmethod
-    def _code_ref(item):
+    def _code_ref(item: BasicStatement) -> Optional[str]:
         if item.location:
             return f"{item.location.filename}:{item.location.line}"
 
-    def _attributes(self, item):
+    def _attributes(self, item: Union[TagAndStatusStatement, TagStatement]) -> List[Dict[str, str]]:
         attrs = []
         if item.tags:
             significant_tags = [t for t in item.tags if not any(t.startswith(p) for p in self._ignore_tag_prefixes)]
@@ -413,7 +458,7 @@ class BehaveAgent(metaclass=Singleton):
         return gen_attributes(attrs)
 
     @staticmethod
-    def _get_attributes_from_tags(tags):
+    def _get_attributes_from_tags(tags: List[str]) -> List[str]:
         result = []
         attr_tags = [t for t in tags if t.startswith("attribute")]
 
@@ -430,7 +475,7 @@ class BehaveAgent(metaclass=Singleton):
         return result
 
     @staticmethod
-    def _test_case_id(scenario):
+    def _test_case_id(scenario: Scenario) -> str:
         if scenario.tags:
             tc_tag = next(
                 iter([t for t in scenario.tags if t.startswith("test_case_id(")]),
@@ -447,7 +492,7 @@ class BehaveAgent(metaclass=Singleton):
             return tc_id
 
     @staticmethod
-    def convert_to_rp_status(behave_status):
+    def convert_to_rp_status(behave_status: str) -> str:
         """
         Convert behave test result status to ReportPortal status.
 
