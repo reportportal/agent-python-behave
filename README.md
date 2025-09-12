@@ -9,16 +9,6 @@
 
 Behave extension for reporting test results of Behave to the ReportPortal.
 
-- **Usage**
-- **Installation**
-- **Configuration**
-- **Launching**
-- **Test item attributes**
-- **Logging**
-- **Test case ID**
-- **Integration with GA**
-- **Copyright Notice**
-
 ## Usage
 
 ### Installation
