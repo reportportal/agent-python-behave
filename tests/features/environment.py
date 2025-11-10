@@ -11,20 +11,17 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License
 
-from behave_reportportal.behave_agent import BehaveAgent, create_rp_service
+from behave_reportportal.behave_agent import BehaveAgent
 from behave_reportportal.config import read_config
 
 
 def before_all(context):
-    cfg = read_config(context)
-    context.rp_client = create_rp_service(cfg)
-    context.rp_agent = BehaveAgent(cfg, context.rp_client)
+    context.rp_agent = BehaveAgent(read_config(context))
     context.rp_agent.start_launch(context)
 
 
 def after_all(context):
     context.rp_agent.finish_launch(context)
-    context.rp_client.close()
 
 
 def before_feature(context, feature):

@@ -181,7 +181,7 @@ def test_create_rp_service_init(mock_rps):
                 retries=None,
                 mode="DEFAULT",
                 log_batch_size=20,
-                log_batch_payload_size=MAX_LOG_BATCH_PAYLOAD_SIZE,
+                log_batch_payload_limit=MAX_LOG_BATCH_PAYLOAD_SIZE,
                 launch_uuid_print=False,
                 print_output=None,
                 http_timeout=None,
@@ -338,7 +338,7 @@ def test_finish_launch(mock_timestamp, config):
 def test_skip_finish_launch(mock_timestamp, config):
     mock_timestamp.return_value = 123
     mock_rps = mock.create_autospec(RPClient)
-    mock_rps.launch_id = "abc"
+    mock_rps.launch_uuid = "abc"
     mock_context = mock.Mock()
     ba = BehaveAgent(config, mock_rps)
     ba.start_launch(mock_context, some_key="some_value")

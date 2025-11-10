@@ -61,14 +61,21 @@ def create_rp_service(cfg: Config) -> Optional[RP]:
             project=cfg.project,
             api_key=cfg.api_key,
             is_skipped_an_issue=cfg.is_skipped_an_issue,
-            launch_id=cfg.launch_id,
+            launch_uuid=cfg.launch_uuid,
             retries=cfg.retries,
             mode="DEBUG" if cfg.debug_mode else "DEFAULT",
             log_batch_size=cfg.log_batch_size,
-            log_batch_payload_size=cfg.log_batch_payload_size,
+            log_batch_payload_limit=cfg.log_batch_payload_limit,
             launch_uuid_print=cfg.launch_uuid_print,
             print_output=cfg.launch_uuid_print_output,
             http_timeout=cfg.http_timeout,
+            # OAuth 2.0 parameters
+            oauth_uri=cfg.oauth_uri,
+            oauth_username=cfg.oauth_username,
+            oauth_password=cfg.oauth_password,
+            oauth_client_id=cfg.oauth_client_id,
+            oauth_client_secret=cfg.oauth_client_secret,
+            oauth_scope=cfg.oauth_scope,
         )
     return None
 
@@ -90,7 +97,7 @@ class BehaveAgent(metaclass=Singleton):
 
     def __init__(self, cfg: Config, rp_service: Optional[RP] = None) -> None:
         """Initialize instance attributes."""
-        self._rp = rp_service
+        self._rp = rp_service or create_rp_service(cfg)
         self._cfg = cfg
         self._handle_lifecycle = True
         self._launch_id = None
