@@ -220,7 +220,7 @@ def test_create_rp_service_init_type(client_type, client_class):
 
 def test_init_invalid_config():
     with pytest.raises(ValueError) as exc_info:
-        ba = BehaveAgent(Config())
+        BehaveAgent(Config())
     assert "Authentication credentials are required" in str(exc_info.value)
 
 
