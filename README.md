@@ -51,6 +51,7 @@ launch_description = Smoke test
 
 The following parameters are optional:
 
+- `enabled = True` - Enable / disable ReportPortal reporting.
 - `api_key` - value can be found in the User Profile section. **Required** if OAuth 2.0 is not configured.
 - `oauth_uri = https://reportportal.example.com/uat/sso/oauth/token` - OAuth 2.0 token endpoint URL for password grant
   authentication. **Required** if API key is not used.

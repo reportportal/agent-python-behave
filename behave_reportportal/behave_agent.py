@@ -25,6 +25,9 @@ from behave.model_core import BasicStatement, TagAndStatusStatement, TagStatemen
 from behave.runner import Context
 from prettytable import MARKDOWN, PrettyTable
 from reportportal_client import RP, create_client
+
+# noinspection PyProtectedMember
+from reportportal_client._internal.static.defines import NOT_SET
 from reportportal_client.helpers import (
     dict_to_payload,
     gen_attributes,
@@ -95,9 +98,12 @@ class BehaveAgent(metaclass=Singleton):
     _log_item_id: Optional[str]
     _ignore_tag_prefixes: List[str]
 
-    def __init__(self, cfg: Config, rp_service: Optional[RP] = None) -> None:
+    def __init__(self, cfg: Config, rp_service: Optional[RP] = NOT_SET) -> None:
         """Initialize instance attributes."""
-        self._rp = rp_service or create_rp_service(cfg)
+        if rp_service is NOT_SET:
+            self._rp = create_rp_service(cfg)
+        else:
+            self._rp = rp_service
         self._cfg = cfg
         self._handle_lifecycle = True
         self._launch_id = None

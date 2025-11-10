@@ -159,7 +159,9 @@ def test_get_parameters():
 
 
 def test_create_rp_service_disabled_rp():
-    assert create_rp_service(Config()) is None, "Service is not None for disabled integration with RP in config"
+    assert (
+        create_rp_service(Config(enabled=False)) is None
+    ), "Service is not None for disabled integration with RP in config"
 
 
 def test_create_rp_service_enabled_rp(config):
@@ -177,7 +179,7 @@ def test_create_rp_service_init(mock_rps):
                 "C",
                 api_key="B",
                 is_skipped_an_issue=False,
-                launch_id=None,
+                launch_uuid=None,
                 retries=None,
                 mode="DEFAULT",
                 log_batch_size=20,
@@ -185,6 +187,12 @@ def test_create_rp_service_init(mock_rps):
                 launch_uuid_print=False,
                 print_output=None,
                 http_timeout=None,
+                oauth_uri=None,
+                oauth_username=None,
+                oauth_password=None,
+                oauth_client_id=None,
+                oauth_client_secret=None,
+                oauth_scope=None,
             )
         ],
         any_order=True,
@@ -211,8 +219,9 @@ def test_create_rp_service_init_type(client_type, client_class):
 
 
 def test_init_invalid_config():
-    ba = BehaveAgent(Config())
-    assert ba._rp is None, "Incorrect initialization of agent"
+    with pytest.raises(ValueError) as exc_info:
+        ba = BehaveAgent(Config())
+    assert "Authentication credentials are required" in str(exc_info.value)
 
 
 def test_init_valid_config(config):
