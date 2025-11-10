@@ -58,7 +58,7 @@ The following parameters are optional:
 - `oauth_username = my-username` - OAuth 2.0 username for password grant authentication. **Required** if OAuth 2.0 is
   used.
 - `oauth_password = my-password` - OAuth 2.0 password for password grant authentication. **Required** if OAuth 2.0 is
-  used.  
+  used.
 - `oauth_client_id = client-id` - OAuth 2.0 client identifier. **Required** if OAuth 2.0 is used.
 - `oauth_client_secret = client-id-secret` - OAuth 2.0 client secret.
 - `oauth_scope = offline_access` - OAuth 2.0 access token scope.
