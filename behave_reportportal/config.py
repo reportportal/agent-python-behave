@@ -52,7 +52,7 @@ class Config(object):
     project: Optional[str]
     api_key: Optional[str]
     enabled: bool
-    launch_id: Optional[str]
+    launch_uuid: Optional[str]
     launch_name: str
     launch_description: Optional[str]
     launch_attributes: Optional[List[str]]
@@ -62,19 +62,27 @@ class Config(object):
     rerun: bool
     rerun_of: Optional[str]
     log_batch_size: int
-    log_batch_payload_size: int
+    log_batch_payload_limit: int
     log_layout: LogLayout
     launch_uuid_print: bool
     launch_uuid_print_output: Optional[OutputType]
     client_type: ClientType
     http_timeout: Optional[Union[Tuple[float, float], float]]
 
+    # OAuth 2.0 parameters
+    oauth_uri: Optional[str]
+    oauth_username: Optional[str]
+    oauth_password: Optional[str]
+    oauth_client_id: Optional[str]
+    oauth_client_secret: Optional[str]
+    oauth_scope: Optional[str]
+
     def __init__(
         self,
         endpoint: Optional[str] = None,
         project: Optional[str] = None,
         api_key: Optional[str] = None,
-        launch_id: Optional[str] = None,
+        launch_uuid: Optional[str] = None,
         launch_name: Optional[str] = None,
         launch_description: Optional[str] = None,
         launch_attributes: Optional[str] = None,
@@ -86,18 +94,38 @@ class Config(object):
         rerun: Optional[Union[str, bool]] = None,
         rerun_of: Optional[str] = None,
         log_batch_size: Optional[str] = None,
-        log_batch_payload_size: Optional[str] = None,
+        log_batch_payload_limit: Optional[str] = None,
         launch_uuid_print: Optional[str] = None,
         launch_uuid_print_output: Optional[str] = None,
         client_type: Optional[str] = None,
         connect_timeout: Optional[Union[str, float]] = None,
         read_timeout: Optional[Union[str, float]] = None,
+        # OAuth 2.0 parameters
+        oauth_uri: Optional[str] = None,
+        oauth_username: Optional[str] = None,
+        oauth_password: Optional[str] = None,
+        oauth_client_id: Optional[str] = None,
+        oauth_client_secret: Optional[str] = None,
+        oauth_scope: Optional[str] = None,
+        enabled: bool = True,
         **kwargs,
     ):
         """Initialize instance attributes."""
+        self.enabled = enabled
         self.endpoint = endpoint
         self.project = project
-        self.launch_id = launch_id
+        self.launch_uuid = launch_uuid
+        if not self.launch_uuid:
+            if "launch_id" in kwargs:
+                warn(
+                    message="Argument `launch_id` is deprecated since 5.0.1 and "
+                    "will be subject for removing in the next major "
+                    "version. Use `api_key` argument instead.",
+                    category=DeprecationWarning,
+                    stacklevel=2,
+                )
+                self.launch_uuid = kwargs["launch_id"]
+
         self.launch_name = launch_name or DEFAULT_LAUNCH_NAME
         self.launch_description = launch_description
         self.launch_attributes = launch_attributes and launch_attributes.split()
@@ -107,8 +135,8 @@ class Config(object):
         self.rerun = to_bool(rerun or "False")
         self.rerun_of = rerun_of
         self.log_batch_size = (log_batch_size and int(log_batch_size)) or 20
-        self.log_batch_payload_size = (
-            log_batch_payload_size and int(log_batch_payload_size)
+        self.log_batch_payload_limit = (
+            log_batch_payload_limit and int(log_batch_payload_limit)
         ) or MAX_LOG_BATCH_PAYLOAD_SIZE
 
         if step_based and not log_layout:
@@ -122,26 +150,15 @@ class Config(object):
             self.log_layout = LogLayout(log_layout)
 
         self.api_key = api_key
-        if not self.api_key:
-            if "token" in kwargs:
-                warn(
-                    message="Argument `token` is deprecated since 2.0.4 and "
-                    "will be subject for removing in the next major "
-                    "version. Use `api_key` argument instead.",
-                    category=DeprecationWarning,
-                    stacklevel=2,
-                )
-                self.api_key = kwargs["token"]
 
-            if not self.api_key:
-                warn(
-                    message="Argument `api_key` is `None` or empty string, "
-                    "this is unexpected because ReportPortal usually requires an authorization key. "
-                    "Please check your configuration.",
-                    category=RuntimeWarning,
-                    stacklevel=2,
-                )
-        self.enabled = all([self.endpoint, self.project, self.api_key])
+        # OAuth 2.0 parameters
+        self.oauth_uri = oauth_uri
+        self.oauth_username = oauth_username
+        self.oauth_password = oauth_password
+        self.oauth_client_id = oauth_client_id
+        self.oauth_client_secret = oauth_client_secret
+        self.oauth_scope = oauth_scope
+
         self.launch_uuid_print = to_bool(launch_uuid_print or "False")
         launch_uuid_print_output_strip = launch_uuid_print_output.strip() if launch_uuid_print_output else ""
         self.launch_uuid_print_output = (

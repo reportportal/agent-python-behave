@@ -182,7 +182,7 @@ def test_read_config_default_values(mock_cp):
     expect(cfg.retries is None)
     expect(cfg.rerun is False)
     expect(cfg.rerun_of is None)
-    expect(cfg.enabled is False)
+    expect(cfg.enabled is True)
     expect(cfg.launch_uuid_print is False)
     expect(cfg.launch_uuid_print_output is None)
     expect(cfg.client_type is ClientType.SYNC)
@@ -217,41 +217,6 @@ def test_deprecated_step_based(mock_cp):
 
 
 @mock.patch("behave_reportportal.config.ConfigParser", autospec=True)
-def test_deprecated_token_param(mock_cp):
-    mock_context = mock.Mock()
-    mock_context._config.userdata = UserData.make({"config_file": "some_path"})
-    mock_cp().__getitem__.return_value = {
-        "token": "api_key",
-        "endpoint": "endpoint",
-        "project": "project",
-        "launch_name": "launch_name",
-    }
-
-    with warnings.catch_warnings(record=True) as w:
-        cfg = read_config(mock_context)
-        assert cfg.api_key == "api_key"
-        assert len(w) == 1
-
-
-@mock.patch("behave_reportportal.config.ConfigParser", autospec=True)
-def test_api_key_token_param_priority(mock_cp):
-    mock_context = mock.Mock()
-    mock_context._config.userdata = UserData.make({"config_file": "some_path"})
-    mock_cp().__getitem__.return_value = {
-        "api_key": "api_key",
-        "token": "token",
-        "endpoint": "endpoint",
-        "project": "project",
-        "launch_name": "launch_name",
-    }
-
-    with warnings.catch_warnings(record=True) as w:
-        cfg = read_config(mock_context)
-        assert cfg.api_key == "api_key"
-        assert len(w) == 0
-
-
-@mock.patch("behave_reportportal.config.ConfigParser", autospec=True)
 def test_empty_api_key(mock_cp):
     mock_context = mock.Mock()
     mock_context._config.userdata = UserData.make({"config_file": "some_path"})
@@ -262,11 +227,9 @@ def test_empty_api_key(mock_cp):
         "launch_name": "launch_name",
     }
 
-    with warnings.catch_warnings(record=True) as w:
-        cfg = read_config(mock_context)
-        assert cfg.api_key == ""
-        assert cfg.enabled is False
-        assert len(w) == 1
+    cfg = read_config(mock_context)
+    assert cfg.api_key == ""
+    assert cfg.enabled is True
 
 
 @mock.patch("behave_reportportal.config.ConfigParser", autospec=True)

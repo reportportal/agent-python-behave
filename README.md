@@ -9,16 +9,6 @@
 
 Behave extension for reporting test results of Behave to the ReportPortal.
 
-- **Usage**
-- **Installation**
-- **Configuration**
-- **Launching**
-- **Test item attributes**
-- **Logging**
-- **Test case ID**
-- **Integration with GA**
-- **Copyright Notice**
-
 ## Usage
 
 ### Installation
@@ -44,7 +34,6 @@ behave -D config_file=<path_to_config_file>
 
 The `behave.ini` file should have the following mandatory fields under `[report_portal]` section:
 
-- `api_key` - value can be found in the User Profile section
 - `project` - name of project in ReportPortal
 - `endpoint` - address of ReportPortal Server
 
@@ -62,10 +51,21 @@ launch_description = Smoke test
 
 The following parameters are optional:
 
-- `client_type = SYNC` - Type of the under-the-hood ReportPortal client implementation. Possible
-  values: [SYNC, ASYNC_THREAD, ASYNC_BATCHED].
+- `enabled = True` - Enable / disable ReportPortal reporting.
+- `api_key` - value can be found in the User Profile section. **Required** if OAuth 2.0 is not configured.
+- `oauth_uri = https://reportportal.example.com/uat/sso/oauth/token` - OAuth 2.0 token endpoint URL for password grant
+  authentication. **Required** if API key is not used.
+- `oauth_username = my-username` - OAuth 2.0 username for password grant authentication. **Required** if OAuth 2.0 is
+  used.
+- `oauth_password = my-password` - OAuth 2.0 password for password grant authentication. **Required** if OAuth 2.0 is
+  used.
+- `oauth_client_id = client-id` - OAuth 2.0 client identifier. **Required** if OAuth 2.0 is used.
+- `oauth_client_secret = client-id-secret` - OAuth 2.0 client secret.
+- `oauth_scope = offline_access` - OAuth 2.0 access token scope.
+- `client_type = SYNC` - Type of the under-the-hood ReportPortal client implementation. Possible values:
+  \[SYNC, ASYNC_THREAD, ASYNC_BATCHED].
 - `launch_name = AnyLaunchName` - launch name (default value is 'Python Behave Launch')
-- `launch_id = xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx` - id of the existing launch (the session will not handle the
+- `launch_uuid = xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx` - UUID of the existing launch (the session will not handle the
   lifecycle of the given launch)
 - `launch_attributes = Smoke Env:Python3` - list of attributes for launch
 - `launch_description = Smoke test` - launch description
@@ -81,7 +81,7 @@ The following parameters are optional:
 - `connect_timeout = 15` - Connection timeout to ReportPortal server. Default value is "10.0".
 - `read_timeout = 15` - Response read timeout for ReportPortal connection. Default value is "10.0".
 - `log_batch_size = 20` - maximum number of log entries which will be sent by the agent at once
-- `log_batch_payload_size = 65000000` - maximum payload size of a log batch which will be sent by the agent at once
+- `log_batch_payload_limit = 65000000` - maximum payload size of a log batch which will be sent by the agent at once
 
 If you would like to override the above parameters from command line, or from CI environment based on your build, then
 pass:
