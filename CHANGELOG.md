@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+### Changed
+- Client version updated to [5.6.7](https://github.com/reportportal/client-Python/releases/tag/5.6.7), by @HardNorth
 
 ## [5.0.1]
 ### Added
