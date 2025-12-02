@@ -18,7 +18,7 @@ import os
 import traceback
 from functools import wraps
 from os import PathLike
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Optional, Union
 
 from behave.model import Feature, Scenario, Step
 from behave.model_core import BasicStatement, TagAndStatusStatement, TagStatement
@@ -249,9 +249,9 @@ class BehaveAgent(metaclass=Singleton):
     def post_log(
         self,
         message: str,
-        level: Optional[int | str] = "INFO",
+        level: Optional[Union[int, str]] = "INFO",
         item_id: Optional[str] = None,
-        file_to_attach: Optional[PathLike | str] = None,
+        file_to_attach: Optional[Union[PathLike, str]] = None,
     ) -> None:
         """Post log message to current test item."""
         self._log(
@@ -265,8 +265,8 @@ class BehaveAgent(metaclass=Singleton):
     def post_launch_log(
         self,
         message: str,
-        level: Optional[int | str] = "INFO",
-        file_to_attach: Optional[PathLike | str] = None,
+        level: Optional[Union[int, str]] = "INFO",
+        file_to_attach: Optional[Union[PathLike, str]] = None,
     ) -> None:
         """Post log message to launch."""
         self._log(message, level, file_to_attach=file_to_attach)
@@ -274,8 +274,8 @@ class BehaveAgent(metaclass=Singleton):
     def _log(
         self,
         message: str,
-        level: Optional[int | str],
-        file_to_attach: Optional[PathLike | str] = None,
+        level: Optional[Union[int, str]],
+        file_to_attach: Optional[Union[PathLike, str]] = None,
         item_id: Optional[str] = None,
     ) -> None:
         attachment = None
@@ -381,7 +381,7 @@ class BehaveAgent(metaclass=Singleton):
 
     def _log_fixtures(
         self,
-        item: TagAndStatusStatement | TagStatement,
+        item: Union[TagAndStatusStatement, TagStatement],
         item_type: str,
         parent_item_id: str,
     ) -> None:
@@ -441,7 +441,7 @@ class BehaveAgent(metaclass=Singleton):
             )
 
     @staticmethod
-    def _item_description(context: Context, item: Scenario | Feature) -> str:
+    def _item_description(context: Context, item: Union[Scenario, Feature]) -> str:
         desc = ""
         if item.description:
             text_desc = "\n".join(item.description)
@@ -466,7 +466,7 @@ class BehaveAgent(metaclass=Singleton):
             return f"{item.location.filename}:{item.location.line}"
         return None
 
-    def _attributes(self, item: TagAndStatusStatement | TagStatement) -> list[dict[str, str]]:
+    def _attributes(self, item: Union[TagAndStatusStatement, TagStatement]) -> list[dict[str, str]]:
         attrs = []
         if item.tags:
             significant_tags = [t for t in item.tags if not any(t.startswith(p) for p in self._ignore_tag_prefixes)]
