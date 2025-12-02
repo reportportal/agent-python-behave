@@ -18,7 +18,7 @@ import os
 import traceback
 from functools import wraps
 from os import PathLike
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Callable, Optional
 
 from behave.model import Feature, Scenario, Step
 from behave.model_core import BasicStatement, TagAndStatusStatement, TagStatement
@@ -96,7 +96,7 @@ class BehaveAgent(metaclass=Singleton):
     _scenario_id: Optional[str]
     _step_id: Optional[str]
     _log_item_id: Optional[str]
-    _ignore_tag_prefixes: List[str]
+    _ignore_tag_prefixes: list[str]
 
     def __init__(self, cfg: Config, rp_service: Optional[RP] = NOT_SET) -> None:
         """Initialize instance attributes."""
@@ -249,9 +249,9 @@ class BehaveAgent(metaclass=Singleton):
     def post_log(
         self,
         message: str,
-        level: Optional[Union[int, str]] = "INFO",
+        level: Optional[int | str] = "INFO",
         item_id: Optional[str] = None,
-        file_to_attach: Optional[Union[PathLike, str]] = None,
+        file_to_attach: Optional[PathLike | str] = None,
     ) -> None:
         """Post log message to current test item."""
         self._log(
@@ -265,8 +265,8 @@ class BehaveAgent(metaclass=Singleton):
     def post_launch_log(
         self,
         message: str,
-        level: Optional[Union[int, str]] = "INFO",
-        file_to_attach: Optional[Union[PathLike, str]] = None,
+        level: Optional[int | str] = "INFO",
+        file_to_attach: Optional[PathLike | str] = None,
     ) -> None:
         """Post log message to launch."""
         self._log(message, level, file_to_attach=file_to_attach)
@@ -274,8 +274,8 @@ class BehaveAgent(metaclass=Singleton):
     def _log(
         self,
         message: str,
-        level: Optional[Union[int, str]],
-        file_to_attach: Optional[Union[PathLike, str]] = None,
+        level: Optional[int | str],
+        file_to_attach: Optional[PathLike | str] = None,
         item_id: Optional[str] = None,
     ) -> None:
         attachment = None
@@ -299,7 +299,7 @@ class BehaveAgent(metaclass=Singleton):
             item_id=item_id,
         )
 
-    def _get_launch_attributes(self) -> List[Dict[str, str]]:
+    def _get_launch_attributes(self) -> list[dict[str, str]]:
         """Return launch attributes in the format supported by the rp."""
         launch_attributes = self._cfg.launch_attributes
         attributes = gen_attributes(launch_attributes) if launch_attributes else []
@@ -381,7 +381,7 @@ class BehaveAgent(metaclass=Singleton):
 
     def _log_fixtures(
         self,
-        item: Union[TagAndStatusStatement, TagStatement],
+        item: TagAndStatusStatement | TagStatement,
         item_type: str,
         parent_item_id: str,
     ) -> None:
@@ -441,7 +441,7 @@ class BehaveAgent(metaclass=Singleton):
             )
 
     @staticmethod
-    def _item_description(context: Context, item: Union[Scenario, Feature]) -> str:
+    def _item_description(context: Context, item: Scenario | Feature) -> str:
         desc = ""
         if item.description:
             text_desc = "\n".join(item.description)
@@ -455,7 +455,7 @@ class BehaveAgent(metaclass=Singleton):
         return desc
 
     @staticmethod
-    def _get_parameters(context: Context) -> Optional[Dict[str, Any]]:
+    def _get_parameters(context: Context) -> Optional[dict[str, Any]]:
         if context.active_outline:
             return {r[0]: r[1] for r in zip(context.active_outline.headings, context.active_outline.cells)}
         return None
@@ -466,7 +466,7 @@ class BehaveAgent(metaclass=Singleton):
             return f"{item.location.filename}:{item.location.line}"
         return None
 
-    def _attributes(self, item: Union[TagAndStatusStatement, TagStatement]) -> List[Dict[str, str]]:
+    def _attributes(self, item: TagAndStatusStatement | TagStatement) -> list[dict[str, str]]:
         attrs = []
         if item.tags:
             significant_tags = [t for t in item.tags if not any(t.startswith(p) for p in self._ignore_tag_prefixes)]
@@ -476,7 +476,7 @@ class BehaveAgent(metaclass=Singleton):
         return gen_attributes(attrs)
 
     @staticmethod
-    def _get_attributes_from_tags(tags: List[str]) -> List[str]:
+    def _get_attributes_from_tags(tags: list[str]) -> list[str]:
         result = []
         attr_tags = [t for t in tags if t.startswith("attribute")]
 

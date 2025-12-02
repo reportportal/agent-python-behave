@@ -15,7 +15,7 @@
 
 from configparser import ConfigParser
 from enum import Enum
-from typing import List, Optional, Tuple, Union
+from typing import Optional
 from warnings import warn
 
 from behave.runner import Context
@@ -55,7 +55,7 @@ class Config(object):
     launch_uuid: Optional[str]
     launch_name: str
     launch_description: Optional[str]
-    launch_attributes: Optional[List[str]]
+    launch_attributes: Optional[list[str]]
     debug_mode: bool
     is_skipped_an_issue: bool
     retries: Optional[int]
@@ -67,7 +67,7 @@ class Config(object):
     launch_uuid_print: bool
     launch_uuid_print_output: Optional[OutputType]
     client_type: ClientType
-    http_timeout: Optional[Union[Tuple[float, float], float]]
+    http_timeout: Optional[tuple[float, float] | float]
 
     # OAuth 2.0 parameters
     oauth_uri: Optional[str]
@@ -86,20 +86,20 @@ class Config(object):
         launch_name: Optional[str] = None,
         launch_description: Optional[str] = None,
         launch_attributes: Optional[str] = None,
-        debug_mode: Optional[Union[str, bool]] = None,
-        log_layout: Optional[Union[str, LogLayout]] = None,
+        debug_mode: Optional[str | bool] = None,
+        log_layout: Optional[str | LogLayout] = None,
         step_based: Optional[str] = None,
-        is_skipped_an_issue: Optional[Union[str, bool]] = None,
-        retries: Optional[Union[str, int]] = None,
-        rerun: Optional[Union[str, bool]] = None,
+        is_skipped_an_issue: Optional[str | bool] = None,
+        retries: Optional[str | int] = None,
+        rerun: Optional[str | bool] = None,
         rerun_of: Optional[str] = None,
         log_batch_size: Optional[str] = None,
         log_batch_payload_limit: Optional[str] = None,
         launch_uuid_print: Optional[str] = None,
         launch_uuid_print_output: Optional[str] = None,
         client_type: Optional[str] = None,
-        connect_timeout: Optional[Union[str, float]] = None,
-        read_timeout: Optional[Union[str, float]] = None,
+        connect_timeout: Optional[str | float] = None,
+        read_timeout: Optional[str | float] = None,
         # OAuth 2.0 parameters
         oauth_uri: Optional[str] = None,
         oauth_username: Optional[str] = None,
