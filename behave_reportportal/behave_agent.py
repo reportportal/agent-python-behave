@@ -521,6 +521,8 @@ class BehaveAgent(metaclass=Singleton):
             return "FAILED"
         elif behave_status == "skipped":
             return "SKIPPED"
+        elif behave_status == "error":
+            return "FAILED"
         else:
             # todo define what to do
             return "PASSED"
