@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+
+## [5.1.0]
 ### Added
 - Official `Python 3.14` support, by @HardNorth
 ### Changed
