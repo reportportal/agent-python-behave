@@ -1,6 +1,14 @@
 # Changelog
 
 ## [Unreleased]
+### Added
+- Official `Python 3.14` support, by @HardNorth
+### Changed
+- Client version updated on [5.7.0](https://github.com/reportportal/client-Python/releases/tag/5.7.0), by @HardNorth
+### Removed
+- `Python 3.8` support, by @HardNorth
+
+## [5.0.2]
 ### Changed
 - Client version updated to [5.6.7](https://github.com/reportportal/client-Python/releases/tag/5.6.7), by @HardNorth
 

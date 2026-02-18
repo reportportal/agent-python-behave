@@ -15,7 +15,7 @@
 
 from configparser import ConfigParser
 from enum import Enum
-from typing import List, Optional, Tuple, Union
+from typing import Optional, Union
 from warnings import warn
 
 from behave.runner import Context
@@ -55,7 +55,7 @@ class Config(object):
     launch_uuid: Optional[str]
     launch_name: str
     launch_description: Optional[str]
-    launch_attributes: Optional[List[str]]
+    launch_attributes: Optional[list[str]]
     debug_mode: bool
     is_skipped_an_issue: bool
     retries: Optional[int]
@@ -67,7 +67,7 @@ class Config(object):
     launch_uuid_print: bool
     launch_uuid_print_output: Optional[OutputType]
     client_type: ClientType
-    http_timeout: Optional[Union[Tuple[float, float], float]]
+    http_timeout: Optional[Union[tuple[float, float], float]]
 
     # OAuth 2.0 parameters
     oauth_uri: Optional[str]

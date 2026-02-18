@@ -17,7 +17,7 @@ import os
 
 from setuptools import setup
 
-__version__ = "5.0.2"
+__version__ = "5.1.0"
 
 
 def read_file(fname):
@@ -48,11 +48,11 @@ setup(
     license_files=["LICENSE"],
     classifiers=[
         "License :: OSI Approved :: Apache Software License",
-        "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",
         "Programming Language :: Python :: 3.13",
+        "Programming Language :: Python :: 3.14",
     ],
 )
