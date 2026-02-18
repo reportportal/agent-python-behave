@@ -5,6 +5,7 @@
 ## [5.1.0]
 ### Added
 - Official `Python 3.14` support, by @HardNorth
+- Behave "error" status support, by @hemanth-kumar-glean
 ### Changed
 - Client version updated on [5.7.0](https://github.com/reportportal/client-Python/releases/tag/5.7.0), by @HardNorth
 ### Removed
