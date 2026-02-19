@@ -55,7 +55,7 @@ def convert_to_rp_status(behave_status: str) -> str:
     :param behave_status: behave test result status
     :return: ReportPortal test result status
     """
-    return STATUS_MAPPINGS.get(behave_status)
+    return STATUS_MAPPINGS[behave_status]
 
 
 def check_rp_enabled(func: Callable) -> Callable:
