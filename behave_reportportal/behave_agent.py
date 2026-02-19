@@ -16,6 +16,7 @@
 import mimetypes
 import os
 import traceback
+from collections import defaultdict
 from functools import wraps
 from os import PathLike
 from typing import Any, Callable, Optional, Union
@@ -38,6 +39,22 @@ from reportportal_client.helpers import (
 
 from behave_reportportal.config import Config, LogLayout
 from behave_reportportal.utils import Singleton
+
+STATUS_MAPPINGS: dict[str, str] = defaultdict(lambda: "FAILED")
+STATUS_MAPPINGS["passed"] = "PASSED"
+STATUS_MAPPINGS["failed"] = "FAILED"
+STATUS_MAPPINGS["error"] = "ERROR"
+STATUS_MAPPINGS["skipped"] = "SKIPPED"
+
+
+def convert_to_rp_status(behave_status: str) -> str:
+    """
+    Convert behave test result status to ReportPortal status.
+
+    :param behave_status: behave test result status
+    :return: ReportPortal test result status
+    """
+    return STATUS_MAPPINGS[behave_status]
 
 
 def check_rp_enabled(func: Callable) -> Callable:
@@ -164,7 +181,7 @@ class BehaveAgent(metaclass=Singleton):
         self._rp.finish_test_item(
             item_id=self._feature_id,
             end_time=timestamp(),
-            status=status or self.convert_to_rp_status(feature.status.name),
+            status=status or convert_to_rp_status(feature.status.name),
             **kwargs,
         )
 
@@ -199,14 +216,15 @@ class BehaveAgent(metaclass=Singleton):
         """Finish scenario in ReportPortal."""
         if scenario.tags and "skip" in scenario.tags:
             status = "SKIPPED"
-        if scenario.status.name == "failed":
+        rp_status = convert_to_rp_status(scenario.status.name)
+        if rp_status == "FAILED":
             self._log_skipped_steps(context, scenario)
             self._log_scenario_exception(scenario)
         self._log_cleanups(context, "scenario")
         self._rp.finish_test_item(
             item_id=self._scenario_id,
             end_time=timestamp(),
-            status=status or self.convert_to_rp_status(scenario.status.name),
+            status=status or rp_status,
             **kwargs,
         )
         self._log_item_id = self._feature_id
@@ -321,12 +339,13 @@ class BehaveAgent(metaclass=Singleton):
         return txt
 
     def _finish_step_step_based(self, step: Step, status: Optional[str] = None, **kwargs: Any) -> None:
-        if step.status.name == "failed":
+        rp_status = convert_to_rp_status(step.status.name)
+        if rp_status == "FAILED":
             self._log_step_exception(step, self._step_id)
         self._rp.finish_test_item(
             item_id=self._step_id,
             end_time=timestamp(),
-            status=status or self.convert_to_rp_status(step.status.name),
+            status=status or rp_status,
             **kwargs,
         )
         self._log_item_id = self._scenario_id
@@ -340,7 +359,7 @@ class BehaveAgent(metaclass=Singleton):
             level="INFO",
             **kwargs,
         )
-        if step.status.name == "failed":
+        if convert_to_rp_status(step.status.name) == "FAILED":
             self._log_step_exception(step, self._scenario_id)
 
     def _log_step_exception(self, step: Step, item_id: Optional[str]) -> None:
@@ -506,23 +525,3 @@ class BehaveAgent(metaclass=Singleton):
                 return None
             return tc_id
         return None
-
-    @staticmethod
-    def convert_to_rp_status(behave_status: str) -> str:
-        """
-        Convert behave test result status to ReportPortal status.
-
-        :param behave_status: behave test result status
-        :return: ReportPortal test result status
-        """
-        if behave_status == "passed":
-            return "PASSED"
-        elif behave_status == "failed":
-            return "FAILED"
-        elif behave_status == "skipped":
-            return "SKIPPED"
-        elif behave_status == "error":
-            return "FAILED"
-        else:
-            # todo define what to do
-            return "PASSED"

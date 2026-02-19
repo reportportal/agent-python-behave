@@ -23,7 +23,7 @@ from prettytable import MARKDOWN, PrettyTable
 from reportportal_client import BatchedRPClient, RPClient, ThreadedRPClient
 from reportportal_client.logs import MAX_LOG_BATCH_PAYLOAD_SIZE
 
-from behave_reportportal.behave_agent import BehaveAgent, create_rp_service
+from behave_reportportal.behave_agent import BehaveAgent, convert_to_rp_status, create_rp_service
 from behave_reportportal.config import Config, LogLayout
 from behave_reportportal.utils import Singleton
 
@@ -52,11 +52,11 @@ def clean_instances():
         ("passed", "PASSED"),
         ("skipped", "SKIPPED"),
         ("failed", "FAILED"),
-        ("xyz", "PASSED"),
+        ("xyz", "FAILED"),
     ],
 )
 def test_convert_to_rp_status(status, expected):
-    actual = BehaveAgent.convert_to_rp_status(status)
+    actual = convert_to_rp_status(status)
     assert actual == expected, f"Incorrect status:\nActual: {actual}\nExpected:{expected}"
 
 
