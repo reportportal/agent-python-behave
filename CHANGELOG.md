@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+
+## [5.1.1]
 ### Added
 - Logging on Behave "error" status, by @HardNorth
 ### Changed
