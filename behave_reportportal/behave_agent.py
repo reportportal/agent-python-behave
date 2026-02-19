@@ -40,7 +40,6 @@ from reportportal_client.helpers import (
 from behave_reportportal.config import Config, LogLayout
 from behave_reportportal.utils import Singleton
 
-
 STATUS_MAPPINGS: dict[str, str] = defaultdict(lambda: "FAILED")
 STATUS_MAPPINGS["passed"] = "PASSED"
 STATUS_MAPPINGS["failed"] = "FAILED"
