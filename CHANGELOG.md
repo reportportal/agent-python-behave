@@ -3,6 +3,8 @@
 ## [Unreleased]
 ### Added
 - Logging on Behave "error" status, by @HardNorth
+### Changed
+- Unknown statuses now handled as `FAILED`, by @HardNorth
 
 ## [5.1.0]
 ### Added
