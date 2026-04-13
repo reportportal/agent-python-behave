@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 ### Added
+- Microseconds precision for timestamps, by @HardNorth
+### Changed
+- Client version updated on [5.7.4](https://github.com/reportportal/client-Python/releases/tag/5.7.4), by @HardNorth
+
+## [5.1.1]
+### Added
 - Logging on Behave "error" status, by @HardNorth
 ### Changed
 - Unknown statuses now handled as `FAILED`, by @HardNorth

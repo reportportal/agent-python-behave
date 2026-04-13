@@ -184,7 +184,7 @@ def test_read_config_default_values(mock_cp):
     expect(cfg.rerun_of is None)
     expect(cfg.enabled is True)
     expect(cfg.launch_uuid_print is False)
-    expect(cfg.launch_uuid_print_output is None)
+    expect(cfg.launch_uuid_print_output is OutputType.STDOUT)
     expect(cfg.client_type is ClientType.SYNC)
     assert_expectations()
 
@@ -246,7 +246,7 @@ def test_launch_uuid_print(mock_cp):
 
     cfg = read_config(mock_context)
     assert cfg.launch_uuid_print
-    assert cfg.launch_uuid_print_output is None
+    assert cfg.launch_uuid_print_output is OutputType.STDOUT
 
 
 @mock.patch("behave_reportportal.config.ConfigParser", autospec=True)
@@ -296,7 +296,7 @@ def test_no_launch_uuid_print(mock_cp):
 
     cfg = read_config(mock_context)
     assert not cfg.launch_uuid_print
-    assert cfg.launch_uuid_print_output is None
+    assert cfg.launch_uuid_print_output is OutputType.STDOUT
 
 
 @pytest.mark.parametrize(
