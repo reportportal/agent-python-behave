@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+
+## [5.1.2]
 ### Added
 - Microseconds precision for timestamps, by @HardNorth
 ### Changed
