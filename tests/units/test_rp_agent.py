@@ -20,7 +20,7 @@ import pytest
 from behave.model_core import Status
 from delayed_assert import assert_expectations, expect
 from prettytable import MARKDOWN, PrettyTable
-from reportportal_client import BatchedRPClient, RPClient, ThreadedRPClient, OutputType
+from reportportal_client import BatchedRPClient, OutputType, RPClient, ThreadedRPClient
 from reportportal_client.logs import MAX_LOG_BATCH_PAYLOAD_SIZE
 
 from behave_reportportal.behave_agent import BehaveAgent, convert_to_rp_status, create_rp_service
