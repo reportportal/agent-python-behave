@@ -65,7 +65,7 @@ class Config(object):
     log_batch_payload_limit: int
     log_layout: LogLayout
     launch_uuid_print: bool
-    launch_uuid_print_output: Optional[OutputType]
+    launch_uuid_print_output: OutputType
     client_type: ClientType
     http_timeout: Optional[Union[tuple[float, float], float]]
 
@@ -162,7 +162,7 @@ class Config(object):
         self.launch_uuid_print = to_bool(launch_uuid_print or "False")
         launch_uuid_print_output_strip = launch_uuid_print_output.strip() if launch_uuid_print_output else ""
         self.launch_uuid_print_output = (
-            OutputType[launch_uuid_print_output_strip.upper()] if launch_uuid_print_output_strip else None
+            OutputType[launch_uuid_print_output_strip.upper()] if launch_uuid_print_output_strip else OutputType.STDOUT
         )
         client_type_strip = client_type.strip() if client_type else ""
         self.client_type = ClientType[client_type_strip.upper()] if client_type_strip else ClientType.SYNC

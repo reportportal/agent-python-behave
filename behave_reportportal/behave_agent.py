@@ -17,6 +17,7 @@ import mimetypes
 import os
 import traceback
 from collections import defaultdict
+from datetime import datetime, timezone
 from functools import wraps
 from os import PathLike
 from typing import Any, Callable, Optional, Union
@@ -34,7 +35,6 @@ from reportportal_client.helpers import (
     gen_attributes,
     get_launch_sys_attrs,
     get_package_version,
-    timestamp,
 )
 
 from behave_reportportal.config import Config, LogLayout
@@ -140,7 +140,7 @@ class BehaveAgent(metaclass=Singleton):
         self._handle_lifecycle = False if self._rp.launch_uuid else True
         self._launch_id = self._rp.launch_uuid or self._rp.start_launch(
             name=self._cfg.launch_name,
-            start_time=timestamp(),
+            start_time=datetime.now(tz=timezone.utc),
             attributes=self._get_launch_attributes(),
             description=self._cfg.launch_description,
             rerun=self._cfg.rerun,
@@ -152,7 +152,7 @@ class BehaveAgent(metaclass=Singleton):
     def finish_launch(self, _: Context, **kwargs: Any) -> None:
         """Finish launch in ReportPortal."""
         if self._handle_lifecycle:
-            self._rp.finish_launch(end_time=timestamp(), **kwargs)
+            self._rp.finish_launch(end_time=datetime.now(tz=timezone.utc), **kwargs)
         self._rp.close()
 
     @check_rp_enabled
@@ -162,7 +162,7 @@ class BehaveAgent(metaclass=Singleton):
             feature.skip("Marked with @skip")
         self._feature_id = self._rp.start_test_item(
             name=feature.name,
-            start_time=timestamp(),
+            start_time=datetime.now(tz=timezone.utc),
             item_type="SUITE",
             description=self._item_description(context, feature),
             code_ref=self._code_ref(feature),
@@ -180,7 +180,7 @@ class BehaveAgent(metaclass=Singleton):
         self._log_cleanups(context, "feature")
         self._rp.finish_test_item(
             item_id=self._feature_id,
-            end_time=timestamp(),
+            end_time=datetime.now(tz=timezone.utc),
             status=status or convert_to_rp_status(feature.status.name),
             **kwargs,
         )
@@ -192,7 +192,7 @@ class BehaveAgent(metaclass=Singleton):
             scenario.skip("Marked with @skip")
         self._scenario_id = self._rp.start_test_item(
             name=scenario.name,
-            start_time=timestamp(),
+            start_time=datetime.now(tz=timezone.utc),
             item_type="STEP",
             parent_item_id=self._feature_id,
             code_ref=self._code_ref(scenario),
@@ -223,7 +223,7 @@ class BehaveAgent(metaclass=Singleton):
         self._log_cleanups(context, "scenario")
         self._rp.finish_test_item(
             item_id=self._scenario_id,
-            end_time=timestamp(),
+            end_time=datetime.now(tz=timezone.utc),
             status=status or rp_status,
             **kwargs,
         )
@@ -243,7 +243,7 @@ class BehaveAgent(metaclass=Singleton):
             step_content = self._build_step_content(step)
             self._step_id = self._rp.start_test_item(
                 name=f"[{step.keyword}]: {step.name}",
-                start_time=timestamp(),
+                start_time=datetime.now(tz=timezone.utc),
                 item_type="STEP",
                 parent_item_id=self._scenario_id,
                 code_ref=self._code_ref(step),
@@ -307,10 +307,13 @@ class BehaveAgent(metaclass=Singleton):
                     }
             except OSError:
                 self._rp.log(
-                    time=timestamp(), message=f"Attachment not found: {file_to_attach}", level="WARN", item_id=item_id
+                    time=datetime.now(tz=timezone.utc),
+                    message=f"Attachment not found: {file_to_attach}",
+                    level="WARN",
+                    item_id=item_id,
                 )
         self._rp.log(
-            time=timestamp(),
+            time=datetime.now(tz=timezone.utc),
             message=message,
             level=level,
             attachment=attachment,
@@ -344,7 +347,7 @@ class BehaveAgent(metaclass=Singleton):
             self._log_step_exception(step, self._step_id)
         self._rp.finish_test_item(
             item_id=self._step_id,
-            end_time=timestamp(),
+            end_time=datetime.now(tz=timezone.utc),
             status=status or rp_status,
             **kwargs,
         )
@@ -354,7 +357,7 @@ class BehaveAgent(metaclass=Singleton):
         step_content = self._build_step_content(step)
         self._rp.log(
             item_id=self._scenario_id,
-            time=timestamp(),
+            time=datetime.now(tz=timezone.utc),
             message=f"[{step.keyword}]: {step.name}." + (f"\n\n{step_content}" if step_content else ""),
             level="INFO",
             **kwargs,
@@ -393,7 +396,7 @@ class BehaveAgent(metaclass=Singleton):
 
         self._rp.log(
             item_id=item_id,
-            time=timestamp(),
+            time=datetime.now(tz=timezone.utc),
             level="ERROR",
             message="\n".join(message),
         )
@@ -419,15 +422,17 @@ class BehaveAgent(metaclass=Singleton):
             if self._cfg.log_layout is not LogLayout.SCENARIO:
                 self._step_id = self._rp.start_test_item(
                     name=msg,
-                    start_time=timestamp(),
+                    start_time=datetime.now(tz=timezone.utc),
                     item_type=item_type,
                     parent_item_id=parent_item_id,
                     has_stats=False if self._cfg.log_layout is LogLayout.NESTED else True,
                 )
-                self._rp.finish_test_item(item_id=self._step_id, end_time=timestamp(), status="PASSED")
+                self._rp.finish_test_item(
+                    item_id=self._step_id, end_time=datetime.now(tz=timezone.utc), status="PASSED"
+                )
                 continue
             self._rp.log(
-                timestamp(),
+                datetime.now(tz=timezone.utc),
                 msg,
                 level="INFO",
                 item_id=parent_item_id,
@@ -445,15 +450,17 @@ class BehaveAgent(metaclass=Singleton):
             if self._cfg.log_layout is not LogLayout.SCENARIO:
                 self._step_id = self._rp.start_test_item(
                     name=msg,
-                    start_time=timestamp(),
+                    start_time=datetime.now(tz=timezone.utc),
                     item_type=item_type,
                     parent_item_id=item_id,
                     has_stats=False if self._cfg.log_layout is LogLayout.NESTED else True,
                 )
-                self._rp.finish_test_item(item_id=self._step_id, end_time=timestamp(), status="PASSED")
+                self._rp.finish_test_item(
+                    item_id=self._step_id, end_time=datetime.now(tz=timezone.utc), status="PASSED"
+                )
                 continue
             self._rp.log(
-                timestamp(),
+                datetime.now(tz=timezone.utc),
                 msg,
                 level="INFO",
                 item_id=item_id,

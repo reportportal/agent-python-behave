@@ -1,6 +1,10 @@
 # Changelog
 
 ## [Unreleased]
+### Added
+- Microseconds precision for timestamps, by @HardNorth
+### Changed
+- Client version updated on [5.7.4](https://github.com/reportportal/client-Python/releases/tag/5.7.4), by @HardNorth
 
 ## [5.1.1]
 ### Added
