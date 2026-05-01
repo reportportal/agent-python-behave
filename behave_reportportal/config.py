@@ -56,7 +56,7 @@ class Config(object):
     launch_name: str
     launch_description: Optional[str]
     launch_attributes: Optional[list[str]]
-    debug_mode: bool
+    debug_mode: Optional[bool]
     is_skipped_an_issue: bool
     retries: Optional[int]
     rerun: bool
@@ -128,16 +128,17 @@ class Config(object):
 
         self.launch_name = launch_name or DEFAULT_LAUNCH_NAME
         self.launch_description = launch_description
-        self.launch_attributes = launch_attributes and launch_attributes.split()
-        self.debug_mode = to_bool(debug_mode or "False")
-        self.is_skipped_an_issue = to_bool(is_skipped_an_issue or "False")
+        self.launch_attributes = launch_attributes.split() if launch_attributes else None
+        self.debug_mode = to_bool(debug_mode)
+        skipped_an_issue_bool = to_bool(is_skipped_an_issue)
+        self.is_skipped_an_issue = skipped_an_issue_bool if skipped_an_issue_bool is not None else True
         self.retries = int(retries) if retries is not None else None
-        self.rerun = to_bool(rerun or "False")
+        self.rerun = to_bool(rerun) or False
         self.rerun_of = rerun_of
-        self.log_batch_size = (log_batch_size and int(log_batch_size)) or 20
+        self.log_batch_size = int(log_batch_size) if log_batch_size else 20
         self.log_batch_payload_limit = (
-            log_batch_payload_limit and int(log_batch_payload_limit)
-        ) or MAX_LOG_BATCH_PAYLOAD_SIZE
+            int(log_batch_payload_limit) if log_batch_payload_limit else MAX_LOG_BATCH_PAYLOAD_SIZE
+        )
 
         if step_based and not log_layout:
             warn(
@@ -159,7 +160,7 @@ class Config(object):
         self.oauth_client_secret = oauth_client_secret
         self.oauth_scope = oauth_scope
 
-        self.launch_uuid_print = to_bool(launch_uuid_print or "False")
+        self.launch_uuid_print = to_bool(launch_uuid_print) or False
         launch_uuid_print_output_strip = launch_uuid_print_output.strip() if launch_uuid_print_output else ""
         self.launch_uuid_print_output = (
             OutputType[launch_uuid_print_output_strip.upper()] if launch_uuid_print_output_strip else OutputType.STDOUT
