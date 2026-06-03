@@ -178,7 +178,7 @@ def test_create_rp_service_init(mock_rps):
                 "A",
                 "C",
                 api_key="B",
-                is_skipped_an_issue=False,
+                is_skipped_an_issue=True,
                 launch_uuid=None,
                 retries=None,
                 mode="DEFAULT",
