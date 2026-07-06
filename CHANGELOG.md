@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 ### Changed
+- Client version updated on [5.7.7](https://github.com/reportportal/client-Python/releases/tag/5.7.7), by @hemanth-kumar-glean
+
+## [5.1.3]
+### Changed
 - Client version updated on [5.7.6](https://github.com/reportportal/client-Python/releases/tag/5.7.6), by @HardNorth
 
 ## [5.1.2]
