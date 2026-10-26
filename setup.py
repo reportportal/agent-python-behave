@@ -17,7 +17,7 @@ import os
 
 from setuptools import setup
 
-__version__ = "5.1.5"
+__version__ = "5.1.6"
 
 
 def read_file(fname):
@@ -54,5 +54,6 @@ setup(
         "Programming Language :: Python :: 3.12",
         "Programming Language :: Python :: 3.13",
         "Programming Language :: Python :: 3.14",
+        "Programming Language :: Python :: 3.15",
     ],
 )

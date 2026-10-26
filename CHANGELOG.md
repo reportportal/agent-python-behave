@@ -1,6 +1,12 @@
 # Changelog
 
 ## [Unreleased]
+### Added
+- Official `Python 3.15` support, by @HardNorth
+### Changed
+- Client version updated on [5.7.12](https://github.com/reportportal/client-Python/releases/tag/5.7.12), by @HardNorth
+
+## [5.1.5]
 ### Changed
 - Client version updated on [5.7.10](https://github.com/reportportal/client-Python/releases/tag/5.7.10), by @krish-khimasia-glean
 
